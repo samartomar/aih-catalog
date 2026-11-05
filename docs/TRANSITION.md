@@ -49,14 +49,19 @@ reconciles the three section reports with the committed data and lists the known
   outside consumer, importing only the public exports;
   [the recorded results](../validation/packed-consumer.json) name the tarball's sha256 and
   source commit. One expected result is still open there: the tool trio plans no Serena
-  context files. Journey 12's qualified branch is pending real qualifications.
+  context files. Journey 12's complete first-time installation proof remains pending.
 - **Native use.** Planned layouts are not yet checked in the real clients, and plugin presence
   checks stay `none` until a reliable check exists.
-- **Qualifications.** Only codebase-memory-mcp on linux-x64 is qualified. code-review-graph and
-  Serena are blocked on linux-x64, and the tool trio has no combination qualification, so its
-  recipe plans `incomplete`.
-- **Data admission.** All data is a candidate until its scan keys pass the data-commit gate
-  against trusted scans. Recipes are published once they name the admitted data commit.
+- **Qualifications.** codebase-memory-mcp, code-review-graph and Serena, and their combination,
+  are qualified on linux-x64 for direct MCP use on a configured Python fixture. The
+  [2026-11-05 run](../validation/native/0d38c22cf7e89a5768d6bc2527288e116c1f73ef34dad428d34f3484ac0f83b4.json)
+  records pinned isolated source builds, real readbacks and Serena's separate Python
+  language-server prerequisite. Only its `ide` context was exercised. Source-built wheels
+  remain caller-supplied; the current plan does not provision the auxiliary runtime or prove
+  clean first-time installation or named-client loading. Historical blocked records remain.
+- **Data admission.** Port and packed-consumer checks do not verify production scan admission;
+  the data-commit gate requires separate matching trusted-evidence verification. Recipes are
+  published once they name the admitted data commit.
   Extensions has no base recipe until its package declares its per-client routes.
 - **Scan on the registry.** Until `@aihq/scan@0.1.0` is published, consumers install the
   vendored Scan tarball beside Catalog ([README](../README.md#install)).

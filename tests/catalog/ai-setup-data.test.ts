@@ -15,7 +15,7 @@ import {
   readContent,
   readQualification,
 } from "../../src/catalog/reader.js";
-import { profile } from "./helpers.js";
+import { profile, sha } from "./helpers.js";
 
 const root = join(import.meta.dirname, "..", "..");
 const REPORT = JSON.parse(readFileSync(join(root, "port-report/ai-setup.json"), "utf8"));
@@ -43,12 +43,39 @@ const planned = (result: PlanResult) => {
 };
 
 describe("the committed qualifications", () => {
+  it("binds the real native records to discoverable, conditionally scoped run evidence", () => {
+    const run = "0d38c22cf7e89a5768d6bc2527288e116c1f73ef34dad428d34f3484ac0f83b4";
+    const text = readFileSync(join(root, "validation/native", `${run}.json`), "utf8");
+    expect(sha(text)).toBe(run);
+    const facts = JSON.parse(text);
+    expect(facts.interpreters.crg.version).toBe("3.15.2");
+    expect(facts.interpreters.serena.version).toBe("3.14.10");
+    expect(facts.auxiliaryPythonLanguageServer.install.requiresExplicitPreparation).toBe(true);
+    const current = records.filter((entry) => entry.result.run === run);
+    expect(current).toHaveLength(4);
+    for (const record of current) {
+      if (!("artifact" in record.observed) || !record.observed.closure) continue;
+      const observed = record.observed;
+      expect(observed.closure?.some((wheel) => wheel.file === observed.artifact.file)).toBe(false);
+    }
+    const sourceBuilt = current.flatMap((record) =>
+      "artifact" in record.observed
+        ? (record.observed.closure?.filter((wheel) => wheel.build) ?? [])
+        : [],
+    );
+    expect(sourceBuilt.map((wheel) => `${wheel.name}==${wheel.version}`).sort()).toEqual([
+      "PyYAML==6.0.2",
+      "PyYAML==6.0.3",
+      "proxy_tools==0.1.0",
+      "tree-sitter==0.26.0",
+    ]);
+  });
   it("are canonical, named by their sha256, and keep each run's actual result", () => {
     for (const entry of qualifications) expect(entry.name).toBe(`${entry.sha256}.json`);
     const statuses = qualifications
       .map(({ qualification }) => {
-        const subject = qualification.subject as { aiSetup: string; cell: string };
-        return `${subject.aiSetup} ${subject.cell} ${qualification.result.status}`;
+        const subject = qualification.subject;
+        return `${"aiSetup" in subject ? subject.aiSetup : subject.recipe} ${subject.cell} ${qualification.result.status}`;
       })
       .sort();
     expect(statuses).toEqual([
@@ -56,13 +83,19 @@ describe("the committed qualifications", () => {
       "cbm.ai-setup.codebase-memory-mcp darwin-x64 unknown",
       "cbm.ai-setup.codebase-memory-mcp linux-arm64 unknown",
       "cbm.ai-setup.codebase-memory-mcp linux-x64 qualified",
+      "cbm.ai-setup.codebase-memory-mcp linux-x64 qualified",
       "cbm.ai-setup.codebase-memory-mcp windows-arm64 unknown",
       "cbm.ai-setup.codebase-memory-mcp windows-x64 unknown",
+      "code-intelligence-trio linux-x64 qualified",
       "crg.ai-setup.code-review-graph linux-x64 blocked",
       "crg.ai-setup.code-review-graph linux-x64 blocked",
+      "crg.ai-setup.code-review-graph linux-x64 qualified",
       "serena.ai-setup.serena linux-x64 blocked",
+      "serena.ai-setup.serena linux-x64 qualified",
     ]);
-    expect(REPORT.combinationQualifications).toEqual([]);
+    expect(REPORT.combinationQualifications).toMatchObject([
+      { recipe: "code-intelligence-trio", cell: "linux-x64", status: "qualified" },
+    ]);
   });
 
   it("are exactly the ones the AI setup items accept", () => {
@@ -71,7 +104,12 @@ describe("the committed qualifications", () => {
       .filter((item) => item.kind === "ai-setup")
       .flatMap((item) => (item.aiSetup as { qualifications: string[] }).qualifications)
       .sort();
-    expect(accepted).toEqual(qualifications.map((entry) => entry.sha256).sort());
+    expect(accepted).toEqual(
+      qualifications
+        .filter((entry) => "aiSetup" in entry.qualification.subject)
+        .map((entry) => entry.sha256)
+        .sort(),
+    );
   });
 });
 
@@ -93,24 +131,16 @@ describe("the trio on Linux x64", () => {
       ),
     );
 
-  it("stays incomplete with the real reasons until every qualification exists", () => {
+  it("plans the exact qualified configured-fixture combination", () => {
     const result = plan();
-    expect(result.status).toBe("incomplete");
+    expect(result.status).toBe("ok");
     expect(
       result.unavailable.map((entry) => [
         entry.item ?? entry.recipe,
         entry.reason,
         entry.cause ?? "",
       ]),
-    ).toEqual([
-      ["code-intelligence-trio", "no-qualification", ""],
-      ["crg.ai-setup.code-review-graph", "not-qualified", "blocked"],
-      ["serena.ai-setup.serena", "not-qualified", "blocked"],
-    ]);
-    // code-review-graph's reason is its latest run's (CPython 3.15.2), not the older 3.14.10 one.
-    expect(
-      result.unavailable.find((entry) => entry.item === "crg.ai-setup.code-review-graph")?.detail,
-    ).toMatch(/^no binary-only closure on CPython 3\.15\.2/);
+    ).toEqual([]);
   });
 
   it("acquires codebase-memory-mcp from its qualified record and applies its settings with readbacks", () => {
@@ -118,16 +148,20 @@ describe("the trio on Linux x64", () => {
     const cbm = qualifications.find(
       (entry) =>
         entry.qualification.result.status === "qualified" &&
+        entry.qualification.result.date === "2026-11-05" &&
+        "aiSetup" in entry.qualification.subject &&
+        entry.qualification.subject.aiSetup === "cbm.ai-setup.codebase-memory-mcp" &&
         (entry.qualification.subject as { cell: string }).cell === "linux-x64",
     );
-    expect(result.plan.filter((step) => step.op === "acquire")).toEqual([
+    expect(result.plan.filter((step) => step.op === "acquire")).toHaveLength(3);
+    expect(result.plan.filter((step) => step.op === "acquire")).toContainEqual(
       expect.objectContaining({
         aiSetup: "cbm.ai-setup.codebase-memory-mcp",
         into: ".aihq/ai-setup/codebase-memory-mcp/0.12.1/linux-x64/",
         executable: ".aihq/ai-setup/codebase-memory-mcp/0.12.1/linux-x64/codebase-memory-mcp",
         qualification: cbm?.sha256,
       }),
-    ]);
+    );
     expect(
       result.plan
         .filter((step) => step.op === "tool-command")

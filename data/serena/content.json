@@ -119,6 +119,7 @@
         },
         "mcpItem": "serena.mcp.serena",
         "qualifications": [
+          "415cb167697c87defaa67d48cf51fed6a4b3852df391b12185291f4342ab959c",
           "8e9113b6ba319e27f7b05651a35b3b91d4b1a1963a3fb29746b37735643d4b81"
         ],
         "runtime": {

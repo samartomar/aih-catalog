@@ -92,6 +92,12 @@ setup item, with the status its recorded run gave; it never needs a package rele
 commit upstream bytes whose licence forbids redistribution: record their identity and mark
 the item `fetch: "upstream"`.
 
+The 2026-11-05 native qualification inputs are in `tools/lib/native-qualifications.json`;
+`port:ai-setup` preserves the historical runs and writes these additional records, references
+and combination recipe. Their `result.run` names the sha256 of canonical public-safe facts
+under `validation/native/<sha256>.json`. Preserve the run's conditional scope and auxiliary
+prerequisites: a configured-fixture MCP result does not establish clean plan installation.
+
 An MCP package the upstream leaves unpinned gets the exact version the previous Catalog
 release reviewed for the same package. Its entry in `port-report/maintained.json` records
 that in `pinBasis` (`previous-release-review`, or `upstream` where the upstream names the

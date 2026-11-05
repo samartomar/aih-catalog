@@ -25,6 +25,14 @@
     "items": 777,
     "release": "urn:aihq:catalog:release:1.7.0"
   },
+  "combinationQualifications": [
+    {
+      "cell": "linux-x64",
+      "recipe": "code-intelligence-trio",
+      "sha256": "52f0477c225926305df078526d332b23d0c5fa01438c31834cc3ff2a8ffbe9ed",
+      "status": "qualified"
+    }
+  ],
   "earlier": {
     "disposed": 99,
     "other": [
@@ -109,12 +117,12 @@
       "section": "remaining"
     },
     "cbm": {
-      "contentSha256": "01e95791e54dea6d7718a927757446347f0d3b3d33d07c58cc739d5b21b23e17",
+      "contentSha256": "98f4dc7d72f88cdfb033195cb280fbd1d8f929b65b99f90523e8289be200c9fd",
       "items": 2,
       "section": "aiSetup"
     },
     "crg": {
-      "contentSha256": "2dec9adeef6338af376cb31abcdb4738d64cdb276e80e46012fe909d3090fec9",
+      "contentSha256": "dcc22290ed07cdd998319e7eac2333f29b854734aba7709ad1bf66543596b713",
       "items": 9,
       "section": "aiSetup"
     },
@@ -154,7 +162,7 @@
       "section": "remaining"
     },
     "serena": {
-      "contentSha256": "b7169de5ffb80b6fdaa3a025a5f51badd56014fd355a0c99654743fab795df90",
+      "contentSha256": "66a9383472782079b21c434166797ad843fd3f1c7b8ea107a1f1e707a411a074",
       "items": 2,
       "section": "aiSetup"
     },
@@ -171,7 +179,7 @@
   },
   "limits": {
     "deferred": [
-      "All data is a candidate: every scan key is new and unscanned, and none is admitted until it passes the data-commit gate against matching trusted scans.",
+      "The port report does not verify production scan admission; the data-commit gate requires separate matching trusted-evidence verification.",
       "Recipes are drafts in the section reports; each is published once it names the admitted data commit.",
       "Extensions declares no per-client routes yet, so it has no base recipe and is planned through items only.",
       "gstack: 54 items name 253 files no placed bundle provides",
@@ -183,8 +191,8 @@
     "native": [
       "Fixture and test results prove planning behaviour only; native loading of the planned layouts by each client is not validated by this package.",
       "Plugin presence checks are `none` on every client until a reliable check is evidenced, so an installed plugin is never reported as confirmed.",
-      "AI setup qualifications are the recorded runs' results: cbm.ai-setup.codebase-memory-mcp on linux-x64 qualified; crg.ai-setup.code-review-graph on linux-x64, crg.ai-setup.code-review-graph on linux-x64, serena.ai-setup.serena on linux-x64 blocked; every other cell unknown or without a record.",
-      "The code-review-graph, codebase-memory-mcp and Serena trio has no combination qualification, so its recipe plans `incomplete` on every cell.",
+      "AI setup qualifications are the recorded runs' results: cbm.ai-setup.codebase-memory-mcp on linux-x64, cbm.ai-setup.codebase-memory-mcp on linux-x64, crg.ai-setup.code-review-graph on linux-x64, serena.ai-setup.serena on linux-x64 qualified; crg.ai-setup.code-review-graph on linux-x64, crg.ai-setup.code-review-graph on linux-x64, serena.ai-setup.serena on linux-x64 blocked; every other cell unknown or without a record.",
+      "The linux-x64 combination qualification covers direct MCP use on a configured Python fixture with Serena's ide context and a separately prepared Python language server; it does not establish clean plan installation, named-client loading or other contexts.",
       "Profile facts are as checked on the dates each profile's `checkedWith` records; some places and field names rest on vendor documentation rather than a live check."
     ]
   },
@@ -215,6 +223,12 @@
     },
     {
       "aiSetup": "cbm.ai-setup.codebase-memory-mcp",
+      "cell": "linux-x64",
+      "sha256": "ff0ba8789308aa2aa2602c0d4d6e61c568724a40e345d590ae58b31598a91701",
+      "status": "qualified"
+    },
+    {
+      "aiSetup": "cbm.ai-setup.codebase-memory-mcp",
       "cell": "windows-arm64",
       "sha256": "1c1bafc9857674e890b0a78d879eeb69e22c4237268563b0e790efde35090abf",
       "status": "unknown"
@@ -228,14 +242,26 @@
     {
       "aiSetup": "crg.ai-setup.code-review-graph",
       "cell": "linux-x64",
-      "sha256": "7e4a2e5cbea1ccc3b0a399739a1f9a3e81d87fca37e22ce036ece13ab148e3ac",
+      "sha256": "3231792df571912e5edc5584d6ea1c991bed4b6b09637346169d994dfd40d970",
       "status": "blocked"
     },
     {
       "aiSetup": "crg.ai-setup.code-review-graph",
       "cell": "linux-x64",
-      "sha256": "3231792df571912e5edc5584d6ea1c991bed4b6b09637346169d994dfd40d970",
+      "sha256": "62ffd2ad66a947a446c008a7dd6c74cc8d49b83427822be6e6ffd0ccad61fe4b",
+      "status": "qualified"
+    },
+    {
+      "aiSetup": "crg.ai-setup.code-review-graph",
+      "cell": "linux-x64",
+      "sha256": "7e4a2e5cbea1ccc3b0a399739a1f9a3e81d87fca37e22ce036ece13ab148e3ac",
       "status": "blocked"
+    },
+    {
+      "aiSetup": "serena.ai-setup.serena",
+      "cell": "linux-x64",
+      "sha256": "415cb167697c87defaa67d48cf51fed6a4b3852df391b12185291f4342ab959c",
+      "status": "qualified"
     },
     {
       "aiSetup": "serena.ai-setup.serena",
@@ -247,7 +273,7 @@
   "sections": {
     "aiSetup": {
       "path": "port-report/ai-setup.json",
-      "sha256": "bbf14f2c9074a55bad380136c38aede5b39efbf9d881031534d3288fe2f5e737"
+      "sha256": "06a136772c4726ad7a3fd23854f96de8d3e0ce0a22a7fbd4f2e14b871b0f0097"
     },
     "maintained": {
       "path": "port-report/maintained.json",
@@ -262,6 +288,6 @@
     "draftRecipes": 10,
     "frameworks": 13,
     "items": 902,
-    "qualifications": 9
+    "qualifications": 13
   }
 }

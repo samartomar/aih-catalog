@@ -5,7 +5,7 @@
  * installed package's public entry points and `@aihq/scan/contracts`.
  *
  * Every row names its basis: `fixture` (files the journey writes, or pinned upstream fixture
- * bytes), `candidate-data` (the committed data/ at the packed commit: unadmitted candidates)
+ * bytes), `candidate-data` (the committed data/ at the packed commit; admission is external)
  * or `upstream` (real bytes at the recorded pins, fetched only with --network). None of them
  * establishes native client support, a real qualification or accepted production data.
  */
@@ -1246,38 +1246,21 @@ const qualifications = qualificationFiles.map((name) => {
       },
     ),
   );
-  await j.check("real data: incomplete, with not-qualified and the recorded reasons", () => {
-    assert.equal(plan.status, "incomplete");
-    const reasons = plan.unavailable.map((entry) => [
-      entry.item ?? entry.recipe,
-      entry.reason,
-      entry.cause ?? "",
-    ]);
-    assert.deepEqual(reasons, [
-      ["code-intelligence-trio", "no-qualification", ""],
-      ["crg.ai-setup.code-review-graph", "not-qualified", "blocked"],
-      ["serena.ai-setup.serena", "not-qualified", "blocked"],
-    ]);
-    for (const entry of plan.unavailable.filter((item) => item.reason === "not-qualified"))
-      assert.ok(entry.detail?.length > 0, "the blocked run's reason is given");
+  await j.check("real data: the qualified configured-fixture combination plans ok", () => {
+    assert.equal(plan.status, "ok");
+    assert.deepEqual(plan.unavailable, []);
+    const acquire = plan.plan.filter((step) => step.op === "acquire");
+    assert.equal(acquire.length, 3);
+    for (const step of acquire) {
+      assert.equal(step.root, "user");
+      assert.match(step.into, /^\.aihq\/ai-setup\//);
+      const qualified = qualifications.find((entry) => entry.sha256 === step.qualification);
+      assert.equal(qualified.qualification.result.status, "qualified");
+      assert.equal(qualified.qualification.result.date, "2026-11-05");
+      assert.equal(step.scanned, false);
+      assert.ok(!(step.closure ?? []).some((wheel) => wheel.file === step.distribution.file));
+    }
   });
-  await j.check(
-    "real data: codebase-memory-mcp is acquired under ~/.aihq/ai-setup/ naming its qualification",
-    () => {
-      const acquire = plan.plan.filter((step) => step.op === "acquire");
-      assert.equal(acquire.length, 1);
-      assert.equal(acquire[0].root, "user");
-      assert.match(
-        acquire[0].into,
-        /^\.aihq\/ai-setup\/codebase-memory-mcp\/0\.12\.1\/linux-x64\/$/,
-      );
-      const qualified = qualifications.find(
-        (entry) => entry.qualification.result.status === "qualified",
-      );
-      assert.equal(acquire[0].qualification, qualified.sha256);
-      assert.equal(acquire[0].scanned, false);
-    },
-  );
   await j.check("CBM's tool-command steps carry readbacks", () => {
     const commands = plan.plan.filter((step) => step.op === "tool-command");
     assert.equal(commands.length, 3);
@@ -1365,7 +1348,7 @@ const qualifications = qualificationFiles.map((name) => {
   );
   j.digest("trio-linux-x64", plan);
   j.pending(
-    "The real ok branch: no qualified code-review-graph 2.3.9 or Serena 2.1.0 record for linux-x64 and no trio combination record exist, so the trio cannot plan ok on real data.",
+    "Clean first-time installation remains unproven: the real qualification covers configured-fixture direct MCP sessions with Serena ide context and a separately prepared Python language server. Source-built wheels require caller artifact custody; consumer transport, auxiliary runtime provisioning and named-client loading are separate proof.",
   );
   journeys.push(j.finish());
 }
@@ -2231,8 +2214,8 @@ const regression = (id, title, basis) => journey(id, title, basis);
 // What this replay cannot establish.
 missingProof.push(
   "Native use: no client loaded any planned layout; plugin presence checks stay none.",
-  "Real qualifications: code-review-graph 2.3.9 and Serena 2.1.0 are blocked on linux-x64 and the trio has no combination record, so journey 12's ok branch is pending.",
-  "Data admission: every scan key is new and unscanned; no data commit has passed the trusted-scan gate.",
+  "The real linux-x64 qualification covers configured-fixture direct MCP use only; clean first-time installation, caller wheel transport, Serena auxiliary language-server provisioning and named-client loading remain outside this replay.",
+  "This packed-consumer check does not verify production scan admission; separate matching trusted-evidence verification is required.",
   "Recipe publication: no recipe is published with a real data commit; the journeys write their recipes and use the drafted ones in the port report.",
   "Extensions routes: aih-extensions declares no per-client routes, so no Extensions base recipe exists.",
   "Registry install: @aihq/scan 0.1.0 is not on the npm registry; consumers install the vendored tarball.",

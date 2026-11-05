@@ -120,7 +120,7 @@ describe("the complete port report", () => {
     for (const phrase of [
       "native loading",
       "presence",
-      "unscanned",
+      "trusted-evidence verification",
       "Extensions",
       "combination qualification",
     ])

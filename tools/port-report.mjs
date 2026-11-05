@@ -85,7 +85,7 @@ for (const [framework, items] of Object.entries(aiSetup.items))
 const committedQualifications = new Set(
   readdirSync(join(root, "data", "qualifications")).map((file) => file.replace(/\.json$/, "")),
 );
-for (const entry of aiSetup.qualifications) {
+for (const entry of [...aiSetup.qualifications, ...aiSetup.combinationQualifications]) {
   if (!committedQualifications.has(entry.sha256))
     fail(`qualification ${entry.sha256} is not committed`);
   if (sha256(`data/qualifications/${entry.sha256}.json`) !== entry.sha256)
@@ -189,11 +189,11 @@ const limits = {
     "Fixture and test results prove planning behaviour only; native loading of the planned layouts by each client is not validated by this package.",
     "Plugin presence checks are `none` on every client until a reliable check is evidenced, so an installed plugin is never reported as confirmed.",
     `AI setup qualifications are the recorded runs' results: ${qualified.map((entry) => `${entry.aiSetup} on ${entry.cell}`).join(", ")} qualified; ${blocked.map((entry) => `${entry.aiSetup} on ${entry.cell}`).join(", ")} blocked; every other cell unknown or without a record.`,
-    "The code-review-graph, codebase-memory-mcp and Serena trio has no combination qualification, so its recipe plans `incomplete` on every cell.",
+    "The linux-x64 combination qualification covers direct MCP use on a configured Python fixture with Serena's ide context and a separately prepared Python language server; it does not establish clean plan installation, named-client loading or other contexts.",
     "Profile facts are as checked on the dates each profile's `checkedWith` records; some places and field names rest on vendor documentation rather than a live check.",
   ],
   deferred: [
-    "All data is a candidate: every scan key is new and unscanned, and none is admitted until it passes the data-commit gate against matching trusted scans.",
+    "The port report does not verify production scan admission; the data-commit gate requires separate matching trusted-evidence verification.",
     "Recipes are drafts in the section reports; each is published once it names the admitted data commit.",
     "Extensions declares no per-client routes yet, so it has no base recipe and is planned through items only.",
     ...incompleteReferences,
@@ -219,13 +219,14 @@ const report = {
   },
   frameworks: frameworkFacts,
   qualifications,
+  combinationQualifications: aiSetup.combinationQualifications,
   sections: Object.fromEntries(
     Object.entries(SECTIONS).map(([name, path]) => [name, { path, sha256: sha256(path) }]),
   ),
   totals: {
     frameworks: frameworks.length,
     items: Object.values(frameworkFacts).reduce((total, facts) => total + facts.items, 0),
-    qualifications: qualifications.length,
+    qualifications: qualifications.length + aiSetup.combinationQualifications.length,
     draftRecipes: Object.keys(remaining.recipes ?? {}).length + (aiSetup.recipes ?? []).length,
   },
   limits,

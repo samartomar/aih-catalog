@@ -11,7 +11,7 @@
 //
 // usage: npm run port:ai-setup [-- --check]
 import { spawnSync } from "node:child_process";
-import { existsSync, mkdirSync, mkdtempSync, readdirSync, rmSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync } from "node:fs";
 import { devNull, tmpdir } from "node:os";
 import { join } from "node:path";
 import { buildContent, checkContent } from "../dist/catalog/producer.js";
@@ -707,7 +707,19 @@ const record = (aiSetup, version, cell, observed, result) => ({
  * Each qualification as its run recorded it. `run` is the sha256 of that run's own record,
  * which stays with the evidence; the result is never upgraded here.
  */
+const NATIVE_QUALIFICATIONS = JSON.parse(
+  readFileSync(new URL("./lib/native-qualifications.json", import.meta.url), "utf8"),
+);
+for (const entry of NATIVE_QUALIFICATIONS) {
+  const run = entry.result.run;
+  if (sha256(readFileSync(join(root, "validation", "native", `${run}.json`))) !== run)
+    fail(`native qualification run does not match ${run}`);
+}
+const COMBINATION_QUALIFICATIONS = NATIVE_QUALIFICATIONS.filter(
+  (entry) => "recipe" in entry.subject,
+);
 const QUALIFICATIONS = [
+  ...NATIVE_QUALIFICATIONS.filter((entry) => "aiSetup" in entry.subject),
   // codebase-memory-mcp: the Linux x64 portable executable passed an isolated native CLI and MCP
   // run (manual indexing, watcher, UI and diagnostics off, root and link refusal, cleanup).
   record(
@@ -995,6 +1007,9 @@ const TRIO = {
   id: "code-intelligence-trio",
   kind: "combination",
   frameworks: ["cbm", "crg", "serena"],
+  qualifications: Object.fromEntries(
+    COMBINATION_QUALIFICATIONS.map((entry) => [entry.subject.cell, shaOf(entry)]),
+  ),
   content: Object.fromEntries(
     ["cbm", "crg", "serena"].map((id) => [
       id,
@@ -1076,7 +1091,7 @@ try {
   }
   const folder = join(root, "data", "qualifications");
   const expected = new Set();
-  for (const entry of QUALIFICATIONS) {
+  for (const entry of [...QUALIFICATIONS, ...COMBINATION_QUALIFICATIONS]) {
     const bytes = encoder.encode(canonical(entry));
     const read = readQualification(bytes);
     if (read.status !== "ok") fail(`qualification: ${JSON.stringify(read)}`);
@@ -1101,17 +1116,17 @@ try {
       sha256: shaOf(entry),
       ...entry.subject,
       status: entry.result.status,
-    })).sort((left, right) =>
-      left.aiSetup === right.aiSetup
-        ? left.cell < right.cell
-          ? -1
-          : 1
-        : left.aiSetup < right.aiSetup
-          ? -1
-          : 1,
-    ),
+    })).sort((left, right) => {
+      const a = `${left.aiSetup}\0${left.cell}\0${left.sha256}`;
+      const b = `${right.aiSetup}\0${right.cell}\0${right.sha256}`;
+      return a < b ? -1 : a > b ? 1 : 0;
+    }),
     recipes: [TRIO],
-    combinationQualifications: [],
+    combinationQualifications: COMBINATION_QUALIFICATIONS.map((entry) => ({
+      sha256: shaOf(entry),
+      ...entry.subject,
+      status: entry.result.status,
+    })),
     notPorted: {
       "crg hooks/hooks.json":
         "the session-start and post-edit hooks run the tool on every session or edit; not ported as items (a hook is never pre-ticked and Claude keeps hooks in a shared list-valued settings file)",
@@ -1122,6 +1137,8 @@ try {
         "the plan starts Serena with its own built-in contexts per client; no Catalog context file is written",
     },
     notes: {
+      "native qualification scope":
+        "The 2026-11-05 linux-x64 run tested direct MCP sessions on a configured Python fixture, with Serena's ide context and separately prepared Python language server. It did not install a Catalog plan or load a named client. Source-built wheels are caller-supplied. The canonical public run facts are validation/native/0d38c22cf7e89a5768d6bc2527288e116c1f73ef34dad428d34f3484ac0f83b4.json.",
       "cbm.mcp.codebase-memory-mcp":
         "the upstream server.json at the v0.12.1 tag still names version 0.12.0 and its npm and PyPI wrappers; a managed plan starts the acquired 0.12.1 executable and never runs a wrapper",
     },
@@ -1129,10 +1146,12 @@ try {
   writeOrCompare("port-report/ai-setup.json", encoder.encode(canonical(report)));
   if (check) {
     if (out.drift.length > 0) fail(`drift in ${out.drift.join(", ")}`);
-    console.log(`port-ai-setup: data and report match (${QUALIFICATIONS.length} qualifications)`);
+    console.log(
+      `port-ai-setup: data and report match (${QUALIFICATIONS.length + COMBINATION_QUALIFICATIONS.length} qualifications)`,
+    );
   } else
     console.log(
-      `port-ai-setup: wrote ${out.written.length} files (${QUALIFICATIONS.length} qualifications)`,
+      `port-ai-setup: wrote ${out.written.length} files (${QUALIFICATIONS.length + COMBINATION_QUALIFICATIONS.length} qualifications)`,
     );
 } finally {
   rmSync(work, { recursive: true, force: true });
