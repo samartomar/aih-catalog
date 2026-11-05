@@ -12,6 +12,7 @@ import {
 } from "./contracts.js";
 import { type Qualification, qualificationProblems } from "./internal/ai-setup.js";
 import { AUTHORED_FRAMEWORK, aihContent } from "./internal/authored.js";
+import { ownValue } from "./internal/check.js";
 import { installRelative } from "./internal/identity.js";
 import {
   canonicalDocument,
@@ -287,7 +288,7 @@ export function availability(item: Item, profile: ToolProfile): Availability {
   }
   const blocked = result.unavailable[0];
   if (blocked) return { available: false, how: "none", reason: blocked.reason };
-  return { available: true, how: item.editions?.[profile.id] ? "edition" : "rendered" };
+  return { available: true, how: ownValue(item.editions, profile.id) ? "edition" : "rendered" };
 }
 
 /** A one-item content around `item`, so availability reuses the planner's placement rules. */

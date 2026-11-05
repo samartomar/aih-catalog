@@ -18,6 +18,7 @@ import type {
   Wheel,
 } from "./ai-setup.js";
 import { settingsFileProblems, settingsRunProblems } from "./ai-setup.js";
+import { ownValue } from "./check.js";
 import { canonicalDocument } from "./json.js";
 import type { Content, Item } from "./model.js";
 import { compareCodeUnits } from "./paths.js";
@@ -416,7 +417,7 @@ export function planTools(input: ToolInput): ToolPlan {
     const program = distribution ? programPath(setup, distribution, cell) : undefined;
     const into = `.aihq/ai-setup/${item.name}/${setup.version}/${cell}/`;
     const path = program === undefined ? undefined : `${into}${program}`;
-    const change = input.changes?.[id];
+    const change = ownValue(input.changes, id);
     if (setup.mcpItem !== undefined) {
       plan.implied.push(setup.mcpItem);
       // The path is added only once the artifact is acquired: an MCP entry never names a

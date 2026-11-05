@@ -15,7 +15,7 @@ import {
   DUPLICATE_RESOLVER,
   DUPLICATES_REPORT,
 } from "./authored.js";
-import { isRecord } from "./check.js";
+import { isRecord, ownValue } from "./check.js";
 import { installRelative } from "./identity.js";
 import { canonicalJson } from "./json.js";
 import {
@@ -597,14 +597,14 @@ function place(
     };
   const unsupported = profile.unsupported?.[item.kind];
   if (unsupported !== undefined) return { reason: "unsupported-kind", detail: unsupported };
-  const edition = item.editions?.[profile.id];
+  const edition = ownValue(item.editions, profile.id);
   const own = item.files.filter((file) => file.cli === undefined || file.cli === profile.id);
 
   if (item.kind === "hook") {
     if (edition === undefined)
       return { reason: "no-edition", detail: "a hook is placed only from its upstream edition" };
     const event = item.event as string;
-    if (profile.hookEvents !== undefined && profile.hookEvents[event] === undefined)
+    if (profile.hookEvents !== undefined && ownValue(profile.hookEvents, event) === undefined)
       return { reason: "no-hook-event", detail: `the client has no ${event} event` };
   }
   if (edition !== undefined && item.kind !== "skill") {
@@ -951,7 +951,7 @@ function combined(members: readonly Placed[], scope: Scope): Unit | undefined {
         member.item.id !== item.id ||
         member.installName !== installName ||
         member.unit.shape !== "folder" ||
-        item.editions?.[member.profile.id] !== undefined,
+        ownValue(item.editions, member.profile.id) !== undefined,
     )
   )
     return undefined;
@@ -1439,7 +1439,7 @@ function siblingReferences(placed: readonly Placed[]): Map<string, Set<string>> 
   };
   for (const entry of folders) {
     const cli = entry.profile.id;
-    const edition = entry.item.editions?.[cli] !== undefined ? cli : undefined;
+    const edition = ownValue(entry.item.editions, cli) !== undefined ? cli : undefined;
     for (const reference of entry.item.pathReferences ?? []) {
       if (reference.cli !== edition) continue;
       const from = installedAt(entry, reference.sourcePath);
@@ -1523,7 +1523,8 @@ function referencesOf(
     sourcePath: string,
     path: string,
   ) => {
-    const own = edition === undefined ? item.files : (item.editions?.[edition]?.files ?? []);
+    const own =
+      edition === undefined ? item.files : (ownValue(item.editions, edition)?.files ?? []);
     const file = own.find((candidate) => candidate.sourcePath === sourcePath);
     if (file === undefined || file.derivedFrom !== undefined) return false;
     const files = installed.get(cli);
@@ -1548,7 +1549,7 @@ function referencesOf(
         item.bundle === undefined ? undefined : bundles.roots.get(cli)?.get(item.bundle);
       // A client that takes its edition places the edition's files, so only their mentions
       // count there; every other client places the item's own files.
-      const edition = item.editions?.[cli] !== undefined ? cli : undefined;
+      const edition = ownValue(item.editions, cli) !== undefined ? cli : undefined;
       for (const reference of item.pathReferences ?? []) {
         if (reference.cli !== edition) continue;
         if (placed?.bundle.files.some((file) => file.sourcePath === reference.path)) continue;

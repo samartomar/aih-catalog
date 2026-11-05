@@ -11,7 +11,7 @@
  * ignore markers that are not theirs, so the folder's bytes are the same for all of them.
  */
 import { parseDocument, stringify } from "yaml";
-import { isRecord } from "./check.js";
+import { isRecord, ownValue } from "./check.js";
 import {
   applyEdit,
   decodeText,
@@ -109,10 +109,10 @@ export function agentTools(
   if (tools === undefined || tools.length === 0 || policy === "keep") return {};
   if (policy === "none" || policy === undefined)
     return { unrestricted: "the client's agent file has no tool list" };
-  const unknown = tools.filter((tool) => policy[tool] === undefined);
+  const unknown = tools.filter((tool) => ownValue(policy, tool) === undefined);
   if (unknown.length > 0)
     return { unrestricted: `no evidenced native name for ${unknown.join(", ")}` };
-  return { tools: tools.map((tool) => policy[tool] as string) };
+  return { tools: tools.map((tool) => ownValue(policy, tool) as string) };
 }
 
 /** The edit a render makes, or a reason the render does not apply to this item and profile. */
@@ -248,7 +248,7 @@ export function editFor(
   for (const marker of markers)
     if (marker !== "none" && "frontmatter" in marker)
       for (const [key, value] of Object.entries(marker.frontmatter)) {
-        if (key in set && canonicalJson(set[key]) !== canonicalJson(value))
+        if (Object.hasOwn(set, key) && canonicalJson(set[key]) !== canonicalJson(value))
           return { reason: `the sharing clients set ${key} differently` };
         set[key] = value;
       }
@@ -291,9 +291,13 @@ export function tomlString(text: string): string {
 }
 
 function merged(base: unknown, add: Readonly<Record<string, unknown>>): Record<string, unknown> {
-  const out: Record<string, unknown> = isRecord(base) ? { ...base } : {};
+  // A null-prototype object: a key such as `__proto__` stays an ordinary key.
+  const out: Record<string, unknown> = Object.assign(
+    Object.create(null),
+    isRecord(base) ? base : {},
+  );
   for (const [key, value] of Object.entries(add))
-    out[key] = isRecord(value) ? merged(out[key], value) : value;
+    out[key] = isRecord(value) ? merged(ownValue(out, key), value) : value;
   return out;
 }
 

@@ -7,7 +7,7 @@
  * `local-plugin` where the profile has one, else `items`; the scope never changes.
  */
 import type { Problem } from "../contracts.js";
-import { isRecord } from "./check.js";
+import { isRecord, ownValue } from "./check.js";
 import { canonicalDocument } from "./json.js";
 import { type Content, type ContentSource, INSTALL_NAME, type Item, OBJECT_ID } from "./model.js";
 import { compareCodeUnits, isUnder, quote, refused } from "./paths.js";
@@ -347,7 +347,7 @@ export function planRecipe(
         if (content.items.some((item) => item.id === id))
           lowered.routed.push({ item: id, cli: profile.id });
     } else {
-      const entry = recipe.plugins?.[profile.id] as RecipePlugin;
+      const entry = ownValue(recipe.plugins, profile.id) as RecipePlugin;
       const source = content.sources.find((candidate) => candidate.id === entry.source);
       if (source?.kind !== "git" || source.commit !== entry.commit)
         return refused(
@@ -364,10 +364,11 @@ export function planRecipe(
   const prefix = recipe.namePrefix ?? {};
   const installName = (item: Item, profile: ToolProfile): string | undefined => {
     if (!itemsRoute.has(profile.id)) return undefined;
-    const kinds = recipe.clis?.[profile.id];
+    const kinds = ownValue(recipe.clis, profile.id);
     if (kinds !== undefined && !kinds.includes(item.kind)) return undefined;
     return (
-      options.names?.[item.id] ?? `${prefix[profile.id] ?? prefix[item.kind] ?? ""}${item.name}`
+      ownValue(options.names, item.id) ??
+      `${ownValue(prefix, profile.id) ?? ownValue(prefix, item.kind) ?? ""}${item.name}`
     );
   };
   for (const profile of sorted)
@@ -451,7 +452,7 @@ function routeFor(
   const place = profile.localPlugins?.[scope];
   if (asked === "local-plugin") return place === undefined ? "items" : "local-plugin";
   // A native plugin falls back to a local plugin only when it can be copied whole here.
-  const entry = recipe.plugins?.[profile.id];
+  const entry = ownValue(recipe.plugins, profile.id);
   const folder = recordOf(entry, content);
   const manifest = place?.manifests.some((path) =>
     folder?.files.some((file) => file.sourcePath === join(folder.path, path)),
@@ -481,7 +482,7 @@ function fallbackCode(asked: Route, profile: ToolProfile, scope: Scope): string 
 
 /** The items of the plugin a client's recipe entry names, for warnings about it. */
 function plugged(recipe: Recipe, content: Content, cli: string): string[] {
-  return containedIn(content, recipe.plugins?.[cli]);
+  return containedIn(content, ownValue(recipe.plugins, cli));
 }
 
 const join = (folder: string, path: string) => (folder === "/" ? path : `${folder}/${path}`);
@@ -657,7 +658,7 @@ function lowerSetup(
   scope: Scope,
   pinned: (repository: string, commit: string) => ContentSource | undefined,
 ): SetupStep | PlanResult {
-  const setup = recipe.setup?.[cli] as NonNullable<Recipe["setup"]>[string];
+  const setup = ownValue(recipe.setup, cli) as NonNullable<Recipe["setup"]>[string];
   if (pinned(setup.repository, setup.commit) === undefined)
     return refused(
       "content-mismatch",

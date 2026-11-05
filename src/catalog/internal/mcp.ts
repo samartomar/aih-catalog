@@ -5,6 +5,7 @@
  * reference.
  */
 import type { AiSetupChange } from "./ai-setup.js";
+import { ownValue } from "./check.js";
 import { inputMarkers } from "./kinds.js";
 import type { Item } from "./model.js";
 import type { Binding, RootPath } from "./plan.js";
@@ -142,7 +143,7 @@ export function lowerTool(
   const stdio = fields.stdio;
   if (stdio === undefined) return { reason: "the client describes no local (stdio) server form" };
   const path = launch.path as string;
-  const args = [...(launch.clis?.[cli] ?? launch.args)];
+  const args = [...(ownValue(launch.clis, cli) ?? launch.args)];
   const entry: Record<string, unknown> = { ...(stdio.set ?? {}) };
   let at: string;
   if (stdio.argv !== undefined) {

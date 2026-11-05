@@ -776,3 +776,28 @@ describe("secrets in files the model reads", () => {
     }
   });
 });
+
+describe("names that are also object keys", () => {
+  it("treats an agent tool named like an object key as one no client maps", async () => {
+    const read = readLocalSource(
+      folder({
+        "agents/helper.md":
+          "---\nname: helper\ndescription: Helps.\ntools: toString, constructor\n---\nHelp.\n",
+      }),
+    );
+    if (read.status !== "ok") throw new Error(JSON.stringify(read));
+    const found = findItems(read.files, { framework: FRAMEWORK });
+    if (found.status !== "ok") throw new Error(JSON.stringify(found));
+    const built = await buildContent(read.source, read.files, found.items, {
+      framework: FRAMEWORK,
+    });
+    if (built.status !== "ok") throw new Error(JSON.stringify(built));
+    const plan = planInstall([`${FRAMEWORK}.agent.helper`], [built.content], [profile("copilot")], {
+      scope: "project",
+      data: null,
+    }) as Plan;
+    expect(plan.warnings).toContainEqual(
+      expect.objectContaining({ code: "agent-tools-unrestricted", cli: "copilot" }),
+    );
+  });
+});

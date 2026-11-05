@@ -6,7 +6,7 @@
  */
 import { formats, kinds, type Problem } from "../contracts.js";
 import { type AiSetupChange, aiSetupChangeProblems, CELLS } from "./ai-setup.js";
-import { isRecord, isText, Problems, type Record_, TEXT_LIMITS } from "./check.js";
+import { isRecord, isText, ownValue, Problems, type Record_, TEXT_LIMITS } from "./check.js";
 import { FRAMEWORK_ID, INSTALL_NAME, OBJECT_ID, SHA256 } from "./model.js";
 import { isSafeRelativePath } from "./paths.js";
 import { isMarketplaceAddress, isRepositoryAddress } from "./repository.js";
@@ -230,7 +230,7 @@ export function recipeProblems(value: unknown): Problem[] {
         "plugin, local-plugin, setup or items",
       );
     }
-  const routeOf = (cli: string) => routes?.[cli];
+  const routeOf = (cli: string) => ownValue(routes as Record_ | undefined, cli);
 
   if (value.plugins !== undefined) {
     if (!isRecord(value.plugins)) problems.add("/plugins", "plugins maps clients to plugins");
