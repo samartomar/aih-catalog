@@ -1765,16 +1765,48 @@ function duplicatesOf(
 }
 
 /** Problems of the supplied contents and profiles, shared by both planners. */
+/**
+ * Supplied contents each name their own framework, and none claims Catalog's: the `aih`
+ * framework and source id belong to the library, whose own content is always used.
+ */
+export function suppliedFrameworkProblems(contents: readonly Content[]): Problem[] {
+  const problems: Problem[] = [];
+  const seen = new Set<string>();
+  for (const [index, content] of contents.entries()) {
+    const id = content?.framework?.id;
+    if (id === AUTHORED_FRAMEWORK)
+      problems.push({
+        path: `contents/${index}/framework/id`,
+        message: "the aih framework is Catalog's own",
+      });
+    else if (typeof id === "string" && seen.has(id))
+      problems.push({
+        path: `contents/${index}/framework/id`,
+        message: "the framework is supplied twice",
+      });
+    if (typeof id === "string") seen.add(id);
+    for (const [at, source] of (Array.isArray(content?.sources) ? content.sources : []).entries())
+      if (source?.id === AUTHORED_FRAMEWORK && id !== AUTHORED_FRAMEWORK)
+        problems.push({
+          path: `contents/${index}/sources/${at}/id`,
+          message: "the aih source is Catalog's own",
+        });
+  }
+  return problems;
+}
+
 export function inputProblems(
   contents: readonly Content[],
   profiles: readonly ToolProfile[],
 ): Problem[] {
   const problems: Problem[] = [];
   if (!Array.isArray(contents)) problems.push({ path: "contents", message: "contents is a list" });
-  else
+  else {
     for (const [index, content] of contents.entries())
       for (const problem of contentProblems(content))
         problems.push({ path: `contents/${index}${problem.path}`, message: problem.message });
+    problems.push(...suppliedFrameworkProblems(contents));
+  }
   if (!Array.isArray(profiles) || profiles.length === 0)
     problems.push({ path: "profiles", message: "plan for at least one profile" });
   else {

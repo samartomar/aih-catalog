@@ -30,6 +30,7 @@ import {
   type PlanRender,
   type PlanStep,
   planInstall as plan,
+  suppliedFrameworkProblems,
   type WriteStep,
 } from "./internal/plan.js";
 import { profileProblems } from "./internal/profile.js";
@@ -387,15 +388,16 @@ export function renderStep(
     readonly bytes: Uint8Array;
   }[],
 ): RenderStepResult {
-  // Catalog's own authored items render from the library's bytes; nothing need be supplied.
-  const authored =
-    Array.isArray(suppliedContents) &&
-    suppliedContents.some((content) => content?.framework?.id === AUTHORED_FRAMEWORK);
-  const contents: readonly Content[] = authored
-    ? suppliedContents
-    : [...(Array.isArray(suppliedContents) ? suppliedContents : []), aihContent.content];
+  // Catalog's own authored items render only from the library's content and bytes: supplied
+  // content never claims its framework, and supplied files never stand in for its source.
+  const supplied = Array.isArray(suppliedContents) ? suppliedContents : [];
+  const claimed = suppliedFrameworkProblems(supplied);
+  if (claimed.length > 0) return { status: "invalid", problems: claimed };
+  const contents: readonly Content[] = [...supplied, aihContent.content];
   const files = [
-    ...(Array.isArray(suppliedFiles) ? suppliedFiles : []),
+    ...(Array.isArray(suppliedFiles) ? suppliedFiles : []).filter(
+      (file) => file?.sourceId !== AUTHORED_FRAMEWORK,
+    ),
     ...aihContent.files.map((file) => ({ ...file, bytes: file.bytes })),
   ];
   if (step?.op === "write" && step.render?.name === "duplicates-report") {

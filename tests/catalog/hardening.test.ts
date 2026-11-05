@@ -1,7 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { readLocalSource } from "../../src/catalog/node.js";
 import { buildContent } from "../../src/catalog/producer.js";
-import { type Content, type Plan, planInstall } from "../../src/catalog/reader.js";
+import {
+  type Content,
+  type Plan,
+  type PlanStep,
+  planInstall,
+  renderStep,
+} from "../../src/catalog/reader.js";
 import { findItems } from "../../src/catalog/source.js";
 import { FRAMEWORK, folder, profile, sha } from "./helpers.js";
 
@@ -484,5 +490,56 @@ describe("MCP environment", () => {
       env: { PYTHONUTF8: "1", WEATHER_UNITS: "metric" },
     });
     expect(planServer(content).status).toBe("ok");
+  });
+});
+
+describe("the library's own framework", () => {
+  const ownSkill = async (framework: string, text = SKILL, name = "tidy") => {
+    const read = readLocalSource(folder({ [`skills/${name}/SKILL.md`]: text }, framework));
+    if (read.status !== "ok") throw new Error(JSON.stringify(read));
+    const found = findItems(read.files, { framework });
+    if (found.status !== "ok") throw new Error(JSON.stringify(found));
+    const built = await buildContent(read.source, read.files, found.items, { framework });
+    if (built.status !== "ok") throw new Error(JSON.stringify(built));
+    return built.content;
+  };
+
+  it("refuses supplied content that claims Catalog's own framework", async () => {
+    const plan = planInstall(["aih.skill.tidy"], [await ownSkill("aih")], [profile("codex")], {
+      scope: "project",
+      data: null,
+    });
+    expect(plan).toMatchObject({ status: "invalid" });
+  });
+
+  it("refuses two supplied contents of one framework", async () => {
+    const first = await ownSkill("alpha");
+    const second = await ownSkill("alpha", SKILL, "other");
+    const plan = planInstall(["alpha.skill.tidy"], [first, second], [profile("codex")], {
+      scope: "project",
+      data: null,
+    });
+    expect(plan).toMatchObject({ status: "invalid" });
+  });
+
+  it("renders Catalog's own items only from the library, never from supplied content", async () => {
+    const alpha = await ownSkill("alpha");
+    const plan = planInstall(["alpha.skill.tidy"], [alpha], [profile("codex")], {
+      scope: "project",
+      data: null,
+    }) as Plan;
+    const rendered = plan.plan.find((step) => step.op === "write" && step.render !== undefined);
+    if (rendered === undefined) throw new Error("no rendered step");
+    const step = JSON.parse(JSON.stringify(rendered).replaceAll("alpha", "aih")) as PlanStep;
+    const files = [
+      {
+        sourceId: "aih",
+        sourcePath: "skills/tidy/SKILL.md",
+        bytes: new TextEncoder().encode(SKILL),
+      },
+    ];
+    expect(renderStep(step, [await ownSkill("aih")], [profile("codex")], files).status).not.toBe(
+      "ok",
+    );
   });
 });
