@@ -9,8 +9,17 @@ outcome there. Keep private planning and reproductions out of public text.
 Use Node 26.12.1 or a later 26.x. Install with `npm ci --ignore-scripts`, then run
 `npm run verify` before requesting review. It builds `dist/catalog`, checks that the embedded
 tool profiles match `profiles/`, typechecks, lints, runs every test once and checks that
-workflow actions are pinned. CI runs the same command, then `npm audit --audit-level=high`
-and `git diff --check`.
+workflow actions are pinned. CI runs the same command, then `npm audit --audit-level=high`,
+`npm audit signatures` and `git diff --check`.
+
+Dependency install scripts never run. `--ignore-scripts` on every documented install skips
+them, and the repository's `.npmrc` sets `strict-allow-scripts=true`, so an install without
+the flag (npm 11.20, bundled with Node 26.12.1) fails on any dependency install script that
+`allowScripts` in `package.json` does not list. Every locked package with an install script
+is listed there as denied (`false`), and a test keeps that list equal to the lockfile's. The
+package's own lifecycle scripts do run: `prepack` builds `dist/catalog` before `npm pack`, and
+`prepublishOnly` refuses publication. A project-wide `ignore-scripts=true` would silently skip
+both, so it is not used.
 
 `@aihq/scan` is the one dependency Catalog adds. The package depends on the exact version
 `0.0.0-dev.1`. Until Scan is on the npm registry, this repository installs that version from
@@ -20,7 +29,7 @@ dependency of the same name points at the tarball, npm prefers it inside this re
 the lockfile records its integrity. The sha256 is written in three places: here, in
 [README.md](README.md#install) and as `SCAN_SHA256` in `tests/catalog/package.test.ts`, which
 checks the tarball against it and fails when either document quotes another value. Replacing
-the tarball means updating all three (and `npm install` for the lockfile);
+the tarball means updating all three (and `npm install --ignore-scripts` for the lockfile);
 `validation/packed-consumer.json` records the tarball's sha256 itself. Only
 `@aihq/scan/contracts` may be imported.
 

@@ -79,6 +79,9 @@
     "typescript": "7.0.2",
     "vitest": "4.1.12"
   },
+  "allowScripts": {
+    "fsevents": false
+  },
   "files": [
     "dist/catalog",
     "CHANGELOG.md"
