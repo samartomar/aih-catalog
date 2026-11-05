@@ -404,6 +404,8 @@ function gitCandidateProblem(candidate: GitCandidate): string | null {
   if (/^[A-Za-z][A-Za-z0-9+.-]*::/.test(repository)) return "Git remote helpers are never used";
   if (carriesCredentials(repository))
     return "a repository address carrying credentials is not used";
+  if (URL_ADDRESS.test(repository) && /[?#]/.test(repository))
+    return "a repository address with a query or fragment is not used";
   if (ref !== undefined) {
     if (
       typeof ref !== "string" ||

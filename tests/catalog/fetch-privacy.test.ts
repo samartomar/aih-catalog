@@ -24,6 +24,18 @@ describe("keeping credentials and machine paths out of results", () => {
     }
   });
 
+  it("refuses a Git address with a query or fragment without repeating it", async () => {
+    for (const repository of [
+      "https://example.test/owner/repo?token=hunter2-secret",
+      "https://example.test/owner/repo.git#hunter2-secret",
+      "ssh://git@example.test/owner/repo?hunter2-secret",
+    ]) {
+      const fetched = await fetchSource({ kind: "git", repository }, { outDir: outDir() });
+      expect(fetched, repository).toMatchObject({ status: "invalid" });
+      expect(JSON.stringify(fetched), repository).not.toContain("hunter2-secret");
+    }
+  });
+
   it("names no machine path when a local repository, folder or file is missing", async () => {
     const root = folder({});
     const missing = join(root, "private-name-absent");
