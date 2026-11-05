@@ -22,6 +22,7 @@ import { applySettings, lowerServer, lowerTool, restricts, serverSettings } from
 import { type Bundle, type Content, INSTALL_NAME, type Item, type ItemFile } from "./model.js";
 import {
   basenameOf,
+  clashKey,
   compareCodeUnits,
   dirnameOf,
   isSafeRelativePath,
@@ -2552,10 +2553,32 @@ export function planCore(input: CoreInput): PlanResult {
       });
   }
   clashes.push(...limitClashes(sortedProfiles, mergeUnits, bundles.merges, input.contents, scope));
+  // Two spellings of one path (case or Unicode form) name one file on a case-insensitive or
+  // normalising file system: they clash.
+  const spelled = [
+    ...finalWrites.map((step) => ({ root: step.root, path: step.path, step })),
+    ...links.map((step) => ({ root: step.root, path: step.path, step })),
+    ...merges.map((step) => ({ root: step.root, path: step.file, step })),
+  ];
+  for (const members of group(spelled, (entry) => `${entry.root} ${clashKey(entry.path)}`)) {
+    const first = members[0] as (typeof spelled)[number];
+    if (members.every((entry) => entry.path === first.path)) continue;
+    clashes.push({
+      root: first.root,
+      path: first.path,
+      reason: "different-content",
+      items: union(
+        ...members.map(({ step }) =>
+          step.item ? [step.item] : "items" in step ? (step.items ?? []) : [],
+        ),
+      ),
+      clis: union(...members.map(({ step }) => step.clis)),
+    });
+  }
   // Never write through a planned link.
   for (const link of links)
     for (const step of finalWrites)
-      if (step.root === link.root && step.path.startsWith(`${link.path}/`))
+      if (step.root === link.root && clashKey(step.path).startsWith(`${clashKey(link.path)}/`))
         clashes.push({
           root: link.root,
           path: step.path,

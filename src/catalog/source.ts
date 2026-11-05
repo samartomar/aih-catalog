@@ -14,6 +14,7 @@ import {
 } from "./internal/model.js";
 import {
   basenameOf,
+  clashKey,
   compareCodeUnits,
   dirnameOf,
   isSafeRelativePath,
@@ -115,6 +116,7 @@ export function findItems(
   const regular: SourceFile[] = [];
   const leftOver: LeftOver[] = [];
   const seen = new Set<string>();
+  const folded = new Set<string>();
   let fileCount = 0;
   for (const file of files) {
     const path = file?.path;
@@ -125,6 +127,10 @@ export function findItems(
       );
     }
     if (seen.has(path)) return invalid(path, "the path is listed twice");
+    const key = clashKey(path);
+    if (folded.has(key))
+      return invalid(path, "the path differs from another only in case or Unicode form");
+    folded.add(key);
     seen.add(path);
     if (file.mode === "link" || file.mode === "special-file") {
       leftOver.push({ path, reason: file.mode });
@@ -140,7 +146,8 @@ export function findItems(
   }
   for (const path of seen) {
     for (let parent = dirnameOf(path); parent !== ""; parent = dirnameOf(parent)) {
-      if (seen.has(parent)) return invalid(path, "the path is both a file and a folder");
+      if (folded.has(clashKey(parent)))
+        return invalid(path, "the path is both a file and a folder");
     }
   }
 
