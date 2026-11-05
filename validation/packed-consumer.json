@@ -1,13 +1,13 @@
 {
   "candidate": {
     "package": "@aihq/catalog@0.0.0-dev.1",
-    "sourceCommit": "f24433040902e96d97ff9b09f6708c9168df3769",
+    "sourceCommit": "6f11991e15767dac82b14a7764241afdfe1b8547",
     "sourceClean": true,
     "file": "aihq-catalog-0.0.0-dev.1.tgz",
-    "sha256": "6de1c211868b761cb784ad37131d3cf0088d74e886c603b29a82fbf15f116a9b",
-    "integrity": "sha512-RJmxZgHUBjjMw5HEajHsa56m9kBcxYIErVjWfvFfToIyRtWm6zc7CGTgs3+w9Sq4Z4v76AEfaMJG/fdZBPT0PA==",
-    "bytes": 168103,
-    "entries": 66
+    "sha256": "c1454f0cf949c59674c80187a276056121dd3ed0eb51b86d01ff4ae1fad803fb",
+    "integrity": "sha512-AxWuxwjLdgTPXKLf1KjiAFz2C4eyQzmdElQBTyi4GR4dUpGNWnuyWwhh2QelqG9dTu/aF09AE0wG10kOzNV5Bw==",
+    "bytes": 185247,
+    "entries": 70
   },
   "scan": {
     "package": "@aihq/scan@0.0.0-dev.1",
@@ -20,7 +20,7 @@
   "inputs": {
     "data": {
       "kind": "git",
-      "commit": "f24433040902e96d97ff9b09f6708c9168df3769",
+      "commit": "6f11991e15767dac82b14a7764241afdfe1b8547",
       "subpath": "data",
       "files": 100,
       "sha256": "16e8eff64595aa708bcf92258a5f8ebfbd6c9d17ffb1b562a23bcb78c3a4fd07",
@@ -28,15 +28,15 @@
     },
     "port-report": {
       "kind": "git",
-      "commit": "f24433040902e96d97ff9b09f6708c9168df3769",
+      "commit": "6f11991e15767dac82b14a7764241afdfe1b8547",
       "subpath": "port-report",
       "files": 4,
-      "sha256": "c6d63d518c12cab9567db2064c5783cce26f85b5ecf1fe61ca346950631064f8",
+      "sha256": "567aaf5cccf382a59bdf38ffe5f93e1c4c564c1bbd2b25b6821cf5b9c98b6458",
       "skipped": 0
     },
     "tests/fixtures": {
       "kind": "git",
-      "commit": "f24433040902e96d97ff9b09f6708c9168df3769",
+      "commit": "6f11991e15767dac82b14a7764241afdfe1b8547",
       "subpath": "tests/fixtures",
       "files": 169,
       "sha256": "e6881a0497f82fbc9830092389aa1f78931256e6c21d4e568048ae6b5f637259",
@@ -117,7 +117,7 @@
       ],
       "pending": [],
       "plans": {
-        "own-folder": "d9f00083c360e216bce0f149cabb89d15f0e83a6faf61595d9062df5a9dfb646"
+        "own-folder": "a89aeeae8c0573863756aad03bd34610d6dc1c8b2f2dd08a4679474f76420379"
       }
     },
     {
@@ -153,7 +153,7 @@
       ],
       "pending": [],
       "plans": {
-        "superpowers-user": "816bc489b12afdba9c71d7635055af480620a5a4979a6cc7b34439333817d288"
+        "superpowers-user": "1d5c7f483129fa23e690fd81d11441b0be6516abe9fe297446b746e4e17d4e0f"
       }
     },
     {
@@ -196,7 +196,7 @@
         "Status incomplete (the journey states no status): 78 path references, 0 unavailable item/client pairs, 0 clashes."
       ],
       "plans": {
-        "ecc-kiro": "eb0c7a75dfee13c64bb856940f2ea716e9d688276ede9aab8eb853e1662f3dc7"
+        "ecc-kiro": "cc30348591882a11095e48b2d3c185d45be983d0571f052d816f15fc680cf7d9"
       }
     },
     {
@@ -409,7 +409,7 @@
         "With dsh the plan is ok; the journey states no status for that variant (completeness does not force clients the upstream does not install on, while a selected agent a client cannot take blocks)."
       ],
       "plans": {
-        "egm-project": "5e6b78e05a00331434c18d9625f2c9689c0513f7b1bbacc572074c41e5a4c8a5"
+        "egm-project": "b5b39e6398133043b4c880ea3d2d87f4f14e36344dc14f4a1dda792fa1260e0f"
       }
     },
     {
@@ -447,7 +447,7 @@
         "Clean first-time installation remains unproven: the real qualification covers configured-fixture direct MCP sessions with Serena ide context and a separately prepared Python language server. Source-built wheels require caller artifact custody; consumer transport, auxiliary runtime provisioning and named-client loading are separate proof."
       ],
       "plans": {
-        "trio-linux-x64": "5361a4d1a069fb191c89e769b4c512857ed9c6fd654eaa2e965cfd8ef07db34f"
+        "trio-linux-x64": "a82e4769dbd7d753114ee4a2393f5cdd8690d4e1871db90433c4c943be64e07e"
       }
     },
     {
