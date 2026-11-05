@@ -35,8 +35,10 @@ the tarball means updating all three (and `npm install --ignore-scripts` for the
 
 ## Tests
 
-`npm test` runs `vitest.config.ts`: every `tests/**/*.test.ts`. While working on one
-behaviour, run only its file, for example `npx vitest run tests/catalog/own-folder.test.ts`.
+`npm test` runs `vitest.config.ts`: every `tests/**/*.test.ts`. Each run, including a
+single file, first builds `dist/catalog` from the current source (`tests/build-dist.ts`), so a
+fresh `npm ci --ignore-scripts` needs no separate build. While working on one behaviour, run
+only its file, for example `npx vitest run tests/catalog/own-folder.test.ts`.
 
 - Tests call the public functions of `src/catalog` against disposable folders, local Git
   repositories and a local npm registry. They never mock internal modules and never use the
@@ -44,8 +46,8 @@ behaviour, run only its file, for example `npx vitest run tests/catalog/own-fold
 - `tests/catalog/contracts.test.ts` checks the published schemas, fixtures and profiles, and
   that every committed content file, qualification and drafted recipe conforms.
 - `tests/catalog/package.test.ts` checks the five exports, the dependency on Scan and the
-  packed file list (it needs a build, which `npm run verify` makes first), and that nothing of
-  the earlier release model remains.
+  packed file list of the build, the repository npm configuration, and that nothing of the
+  earlier release model remains.
 - Tests over committed data use the pinned upstream files in `tests/fixtures/`, whose Git blob
   ids are checked against the upstream trees.
 - `tests/publication-guard.test.ts`, `tests/self-hosting` and `tests/bootstrap` check the

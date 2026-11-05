@@ -148,9 +148,10 @@ describe("the package exposes exactly the five entry points", () => {
 
   it("packs the built entry points and nothing else", () => {
     for (const name of ENTRY_POINTS)
-      expect(existsSync(join(root, "dist", "catalog", `${name}.js`)), "run npm run build").toBe(
-        true,
-      );
+      expect(
+        existsSync(join(root, "dist", "catalog", `${name}.js`)),
+        "built by tests/build-dist.ts",
+      ).toBe(true);
     const packed = spawnSync(
       process.execPath,
       [npmCli(), "pack", "--dry-run", "--json", "--ignore-scripts"],
