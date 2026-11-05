@@ -6,9 +6,17 @@
  */
 import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
-import { mkdirSync, mkdtempSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import {
+  accessSync,
+  constants,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  statSync,
+  writeFileSync,
+} from "node:fs";
 import { devNull } from "node:os";
-import { isAbsolute, join, resolve } from "node:path";
+import { delimiter, isAbsolute, join, resolve } from "node:path";
 import { gunzipSync } from "node:zlib";
 import { type Invalid, limits, type Refused } from "../contracts.js";
 import { type GitSource, type NpmSource, OBJECT_ID, type SourceFile } from "./model.js";
@@ -30,6 +38,75 @@ export type AcquireResult<S> =
     }
   | Refused
   | Invalid;
+
+// ------------------------------------------------------------------------------ Programs
+
+/** `PATH`, read the way the platform does (Windows names it in any case). */
+function searchPath(env: NodeJS.ProcessEnv): readonly string[] {
+  const key =
+    process.platform === "win32"
+      ? Object.keys(env).find((name) => name.toUpperCase() === "PATH")
+      : "PATH";
+  const value = key === undefined ? undefined : env[key];
+  return typeof value === "string" ? value.split(delimiter) : [];
+}
+
+function isProgram(path: string): boolean {
+  try {
+    if (!statSync(path).isFile()) return false;
+    if (process.platform !== "win32") accessSync(path, constants.X_OK);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * The absolute path of `name` from the first absolute `PATH` entry holding it. Relative and
+ * empty entries and the current folder are never searched. On Windows only `.exe` and `.com`
+ * programs are found: a batch file needs a shell, and a shell is never used.
+ */
+export function findProgram(name: string, env: NodeJS.ProcessEnv = process.env): string | null {
+  const names = process.platform === "win32" ? [`${name}.exe`, `${name}.com`] : [name];
+  for (const entry of searchPath(env)) {
+    if (entry === "" || !isAbsolute(entry)) continue;
+    for (const candidate of names) {
+      const path = join(entry, candidate);
+      if (isProgram(path)) return path;
+    }
+  }
+  return null;
+}
+
+/**
+ * How to start npm without a shell. On Windows npm is usually an `npm.cmd` batch shim, which
+ * cannot be started without a shell; npm's own script is run with node instead, as the shim
+ * would (the node beside it, else node from `PATH`, else this node).
+ */
+export function npmProgram(
+  env: NodeJS.ProcessEnv = process.env,
+): { readonly program: string; readonly args: readonly string[] } | null {
+  if (process.platform !== "win32") {
+    const program = findProgram("npm", env);
+    return program === null ? null : { program, args: [] };
+  }
+  for (const entry of searchPath(env)) {
+    if (entry === "" || !isAbsolute(entry)) continue;
+    for (const candidate of ["npm.exe", "npm.com"]) {
+      const path = join(entry, candidate);
+      if (isProgram(path)) return { program: path, args: [] };
+    }
+    if (!isProgram(join(entry, "npm.cmd"))) continue;
+    const script = join(entry, "node_modules", "npm", "bin", "npm-cli.js");
+    if (!isProgram(script)) return null;
+    const besideNode = join(entry, "node.exe");
+    const node = isProgram(besideNode)
+      ? besideNode
+      : (findProgram("node", env) ?? process.execPath);
+    return { program: node, args: [script] };
+  }
+  return null;
+}
 
 type Run = { readonly code: number | null; readonly stdout: Buffer; readonly stderr: string };
 
@@ -182,8 +259,10 @@ export async function acquireGit(
     return refused("unreadable", `the outDir ${quote(outDir)} cannot be written`);
   }
   const env = gitEnvironment(emptyConfig);
+  const program = findProgram("git");
+  if (program === null) return refused("fetch-failed", "git could not be started");
   const git = (args: readonly string[], options: { input?: string; maxBytes?: number } = {}) =>
-    run("git", ["-C", work, ...GIT_OPTIONS, ...args], {
+    run(program, ["-C", work, ...GIT_OPTIONS, ...args], {
       cwd: work,
       env,
       maxBytes: options.maxBytes ?? 1024 * 1024,
@@ -191,7 +270,7 @@ export async function acquireGit(
     });
 
   const init = await run(
-    "git",
+    program,
     [...GIT_OPTIONS, "init", "--quiet", "--bare", "--template=", work],
     {
       cwd: work,
@@ -370,9 +449,12 @@ export async function acquireNpm(
       /^npm_config_(?:script_shell|node_options)$/i.test(key)
     )
       delete env[key];
+  const npm = npmProgram(env);
+  if (npm === null) return refused("fetch-failed", "npm could not be started");
   const packed = await run(
-    process.platform === "win32" ? "npm.cmd" : "npm",
+    npm.program,
     [
+      ...npm.args,
       "pack",
       spec,
       "--json",
