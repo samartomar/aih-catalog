@@ -77,7 +77,7 @@ function isProgram(path: string): boolean {
  * empty entries and the current folder are never searched. On Windows only `.exe` and `.com`
  * programs are found: a batch file needs a shell, and a shell is never used.
  */
-export function findProgram(name: string, env: NodeJS.ProcessEnv = process.env): string | null {
+function findProgram(name: string, env: NodeJS.ProcessEnv = process.env): string | null {
   const names = process.platform === "win32" ? [`${name}.exe`, `${name}.com`] : [name];
   for (const entry of searchPath(env)) {
     if (entry === "" || !isAbsolute(entry)) continue;
@@ -94,7 +94,7 @@ export function findProgram(name: string, env: NodeJS.ProcessEnv = process.env):
  * cannot be started without a shell; npm's own script is run with node instead, as the shim
  * would (the node beside it, else node from `PATH`, else this node).
  */
-export function npmProgram(
+function npmProgram(
   env: NodeJS.ProcessEnv = process.env,
 ): { readonly program: string; readonly args: readonly string[] } | null {
   if (process.platform !== "win32") {
@@ -133,6 +133,21 @@ const DEFAULT_TIMEOUT_MS = 10 * 60 * 1000;
 /** Room for a packed download several times the size of the largest source. */
 const DEFAULT_DISK_BYTES = 4 * limits.sourceBytes;
 const DISK_POLL_MS = 100;
+
+/** Why caller bounds are unusable: each must be a positive whole number no above its default. */
+export function boundsProblem(
+  bounds: Bounds | undefined,
+): { path: string; message: string } | null {
+  for (const [key, most] of [
+    ["timeoutMs", DEFAULT_TIMEOUT_MS],
+    ["diskBytes", DEFAULT_DISK_BYTES],
+  ] as const) {
+    const value = bounds?.[key];
+    if (value !== undefined && (!Number.isSafeInteger(value) || value <= 0 || value > most))
+      return { path: key, message: `${key} must be a whole number from 1 to ${most}` };
+  }
+  return null;
+}
 
 /** The bytes under `folder`, counted until they pass `limit`. Links are never followed. */
 function diskUse(folder: string, limit: number): number {
@@ -330,8 +345,8 @@ function workFolder(outDir: unknown, prefix: string): string | Refused {
 
 /**
  * Every Git call: no hooks, no fsmonitor, no replacement objects, no submodule recursion, no
- * HTTP redirects, no credentials, and only the https, ssh and file transports (never `ext::`
- * or plain git).
+ * HTTP redirects, no credentials, and only the https and ssh transports (never `ext::` or
+ * plain git). The file transport is added only for a local repository the user typed.
  */
 const GIT_OPTIONS = [
   "--no-replace-objects",
@@ -349,8 +364,6 @@ const GIT_OPTIONS = [
   "protocol.https.allow=always",
   "-c",
   "protocol.ssh.allow=always",
-  "-c",
-  "protocol.file.allow=always",
   // Credentials are never asked for, read from a helper or prompted for, and SSH never asks
   // to trust a new host key.
   "-c",
@@ -428,6 +441,13 @@ function carriesCredentials(repository: string): boolean {
   return scheme.toLowerCase() !== "ssh" || authority.slice(0, at).includes(":");
 }
 
+/** True when a repository is on this machine: a path or a `file:` URL. */
+function isLocalRepository(repository: string): boolean {
+  const match = URL_ADDRESS.exec(repository);
+  if (match !== null) return match[1]?.toLowerCase() === "file";
+  return !SCP_ADDRESS.test(repository);
+}
+
 /** How a refusal names a repository: a remote address as given, never a local path. */
 function repositoryName(repository: string): string {
   const match = URL_ADDRESS.exec(repository);
@@ -444,19 +464,31 @@ function repositoryName(repository: string): string {
 export async function acquireGit(
   candidate: GitCandidate,
   outDir: string,
-  bounds: Bounds = {},
+  options: Bounds & { readonly fromUser?: boolean } = {},
 ): Promise<AcquireResult<GitSource>> {
   const problem = gitCandidateProblem(candidate);
   if (problem !== null)
     return { status: "invalid", problems: [{ path: "candidate", message: problem }] };
-  return inWorkFolder(outDir, "git-", (work) => fetchGit(candidate, work, bounds));
+  const local = isLocalRepository(candidate.repository);
+  if (local && options.fromUser !== true)
+    return {
+      status: "invalid",
+      problems: [{ path: "candidate", message: LOCAL_ONLY_FROM_USER }],
+    };
+  return inWorkFolder(outDir, "git-", (work) => fetchGit(candidate, work, options, local));
 }
+
+/** Why a local candidate the user did not type is not read. */
+export const LOCAL_ONLY_FROM_USER =
+  "a folder or repository on this machine is read only from a source the user typed";
 
 async function fetchGit(
   candidate: GitCandidate,
   work: string,
   bounds: Bounds,
+  local: boolean,
 ): Promise<AcquireResult<GitSource>> {
+  const gitOptions = [...GIT_OPTIONS, "-c", `protocol.file.allow=${local ? "always" : "never"}`];
   // Beside the bare repository, inside the same owned work folder.
   const emptyConfig = join(work, "aihq-empty.gitconfig");
   try {
@@ -469,7 +501,7 @@ async function fetchGit(
   if (program === null) return refused("fetch-failed", "git could not be started");
   const limit = budget(work, bounds);
   const git = (args: readonly string[], options: { input?: string; maxBytes?: number } = {}) =>
-    run(program, ["-C", work, ...GIT_OPTIONS, ...args], {
+    run(program, ["-C", work, ...gitOptions, ...args], {
       env,
       budget: limit,
       maxBytes: options.maxBytes ?? 1024 * 1024,
@@ -478,8 +510,12 @@ async function fetchGit(
 
   const init = await run(
     program,
-    [...GIT_OPTIONS, "init", "--quiet", "--bare", "--template=", work],
-    { env, budget: limit, maxBytes: 64 * 1024 },
+    [...gitOptions, "init", "--quiet", "--bare", "--template=", work],
+    {
+      env,
+      budget: limit,
+      maxBytes: 64 * 1024,
+    },
   );
   const initStopped = stoppedRefusal(init, "git");
   if (initStopped !== null) return initStopped;

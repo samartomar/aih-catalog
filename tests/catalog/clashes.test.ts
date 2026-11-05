@@ -137,7 +137,7 @@ async function pinned(
   const upstream = gitRepository(tree);
   const fetched = await fetchSource(
     { kind: "git", repository: upstream.path, ref: "main" },
-    { outDir: outDir() },
+    { outDir: outDir(), fromUser: true },
   );
   if (fetched.status !== "ok") throw new Error(JSON.stringify(fetched));
   const found = findItems(fetched.files, { framework: id });

@@ -70,7 +70,7 @@ describe("fetching a pinned Git source", () => {
 
     const fetched = await fetchSource(
       { kind: "git", repository: upstream.path, ref: "main", subpath: "pack" },
-      { outDir: outDir() },
+      { outDir: outDir(), fromUser: true },
     );
 
     if (fetched.status !== "ok") throw new Error(JSON.stringify(fetched));
@@ -99,7 +99,7 @@ describe("fetching a pinned Git source", () => {
     const commit = upstream.commits[0] as string;
     const fetched = await fetchSource(
       { kind: "git", repository: upstream.path, ref: "main", subpath: "pack" },
-      { outDir: outDir() },
+      { outDir: outDir(), fromUser: true },
     );
     const { built } = await contentFrom(fetched, "pack");
 
@@ -150,7 +150,7 @@ describe("fetching a pinned Git source", () => {
     const upstream = gitRepository({ "skills/revise/SKILL.md": REVIEW });
     const link = parseSourceLink(`git clone ${upstream.path}`);
     if (link.status !== "recognised") throw new Error(JSON.stringify(link));
-    const fetched = await fetchSource(link.candidate, { outDir: outDir() });
+    const fetched = await fetchSource(link.candidate, { outDir: outDir(), fromUser: true });
     const { built, found } = await contentFrom(fetched, "up");
     expect(built.content.sources[0]).toMatchObject({ commit: upstream.commits[0] });
     if (fetched.status !== "ok") throw new Error("unreachable");
@@ -209,7 +209,7 @@ describe("fetching a pinned Git source", () => {
 
     const fetched = await fetchSource(
       { kind: "git", repository: `file://${upstream.path}` },
-      { outDir: outDir() },
+      { outDir: outDir(), fromUser: true },
     );
 
     expect(fetched.status).toBe("ok");
@@ -231,7 +231,7 @@ describe("fetching a pinned Git source", () => {
     process.env.PATH = `${bin}:${process.env.PATH}`;
     const fetched = await fetchSource(
       { kind: "git", repository: `file://${upstream.path}` },
-      { outDir: outDir() },
+      { outDir: outDir(), fromUser: true },
     );
     expect(fetched.status).toBe("ok");
   });
@@ -252,7 +252,7 @@ describe("fetching a pinned Git source", () => {
 
     const fetched = await fetchSource(
       { kind: "git", repository: upstream.path },
-      { outDir: outDir() },
+      { outDir: outDir(), fromUser: true },
     );
 
     if (fetched.status !== "ok") throw new Error(JSON.stringify(fetched));
@@ -278,7 +278,7 @@ describe("fetching a pinned Git source", () => {
 
       const fetched = await fetchSource(
         { kind: "git", repository: upstream.path, ref: "main" },
-        { outDir: outDir() },
+        { outDir: outDir(), fromUser: true },
       );
       expect(fetched, name).toMatchObject({ status: "refused", code: "path-escape" });
     }
@@ -287,14 +287,20 @@ describe("fetching a pinned Git source", () => {
   it("refuses a missing ref, a missing subpath and a subpath that is a file", async () => {
     const upstream = gitRepository({ "pack/skills/revise/SKILL.md": REVIEW, "README.md": "r\n" });
     const fetch = (candidate: object) =>
-      fetchSource({ kind: "git", repository: upstream.path, ...candidate }, { outDir: outDir() });
+      fetchSource(
+        { kind: "git", repository: upstream.path, ...candidate },
+        { outDir: outDir(), fromUser: true },
+      );
     expect(await fetch({ ref: "no-such-branch" })).toMatchObject({ code: "fetch-failed" });
     expect(await fetch({ ref: "0".repeat(40) })).toMatchObject({ code: "fetch-failed" });
     expect(await fetch({ subpath: "missing" })).toMatchObject({ code: "not-found" });
     expect(await fetch({ subpath: "README.md" })).toMatchObject({ code: "not-a-directory" });
     expect(await fetch({ ref: "--upload-pack=touch" })).toMatchObject({ status: "invalid" });
     expect(
-      await fetchSource({ kind: "git", repository: "ext::sh -c touch" }, { outDir: outDir() }),
+      await fetchSource(
+        { kind: "git", repository: "ext::sh -c touch" },
+        { outDir: outDir(), fromUser: true },
+      ),
     ).toMatchObject({ status: "invalid" });
   });
 
@@ -305,7 +311,7 @@ describe("fetching a pinned Git source", () => {
     });
     const fetched = await fetchSource(
       { kind: "git", repository: upstream.path },
-      { outDir: outDir() },
+      { outDir: outDir(), fromUser: true },
     );
     expect(fetched).toMatchObject({ status: "refused", code: "limit", limit: "sourceFileBytes" });
     expect("files" in fetched).toBe(false);
@@ -317,11 +323,30 @@ describe("fetching a local candidate", () => {
     const root = folder({ "skills/revise/SKILL.md": REVIEW });
     const link = parseSourceLink(pathToFileURL(root).href);
     if (link.status !== "recognised") throw new Error(JSON.stringify(link));
-    const fetched = await fetchSource(link.candidate, { outDir: outDir() });
+    const fetched = await fetchSource(link.candidate, { outDir: outDir(), fromUser: true });
     expect(fetched).toEqual(readLocalSource(root));
     const { built } = await contentFrom(fetched, "mine");
     expect(built.content.sources).toEqual([{ id: "mine", kind: "local", notices: [] }]);
   });
+
+  it("reads this machine's folders and repositories only for a source the user typed", async () => {
+    const root = folder({ "skills/revise/SKILL.md": REVIEW });
+    const upstream = gitRepository({ "skills/revise/SKILL.md": REVIEW });
+    for (const candidate of [
+      { kind: "local", path: root },
+      { kind: "git", repository: upstream.path },
+      { kind: "git", repository: pathToFileURL(upstream.path).href },
+    ] as const) {
+      expect(await fetchSource(candidate, { outDir: outDir() }), candidate.kind).toMatchObject({
+        status: "invalid",
+        problems: [{ path: "candidate" }],
+      });
+      expect(
+        await fetchSource(candidate, { outDir: outDir(), fromUser: true }),
+        candidate.kind,
+      ).toMatchObject({ status: "ok" });
+    }
+  }, 30_000);
 });
 
 const PACKAGE = "@fixture/skills";

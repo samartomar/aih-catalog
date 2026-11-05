@@ -27,7 +27,10 @@ describe("keeping credentials and machine paths out of results", () => {
   it("names no machine path when a local repository, folder or file is missing", async () => {
     const root = folder({});
     const missing = join(root, "private-name-absent");
-    const fetched = await fetchSource({ kind: "git", repository: missing }, { outDir: outDir() });
+    const fetched = await fetchSource(
+      { kind: "git", repository: missing },
+      { outDir: outDir(), fromUser: true },
+    );
     expect(fetched).toMatchObject({ status: "refused", code: "fetch-failed" });
     expect(mentions(fetched, root)).toBe(false);
     expect(mentions(fetched, "private-name-absent")).toBe(false);
@@ -41,7 +44,10 @@ describe("keeping credentials and machine paths out of results", () => {
     const root = folder({});
     const file = join(root, "a-file");
     writeFileSync(file, "x");
-    const fetched = await fetchSource({ kind: "git", repository: root }, { outDir: file });
+    const fetched = await fetchSource(
+      { kind: "git", repository: root },
+      { outDir: file, fromUser: true },
+    );
     expect(fetched).toMatchObject({ status: "refused" });
     expect(mentions(fetched, root)).toBe(false);
   });

@@ -29,7 +29,7 @@ describe("Git never asks for or uses credentials", () => {
     const upstream = gitRepository({ "README.md": "r\n" });
     const fetched = await fetchSource(
       { kind: "git", repository: upstream.path },
-      { outDir: outDir() },
+      { outDir: outDir(), fromUser: true },
     );
     expect(fetched.status).toBe("ok");
     const gitCalls = calls.filter((call) => call.args.includes("--no-replace-objects"));

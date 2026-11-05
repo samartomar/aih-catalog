@@ -105,7 +105,7 @@ describe("one rule for Git metadata in every source", () => {
     git(upstream.path, "update-ref", "refs/heads/main", commit);
     const fetched = await fetchSource(
       { kind: "git", repository: upstream.path, ref: "main" },
-      { outDir: outDir() },
+      { outDir: outDir(), fromUser: true },
     );
     expect(fetched).toMatchObject({ status: "refused", code: "path-escape" });
   });

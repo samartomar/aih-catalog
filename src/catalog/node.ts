@@ -18,7 +18,14 @@ import {
 import { homedir } from "node:os";
 import { join, sep } from "node:path";
 import { type Invalid, limits, type Refused } from "./contracts.js";
-import { acquireGit, acquireNpm, type Skipped } from "./internal/acquire.js";
+import {
+  acquireGit,
+  acquireNpm,
+  type Bounds,
+  boundsProblem,
+  LOCAL_ONLY_FROM_USER,
+  type Skipped,
+} from "./internal/acquire.js";
 import type { GitSource, LocalSource, NpmSource, SourceFile } from "./internal/model.js";
 import { compareCodeUnits, limitRefusal, quote, refused } from "./internal/paths.js";
 import { isGitMetadataName, type SourceCandidate } from "./internal/source-link.js";
@@ -248,13 +255,22 @@ export type FetchSourceResult =
   | Refused
   | Invalid;
 
-export interface FetchSourceOptions {
+export interface FetchSourceOptions extends Bounds {
   /** The folder fetch work happens in; each fetch uses a new folder inside it and removes it. */
   readonly outDir: string;
   /** The npm registry: an https URL, or plain http on a loopback address. */
   readonly registry?: string;
   /** For npm: the sha512 integrity the tarball must have. */
   readonly integrity?: string;
+  /**
+   * True when the candidate comes from text the user typed or pasted. Only then is a folder or
+   * Git repository on this machine (a path or `file:` URL) read.
+   */
+  readonly fromUser?: boolean;
+  /** A shorter limit than the default of 10 minutes on the whole fetch's running time. */
+  readonly timeoutMs?: number;
+  /** A lower limit than the default of four times `sourceBytes` on the fetch's disk use. */
+  readonly diskBytes?: number;
 }
 
 /**
@@ -270,16 +286,27 @@ export async function fetchSource(
   candidate: SourceCandidate,
   options: FetchSourceOptions,
 ): Promise<FetchSourceResult> {
+  const problem = boundsProblem(options);
+  if (problem !== null) return { status: "invalid", problems: [problem] };
   switch (candidate?.kind) {
     case "local": {
       const path = candidate.path;
       if (typeof path !== "string") return refused("not-found", "no local path was given");
+      if (options?.fromUser !== true)
+        return {
+          status: "invalid",
+          problems: [{ path: "candidate", message: LOCAL_ONLY_FROM_USER }],
+        };
       const expanded =
         path === "~" ? homedir() : /^~[\\/]/.test(path) ? join(homedir(), path.slice(2)) : path;
       return readLocalSource(expanded);
     }
     case "git":
-      return acquireGit(candidate, options?.outDir);
+      return acquireGit(candidate, options?.outDir, {
+        fromUser: options?.fromUser === true,
+        ...(options?.timeoutMs === undefined ? {} : { timeoutMs: options.timeoutMs }),
+        ...(options?.diskBytes === undefined ? {} : { diskBytes: options.diskBytes }),
+      });
     case "npm":
       return acquireNpm(candidate, options);
     default:
