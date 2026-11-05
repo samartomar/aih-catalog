@@ -7,7 +7,7 @@ import { aiSetupProblems, MCP_SETTINGS, mcpSettingProblems } from "./ai-setup.js
 import { BUNDLE_LAYOUT, isIncludePattern, matchesInclude } from "./bundle.js";
 import { isRecord, isText, Problems, type Record_, TEXT_LIMITS } from "./check.js";
 import { behaviourSha256, contentSha256, kindFieldNames } from "./identity.js";
-import { BLOCK_MARKER } from "./kinds.js";
+import { BLOCK_MARKER, skillFilesOutside } from "./kinds.js";
 import {
   FRAMEWORK_ID,
   ID_SEGMENT,
@@ -299,6 +299,11 @@ export function contentProblems(value: unknown): Problem[] {
       if (item.kind === "rule") checkScope(item.scope, `${path}/scope`, problems);
       else if (item.scope !== undefined) problems.add(`${path}/scope`, "only rules have a scope");
       checkKindFields(item, path, problems);
+      if (item.kind === "skill" && Array.isArray(item.files)) {
+        const outside = skillFilesOutside(item.files.filter(isRecord) as never);
+        if (outside !== undefined)
+          problems.add(`${path}/files`, `${outside} sits outside the skill's SKILL.md folder`);
+      }
       if (item.requirements !== undefined)
         checkRequirements(item.requirements, `${path}/requirements`, problems, item.kind);
       if (item.editions !== undefined)

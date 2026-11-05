@@ -136,10 +136,24 @@ export function skillFile(files: readonly { sourcePath: string; cli?: string }[]
   return only?.sourcePath.endsWith(".md") ? { file: only, command: true } : undefined;
 }
 
+/** The first general file of a skill outside the folder of its `SKILL.md`, if any. */
+export function skillFilesOutside(
+  files: readonly { sourcePath: string; cli?: string }[],
+): string | undefined {
+  const found = skillFile(files);
+  if (found === undefined || found.command) return undefined;
+  const root = dirnameOf(found.file.sourcePath);
+  return files.find(
+    (file) => file.cli === undefined && root !== "" && !file.sourcePath.startsWith(`${root}/`),
+  )?.sourcePath;
+}
+
 function readSkill(item: DiscoveredItem, bytesOf: BytesOf): Read | string {
   const found = skillFile(item.files);
   if (found === undefined) return "a skill needs a SKILL.md, or one Markdown command file";
   const path = found.file.sourcePath;
+  const outside = skillFilesOutside(item.files);
+  if (outside !== undefined) return `${outside}: a skill's files sit under its SKILL.md folder`;
   const read = markdown(path, bytesOf);
   if (typeof read === "string") return read;
   const { split, frontmatter } = read;

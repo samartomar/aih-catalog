@@ -801,3 +801,31 @@ describe("names that are also object keys", () => {
     );
   });
 });
+
+describe("a skill's own files", () => {
+  it("refuses a skill file outside the skill's folder", async () => {
+    const read = readLocalSource(
+      folder({ "skills/tidy/SKILL.md": SKILL, "elsewhere/notes.md": "Notes.\n" }),
+    );
+    if (read.status !== "ok") throw new Error(JSON.stringify(read));
+    const found = findItems(read.files, { framework: FRAMEWORK });
+    if (found.status !== "ok") throw new Error(JSON.stringify(found));
+    const notes = read.files.find((file) => file.path === "elsewhere/notes.md");
+    const items = found.items.map((item) => ({
+      ...item,
+      files: [
+        ...item.files,
+        {
+          sourceId: FRAMEWORK,
+          sourcePath: "elsewhere/notes.md",
+          sha256: notes?.sha256 as string,
+          executable: false,
+          role: "content" as const,
+        },
+      ],
+    }));
+    expect(
+      await buildContent(read.source, read.files, items, { framework: FRAMEWORK }),
+    ).toMatchObject({ status: "invalid" });
+  });
+});
