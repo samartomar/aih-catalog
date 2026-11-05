@@ -609,6 +609,12 @@ describe("fetching a pinned npm source", () => {
       // Settings that weaken or redirect TLS are refused.
       config("strict-ssl=false\n"),
       config("strict_ssl = false\n"),
+      // npm's option parser reads these as false too.
+      config("strict-ssl=null\n"),
+      config("strict-ssl=0\n"),
+      config("strict-ssl=0.0\n"),
+      config("strict-ssl=00\n"),
+      config('strict-ssl="FALSE"\n'),
       config("cafile=/tmp/ca.pem\n"),
       config("ca[]=-----BEGIN CERTIFICATE-----\n"),
       config("proxy=http://proxy.example.test/\n"),

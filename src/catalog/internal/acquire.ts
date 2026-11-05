@@ -685,6 +685,15 @@ function registryProblem(registry: unknown): string | null {
 }
 
 const NPM_CONFIG_BYTES = 1024 * 1024;
+/**
+ * Whether npm's option parser reads a boolean setting's text as false: `false`, `null` or any
+ * number equal to zero (`0`, `0.0`, `00`). Any case of `false` and `null` counts.
+ */
+const readsAsFalse = (value: string): boolean => {
+  const text = value.trim().toLowerCase();
+  return text === "false" || text === "null" || (text !== "" && Number(text) === 0);
+};
+
 /** npm settings that replace its trusted certificates or route it through a proxy. */
 const TLS_SETTINGS = new Set(["cafile", "ca", "proxy", "https-proxy", "http-proxy", "noproxy"]);
 
@@ -721,7 +730,7 @@ function npmConfigFile(path: unknown): string | { readonly problem: string } {
     const value = expand(line.slice(equals + 1));
     // The caller chose the file, but it never weakens or redirects TLS.
     const setting = key.toLowerCase().replaceAll("_", "-");
-    if (TLS_SETTINGS.has(setting) || (setting === "strict-ssl" && value.toLowerCase() === "false"))
+    if (TLS_SETTINGS.has(setting) || (setting === "strict-ssl" && readsAsFalse(value)))
       return { problem: `npmConfig sets ${setting}, which would weaken or redirect TLS` };
     if (key !== "registry" && !/^@[^:]+:registry$/.test(key)) continue;
     const problem = registryProblem(value);
