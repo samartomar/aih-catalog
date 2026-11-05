@@ -516,9 +516,15 @@ function lowerPlugin(
     marketplace = entry.marketplace;
     // The install names the plugin by the name its marketplace declares, which only the recipe
     // knows: Catalog does not read the upstream marketplace file.
-    if (
-      (install.install ?? []).some((argv) => argv.some((arg) => arg.includes("<marketplace-name>")))
-    ) {
+    const byName = (install.install ?? []).some((argv) =>
+      argv.some((arg) => arg.includes("<marketplace-name>")),
+    );
+    if (!byName && entry.marketplaceName !== undefined)
+      lowered.problems.push({
+        path: `${at}Name`,
+        message: `${cli} installs no plugin by marketplace name`,
+      });
+    if (byName) {
       if (entry.marketplaceName === undefined)
         lowered.problems.push({
           path: `${at}Name`,

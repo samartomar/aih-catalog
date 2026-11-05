@@ -176,7 +176,11 @@ export async function acquireGit(
   if (typeof work !== "string") return work;
   // Beside the bare repository, inside the same owned work folder.
   const emptyConfig = join(work, "aihq-empty.gitconfig");
-  writeFileSync(emptyConfig, "");
+  try {
+    writeFileSync(emptyConfig, "");
+  } catch {
+    return refused("unreadable", `the outDir ${quote(outDir)} cannot be written`);
+  }
   const env = gitEnvironment(emptyConfig);
   const git = (args: readonly string[], options: { input?: string; maxBytes?: number } = {}) =>
     run("git", ["-C", work, ...GIT_OPTIONS, ...args], {

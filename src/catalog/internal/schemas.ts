@@ -4,6 +4,8 @@
  * sorted and unique lists, cross-references between fields and canonical bytes), so a document
  * that conforms can still read `invalid`. Patterns are the readers' own expressions. Pure data.
  */
+
+import { PRIOR } from "./ai-setup.js";
 import {
   DATE,
   EXACT_VERSION,
@@ -107,7 +109,20 @@ const shared = {
       record({
         argv: { ...argv, minItems: 1 },
         readback: record({ argv: { ...argv, minItems: 1 }, expected: { type: "string" } }),
-        restore: record({ argv: { ...argv, minItems: 1, contains: constant("<prior>") } }),
+        // `<prior>` exactly once, as a whole argument, never inside another.
+        restore: record({
+          argv: {
+            ...list({
+              anyOf: [
+                constant(PRIOR),
+                { type: "string", maxLength: 4096, not: { pattern: PRIOR } },
+              ],
+            }),
+            minItems: 1,
+            contains: constant(PRIOR),
+            maxContains: 1,
+          },
+        }),
       }),
     ),
     files: list(

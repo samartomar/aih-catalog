@@ -109,6 +109,7 @@ const recipe = {
       plugin: "example-skills",
       commit: EXAMPLE_COMMIT,
       marketplace: EXAMPLE_REPOSITORY,
+      marketplaceName: "example-marketplace",
     },
   },
   members: [{ item: "example.skill.review-notes", preTicked: true }],

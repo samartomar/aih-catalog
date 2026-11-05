@@ -158,6 +158,25 @@ describe("the schemas describe every committed document", () => {
       expect(conforms("content", json(`data/${framework}/content.json`)), framework).toEqual([]);
   });
 
+  it("schema and reader agree: a settings restore takes <prior> once, as a whole argument", () => {
+    const cbm = json("data/cbm/content.json") as {
+      items: { aiSetup?: { settings: { commands: { restore: { argv: string[] } }[] } } }[];
+    };
+    for (const argv of [
+      ["config", "set", "watch", "false"],
+      ["config", "set", "<prior>", "<prior>"],
+      ["config", "set", "watch=<prior>"],
+    ]) {
+      const changed = structuredClone(cbm);
+      const setup = changed.items.find((item) => item.aiSetup !== undefined)?.aiSetup;
+      const [command] = setup?.settings.commands ?? [];
+      if (command === undefined) throw new Error("cbm has no settings command");
+      command.restore = { argv };
+      expect(conforms("content", changed), argv.join(" ")).not.toEqual([]);
+      expect(read("content", JSON.stringify(changed)), argv.join(" ")).toBe("invalid");
+    }
+  });
+
   it("every committed qualification conforms to the qualification schema", () => {
     const files = readdirSync(join(root, "data", "qualifications"));
     expect(files.length).toBeGreaterThan(0);
