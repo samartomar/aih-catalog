@@ -18,7 +18,7 @@ import { cutDocument, cutFileName } from "./internal/cut.js";
 import { decodeText } from "./internal/frontmatter.js";
 import { behaviourSha256, contentSha256, installRelative } from "./internal/identity.js";
 import { canonicalDocument, canonicalJson, deepFreeze } from "./internal/json.js";
-import { readFields, readJson } from "./internal/kinds.js";
+import { agentSettingKey, readFields, readJson } from "./internal/kinds.js";
 import {
   type Content,
   type ContentSource,
@@ -625,6 +625,18 @@ async function bundleRecord(
   const absent = entries.find((file) => !index.has(sourceId, file.path));
   if (absent)
     return [{ path: `${at}/${absent.path}`, message: "the file was not supplied with its bytes" }];
+  // A bundle's agents/ files land in clients' agent folders as they are.
+  for (const file of entries)
+    if (file.path.startsWith("agents/") && /\.md$/i.test(file.path)) {
+      const setting = agentSettingKey(index.bytesOf(sourceId, file.path));
+      if (setting !== undefined)
+        return [
+          {
+            path: `${at}/${file.path}`,
+            message: `the bundle's agent file sets ${setting}, which a client would run or connect`,
+          },
+        ];
+    }
   const sorted = [...entries].sort((left, right) => compareCodeUnits(left.path, right.path));
   const key = await scanKeyOf(
     sorted.map((file) => ({

@@ -1053,3 +1053,59 @@ describe("what a bundle may place under a client's folder", () => {
     ).toBe(true);
   });
 });
+
+describe("agent files that carry client settings", () => {
+  const withKey = (key: string) =>
+    `---\nname: helper\ndescription: Helps.\n${key}: {}\n---\n\nHelp.\n`;
+  const KEYS = ["hooks", "mcpServers", "mcp-servers", "permissionMode", "PermissionMode"];
+
+  it("refuses an agent whose frontmatter sets hooks, MCP servers or a permission mode", async () => {
+    for (const key of KEYS) {
+      const read = readLocalSource(folder({ "agents/helper.md": withKey(key) }));
+      if (read.status !== "ok") throw new Error(JSON.stringify(read));
+      const found = findItems(read.files, { framework: FRAMEWORK });
+      if (found.status !== "ok") throw new Error(JSON.stringify(found));
+      expect(
+        await buildContent(read.source, read.files, found.items, { framework: FRAMEWORK }),
+        key,
+      ).toMatchObject({ status: "invalid" });
+    }
+  });
+
+  it("refuses a bundle whose agents/ file sets them, even when it is not an agent item", async () => {
+    for (const key of KEYS) {
+      const read = readLocalSource(
+        folder(
+          {
+            "skills/start/SKILL.md": startSkill("alpha", "guide.md"),
+            "docs/guide.md": GUIDE,
+            "agents/helper.md": withKey(key),
+          },
+          "alpha",
+        ),
+      );
+      if (read.status !== "ok") throw new Error(JSON.stringify(read));
+      const found = findItems(read.files, { framework: "alpha" });
+      if (found.status !== "ok") throw new Error(JSON.stringify(found));
+      const built = await buildContent(
+        read.source,
+        read.files,
+        found.items
+          .filter((item) => item.kind === "skill")
+          .map((item) => ({ ...item, bundle: "alpha.runtime" })),
+        {
+          framework: "alpha",
+          bundles: [
+            { id: "alpha.runtime", layout: "skills/<name>/", include: ["docs/", "agents/"] },
+          ],
+        },
+      );
+      expect(built, key).toMatchObject({
+        status: "invalid",
+        problems: expect.arrayContaining([
+          expect.objectContaining({ message: expect.stringContaining(key) }),
+        ]),
+      });
+    }
+  });
+});

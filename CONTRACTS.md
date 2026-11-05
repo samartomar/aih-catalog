@@ -239,6 +239,9 @@ values; a secret never has a value in content or a plan.
   reads as configuration, at either scope (its MCP file, `configFiles`, settings, shared
   rule file, a `hooks` folder, `.github/workflows/` or a `.git` folder). Otherwise the
   bundle's items are `unavailable` there (`no-bundle-place`).
+- **Agent settings.** An agent, as an item or a bundle's `agents/` file, never sets
+  `hooks`, `mcpServers`, `mcp-servers` or `permissionMode` in its frontmatter (in any case):
+  a client would run or connect them on load. Such content is `invalid`.
 - **Catalog's own content.** The `aih` framework and source belong to the library: supplied
   content that claims them, or two supplied contents of one framework, are `invalid`.
 - **Shared user-only folders.** Clients that flag user-only skills and share one skill folder

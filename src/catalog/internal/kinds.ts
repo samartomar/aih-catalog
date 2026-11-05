@@ -56,6 +56,22 @@ function markdown(path: string, bytesOf: BytesOf) {
   return { split, frontmatter };
 }
 
+/**
+ * Agent frontmatter keys that make a client run or connect something when it loads the
+ * agent (Claude honours them for user subagents without asking). No agent Catalog places,
+ * as an item or a bundle file, carries them.
+ */
+const AGENT_SETTING_KEYS = new Set(["hooks", "mcpservers", "mcp-servers", "permissionmode"]);
+
+/** The first such key in a Markdown file's frontmatter, compared without case, if any. */
+export function agentSettingKey(bytes: Uint8Array): string | undefined {
+  const text = decodeText(bytes);
+  if (text === null) return undefined;
+  const frontmatter = parseFrontmatter(splitFrontmatter(text).yaml);
+  if (typeof frontmatter === "string") return undefined;
+  return Object.keys(frontmatter).find((key) => AGENT_SETTING_KEYS.has(key.toLowerCase()));
+}
+
 /** Strict JSON from an upstream file: UTF-8, no duplicate keys, plain data. */
 export function readJson(bytes: Uint8Array): unknown | { readonly error: string } {
   const text = decodeText(bytes);
@@ -209,6 +225,9 @@ function readAgent(item: DiscoveredItem, bytesOf: BytesOf): Read | string {
   if (!nameOk(frontmatter.name)) return badName(file.sourcePath, frontmatter.name);
   if (!descriptionOk(frontmatter.description))
     return `${file.sourcePath}: description must be 1–1024 characters`;
+  const setting = agentSettingKey(bytesOf(file.sourcePath));
+  if (setting !== undefined)
+    return `${file.sourcePath}: an agent never sets ${setting}, which a client would run or connect`;
   const agent: Record<string, unknown> = { prompt: file.sourcePath };
   const tools = frontmatter.tools;
   if (tools !== undefined) {
