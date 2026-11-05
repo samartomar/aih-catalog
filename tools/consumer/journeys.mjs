@@ -159,8 +159,13 @@ function superpowersRecipe(routes, extra = {}) {
   const superpowers = content("superpowers");
   const entry = { source: "superpowers", path: "/", plugin: "superpowers", commit: SP[1] };
   const plugins = {
-    "claude-code": { ...entry, marketplace: "https://github.com/obra/superpowers-marketplace" },
-    codex: { ...entry, marketplace: SP[0] },
+    // Each marketplace's declared name, from its own marketplace.json.
+    "claude-code": {
+      ...entry,
+      marketplace: "https://github.com/obra/superpowers-marketplace",
+      marketplaceName: "superpowers-marketplace",
+    },
+    codex: { ...entry, marketplace: SP[0], marketplaceName: "superpowers-dev" },
     copilot: entry,
   };
   return recipe({
