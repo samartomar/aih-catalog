@@ -22,6 +22,7 @@ import {
   WHEEL,
 } from "./model.js";
 import { isSafeRelativePath } from "./paths.js";
+import { isLoaderVariable } from "./server.js";
 
 /** The six platform cells. */
 export const CELLS = [
@@ -468,6 +469,13 @@ function toolSettingProblems(value: Record_, path: string, problems: Problems): 
       `${path}/env`,
       "env maps variable names to text values (never a secret)",
     );
+  if (isRecord(value.env))
+    for (const name of Object.keys(value.env))
+      if (isLoaderVariable(name))
+        problems.add(
+          `${path}/env/${name}`,
+          "env never sets a variable that changes how the runtime loads code",
+        );
 }
 
 /** Problems of an `mcp` item's own settings fields (enabledTools … env). */

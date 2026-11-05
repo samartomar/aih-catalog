@@ -77,6 +77,11 @@ export function packageProblem(pkg: unknown): string | undefined {
       return `${key} are positional with a value, or named`;
   }
   if (!isNamedList(pkg.environmentVariables)) return "environmentVariables are named entries";
+  const loader = ((pkg.environmentVariables ?? []) as { name: string }[]).find((entry) =>
+    isLoaderVariable(entry.name),
+  );
+  if (loader !== undefined)
+    return `the input ${loader.name} would change how the runtime loads code`;
   return undefined;
 }
 
@@ -111,4 +116,69 @@ export function serverProblem(server: unknown): { path: string; message: string 
   if (server.packages === undefined && server.remotes === undefined)
     return { path: "", message: "a server needs packages or remotes" };
   return undefined;
+}
+
+/** Variables that change how a runtime, loader or package manager finds and runs code. */
+const LOADER_NAMES = new Set([
+  "NODE_OPTIONS",
+  "NODE_PATH",
+  "NODE_EXTRA_CA_CERTS",
+  "NODE_TLS_REJECT_UNAUTHORIZED",
+  "ELECTRON_RUN_AS_NODE",
+  "PATH",
+  "PATHEXT",
+  "COMSPEC",
+  "PSMODULEPATH",
+  "SHELL",
+  "BASH_ENV",
+  "ENV",
+  "ZDOTDIR",
+  "PERL5LIB",
+  "PERL5OPT",
+  "PERLLIB",
+  "RUBYLIB",
+  "RUBYOPT",
+  "GEM_HOME",
+  "GEM_PATH",
+  "JAVA_TOOL_OPTIONS",
+  "_JAVA_OPTIONS",
+  "JDK_JAVA_OPTIONS",
+  "CLASSPATH",
+  "GIT_ASKPASS",
+  "GIT_EXEC_PATH",
+  "GIT_SSH",
+  "GIT_SSH_COMMAND",
+  "SSL_CERT_FILE",
+  "SSL_CERT_DIR",
+  "REQUESTS_CA_BUNDLE",
+  "CURL_CA_BUNDLE",
+]);
+const LOADER_PREFIXES = [
+  "LD_",
+  "DYLD_",
+  "PYTHON",
+  "UV_",
+  "PIP_",
+  "NPM_CONFIG_",
+  "YARN_",
+  "PNPM_",
+  "COREPACK_",
+  "BUN_",
+  "DENO_",
+  "CONDA_",
+  "VIRTUAL_ENV",
+  "GIT_CONFIG",
+];
+/** Interpreter switches that only choose a text encoding, never what code runs. */
+const ENCODING_ONLY = new Set(["PYTHONUTF8", "PYTHONIOENCODING"]);
+
+/**
+ * True for an environment variable an MCP server's env never sets: one that changes how its
+ * runtime, loader or package manager finds and runs code. Names compare without case, as
+ * Windows reads them.
+ */
+export function isLoaderVariable(name: string): boolean {
+  const upper = name.toUpperCase();
+  if (ENCODING_ONLY.has(upper)) return false;
+  return LOADER_NAMES.has(upper) || LOADER_PREFIXES.some((prefix) => upper.startsWith(prefix));
 }

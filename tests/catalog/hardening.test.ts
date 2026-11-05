@@ -434,3 +434,55 @@ describe("MCP literals and remotes", () => {
       expect(planServer(await serverContent(remoteJson(url))).status, url).toBe("ok");
   });
 });
+
+describe("MCP environment", () => {
+  const LOADERS = [
+    "NODE_OPTIONS",
+    "NODE_PATH",
+    "LD_PRELOAD",
+    "DYLD_INSERT_LIBRARIES",
+    "PYTHONPATH",
+    "PYTHONSTARTUP",
+    "UV_INDEX_URL",
+    "PIP_INDEX_URL",
+    "npm_config_registry",
+    "NPM_CONFIG_USERCONFIG",
+    "PATH",
+    "Path",
+    "PATHEXT",
+  ];
+
+  it("refuses env that changes how the server's runtime loads code", async () => {
+    for (const name of LOADERS) {
+      const read = readLocalSource(folder({ "mcp/weather/server.json": serverJson() }));
+      if (read.status !== "ok") throw new Error(JSON.stringify(read));
+      const found = findItems(read.files, { framework: FRAMEWORK });
+      if (found.status !== "ok") throw new Error(JSON.stringify(found));
+      const built = await buildContent(
+        read.source,
+        read.files,
+        found.items.map((item) => ({ ...item, env: { [name]: "x" } })),
+        { framework: FRAMEWORK },
+      );
+      expect(built, name).toMatchObject({ status: "invalid" });
+    }
+  });
+
+  it("refuses a server input bound to such a variable", async () => {
+    for (const name of ["NODE_OPTIONS", "LD_PRELOAD", "PYTHONPATH"]) {
+      const built = await buildServer(
+        serverJson((server) => {
+          server.packages[0].environmentVariables = [{ name, description: "x" }];
+        }),
+      );
+      expect(built, name).toMatchObject({ status: "invalid" });
+    }
+  });
+
+  it("keeps ordinary settings such as Python's UTF-8 mode", async () => {
+    const content = await serverContent(serverJson(), {
+      env: { PYTHONUTF8: "1", WEATHER_UNITS: "metric" },
+    });
+    expect(planServer(content).status).toBe("ok");
+  });
+});
