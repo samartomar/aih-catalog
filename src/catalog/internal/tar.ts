@@ -1,12 +1,13 @@
 /**
  * A bounded reader for the tar inside an npm tarball. Entries are read as data only: nothing
  * is written to disk, links and special files are reported but never followed, and the
- * leading package folder is removed the way npm removes it. Absolute or `..` paths refuse
- * the whole package. Limits are counted after unpacking.
+ * leading package folder is removed the way npm removes it. Absolute or `..` paths, and Git
+ * metadata, refuse the whole package. Limits are counted after unpacking.
  */
 import { type Invalid, limits, type Refused } from "../contracts.js";
 import type { SourceFile } from "./model.js";
 import { compareCodeUnits, isSafeRelativePath, limitRefusal, quote, refused } from "./paths.js";
+import { hasGitMetadata } from "./source-link.js";
 
 const BLOCK = 512;
 const LATIN1 = new TextDecoder("latin1");
@@ -123,7 +124,7 @@ export function readTar(tar: Uint8Array): ReadTarResult {
       );
     }
     const relative = path.slice(slash + 1);
-    if (!isSafeRelativePath(relative))
+    if (!isSafeRelativePath(relative) || hasGitMetadata(relative))
       return refused("path-escape", `the package entry ${quote(path)} is not a safe relative path`);
     if (type === "5") continue;
     if (seen.has(relative)) return bad(`lists ${quote(relative)} twice`);

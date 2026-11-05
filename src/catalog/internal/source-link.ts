@@ -11,6 +11,13 @@ export { EXACT_VERSION };
 
 import { isSafeRelativePath, limitRefusal, quote } from "./paths.js";
 
+/**
+ * The one Git metadata rule for local, Git and npm sources: a path segment that is `.git` in
+ * any case. Such an entry is never read as source content.
+ */
+export const isGitMetadataName = (segment: string): boolean => segment.toLowerCase() === ".git";
+export const hasGitMetadata = (path: string): boolean => path.split("/").some(isGitMetadataName);
+
 /** A local folder, as written (a leading `~` is expanded only when it is read). */
 export interface LocalCandidate {
   readonly kind: "local";

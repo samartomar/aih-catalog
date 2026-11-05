@@ -26,7 +26,13 @@ import { gunzipSync } from "node:zlib";
 import { type Invalid, limits, type Refused } from "../contracts.js";
 import { type GitSource, type NpmSource, OBJECT_ID, type SourceFile } from "./model.js";
 import { compareCodeUnits, isSafeRelativePath, limitRefusal, quote, refused } from "./paths.js";
-import { EXACT_VERSION, type GitCandidate, type NpmCandidate, npmSpec } from "./source-link.js";
+import {
+  EXACT_VERSION,
+  type GitCandidate,
+  hasGitMetadata,
+  type NpmCandidate,
+  npmSpec,
+} from "./source-link.js";
 import { readTar } from "./tar.js";
 
 export interface Skipped {
@@ -554,7 +560,7 @@ async function fetchGit(
     entries += 1;
     if (entries > limits.sourceEntries)
       return limitRefusal("sourceEntries", "the source entry count");
-    if (!isSafeRelativePath(path) || path.split("/").some((part) => part.toLowerCase() === ".git"))
+    if (!isSafeRelativePath(path) || hasGitMetadata(path))
       return refused("path-escape", `the entry ${quote(path)} is not a safe relative path`);
     if (kind === "tree") continue;
     if (kind === "commit") skipped.push({ path, reason: "submodule" });
