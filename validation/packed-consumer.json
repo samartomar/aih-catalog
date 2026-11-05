@@ -1,17 +1,17 @@
 {
   "candidate": {
-    "package": "@aihq/catalog@0.1.0",
-    "sourceCommit": "74de5bb6c31d1d36568c3c3487183aa779725fc9",
+    "package": "@aihq/catalog@0.0.0-dev.1",
+    "sourceCommit": "f24433040902e96d97ff9b09f6708c9168df3769",
     "sourceClean": true,
-    "file": "aihq-catalog-0.1.0.tgz",
-    "sha256": "5ebfd1cd71e52b9bcde312bcb8b64879822d6cea66a0e8db4d63cf30006ff90e",
-    "integrity": "sha512-0n1tvWLTg1SY0ChGC2K2WVLaFv/C24d9d7MPeNrOOsZ2cinIB5H7JsLO67Yc73Wx/RFDTIPzRE3+7N+36ZmUkQ==",
-    "bytes": 168069,
+    "file": "aihq-catalog-0.0.0-dev.1.tgz",
+    "sha256": "6de1c211868b761cb784ad37131d3cf0088d74e886c603b29a82fbf15f116a9b",
+    "integrity": "sha512-RJmxZgHUBjjMw5HEajHsa56m9kBcxYIErVjWfvFfToIyRtWm6zc7CGTgs3+w9Sq4Z4v76AEfaMJG/fdZBPT0PA==",
+    "bytes": 168103,
     "entries": 66
   },
   "scan": {
-    "package": "@aihq/scan@0.1.0",
-    "sha256": "52f040b1e09dd4015d5c88b9b98b59d177626bf449f1e819448411552de59bcd"
+    "package": "@aihq/scan@0.0.0-dev.1",
+    "sha256": "4f1368c9b89d4055d71f6dc788d0838300f80e39603273cfd663ce1d7ff508c0"
   },
   "runtime": {
     "node": "26.12.1",
@@ -20,7 +20,7 @@
   "inputs": {
     "data": {
       "kind": "git",
-      "commit": "74de5bb6c31d1d36568c3c3487183aa779725fc9",
+      "commit": "f24433040902e96d97ff9b09f6708c9168df3769",
       "subpath": "data",
       "files": 100,
       "sha256": "16e8eff64595aa708bcf92258a5f8ebfbd6c9d17ffb1b562a23bcb78c3a4fd07",
@@ -28,7 +28,7 @@
     },
     "port-report": {
       "kind": "git",
-      "commit": "74de5bb6c31d1d36568c3c3487183aa779725fc9",
+      "commit": "f24433040902e96d97ff9b09f6708c9168df3769",
       "subpath": "port-report",
       "files": 4,
       "sha256": "c6d63d518c12cab9567db2064c5783cce26f85b5ecf1fe61ca346950631064f8",
@@ -36,7 +36,7 @@
     },
     "tests/fixtures": {
       "kind": "git",
-      "commit": "74de5bb6c31d1d36568c3c3487183aa779725fc9",
+      "commit": "f24433040902e96d97ff9b09f6708c9168df3769",
       "subpath": "tests/fixtures",
       "files": 169,
       "sha256": "e6881a0497f82fbc9830092389aa1f78931256e6c21d4e568048ae6b5f637259",
@@ -153,7 +153,7 @@
       ],
       "pending": [],
       "plans": {
-        "superpowers-user": "10b3ff057438801010f3507ddc7fb96790b350490f330b33b4e86259ced683ca"
+        "superpowers-user": "816bc489b12afdba9c71d7635055af480620a5a4979a6cc7b34439333817d288"
       }
     },
     {
@@ -196,7 +196,7 @@
         "Status incomplete (the journey states no status): 78 path references, 0 unavailable item/client pairs, 0 clashes."
       ],
       "plans": {
-        "ecc-kiro": "0a7436bc39d166f065804ad6f7b8722fa385c3e9008011729d9af4bc219ea01e"
+        "ecc-kiro": "eb0c7a75dfee13c64bb856940f2ea716e9d688276ede9aab8eb853e1662f3dc7"
       }
     },
     {
@@ -409,7 +409,7 @@
         "With dsh the plan is ok; the journey states no status for that variant (completeness does not force clients the upstream does not install on, while a selected agent a client cannot take blocks)."
       ],
       "plans": {
-        "egm-project": "df7cbb4a9ad8b8536eeed0b3d601b82091fc2333dcb8de8f5b8ebf0366b7c87a"
+        "egm-project": "5e6b78e05a00331434c18d9625f2c9689c0513f7b1bbacc572074c41e5a4c8a5"
       }
     },
     {
@@ -447,7 +447,7 @@
         "Clean first-time installation remains unproven: the real qualification covers configured-fixture direct MCP sessions with Serena ide context and a separately prepared Python language server. Source-built wheels require caller artifact custody; consumer transport, auxiliary runtime provisioning and named-client loading are separate proof."
       ],
       "plans": {
-        "trio-linux-x64": "a119cad604860fed0a18b1c649667806d88f85d15c8f7ebebf2b406b75b750ea"
+        "trio-linux-x64": "5361a4d1a069fb191c89e769b4c512857ed9c6fd654eaa2e965cfd8ef07db34f"
       }
     },
     {
@@ -723,6 +723,6 @@
     "This packed-consumer check does not verify production scan admission; separate matching trusted-evidence verification is required.",
     "Recipe publication: no recipe is published with a real data commit; the journeys write their recipes and use the drafted ones in the port report.",
     "Extensions routes: aih-extensions declares no per-client routes, so no Extensions base recipe exists.",
-    "Registry install: @aihq/scan 0.1.0 is not on the npm registry; consumers install the vendored tarball."
+    "Registry install: @aihq/scan 0.0.0-dev.1 is not on the npm registry; consumers install the vendored tarball."
   ]
 }
