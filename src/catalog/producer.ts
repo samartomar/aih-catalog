@@ -237,6 +237,7 @@ function readAiSetup(
       item.aiSetup,
       `${id}/aiSetup`,
       item.files.map((file) => file.sourcePath),
+      typeof item.name === "string" ? item.name : undefined,
     ),
   );
   if (problems.length > 0) return problems;

@@ -1045,6 +1045,9 @@ describe("a new qualification in a data commit", () => {
   });
 });
 
+/** Where the kit setup writes its settings file: its own settings folder. */
+const SETTINGS_PATH = ".aihq/ai-setup/kit-graph/settings/kit.yml";
+
 describe("settings files and licence notices", () => {
   it("reports an AI setup record that is not plain data", async () => {
     await expect(kitContent({ ...KIT_SETUP, mcpItem: undefined })).rejects.toThrow(
@@ -1071,7 +1074,7 @@ describe("settings files and licence notices", () => {
             ...withoutMcp,
             settings: {
               commands: [],
-              files: [{ sourcePath: "kit.yml", root: "user", path: ".kit/kit.yml" }],
+              files: [{ sourcePath: "kit.yml", root: "user", path: SETTINGS_PATH }],
             },
             licenceNotice: "Noncommercial use only.",
             qualifications: [shaOf(record)],
@@ -1104,7 +1107,7 @@ describe("settings files and licence notices", () => {
       {
         op: "write",
         root: "user",
-        path: ".kit/kit.yml",
+        path: SETTINGS_PATH,
         from: {
           item: "kit.ai-setup.kit-graph",
           sourceId: "kit",
@@ -1123,5 +1126,154 @@ describe("settings files and licence notices", () => {
         items: ["kit.ai-setup.kit-graph"],
       },
     ]);
+  });
+});
+
+describe("what an AI setup may run and write", () => {
+  const command = (argv: string[]) => ({
+    argv,
+    readback: { argv: ["config", "get", "watch"], expected: "false" },
+    restore: { argv: ["config", "set", "watch", "<prior>"] },
+  });
+
+  it("refuses a launch or settings command that starts an installer the record never runs", async () => {
+    await expect(
+      kitContent({ ...KIT_SETUP, launch: { args: ["install", "--yes"] } }),
+    ).rejects.toThrow(/doNotRun|never runs/);
+    await expect(
+      kitContent({
+        ...KIT_SETUP,
+        launch: { args: ["serve"], clis: { codex: ["install"] } },
+      }),
+    ).rejects.toThrow(/doNotRun|never runs/);
+    await expect(
+      kitContent({
+        ...KIT_SETUP,
+        settings: { commands: [command(["install"])], files: [] },
+      }),
+    ).rejects.toThrow(/doNotRun|never runs/);
+  });
+
+  it("refuses a settings file outside the setup's own settings folder", async () => {
+    for (const path of [
+      ".kit/kit.yml",
+      ".claude/settings.json",
+      ".aihq/ai-setup/kit-graph/1.2.3/linux-x64/bin/kit-graph",
+    ])
+      await expect(
+        kitContent({
+          ...KIT_SETUP,
+          settings: { commands: [], files: [{ sourcePath: "server.json", root: "user", path }] },
+        }),
+        path,
+      ).rejects.toThrow(/settings file is written under/);
+  });
+
+  it("refuses a recipe's settings command that starts such an installer", async () => {
+    const record = kitQualification();
+    const content = await accepting(record);
+    const plan = planRecipe(
+      {
+        schema: "urn:aihq:catalog:recipe:0.1.0",
+        id: "kit-base",
+        kind: "base",
+        framework: "kit",
+        content: { repository: "https://example.invalid/kit", commit: COMMIT },
+        routes: {},
+        members: [{ item: "kit.ai-setup.kit-graph", preTicked: true }],
+        aiSetup: {
+          "kit.ai-setup.kit-graph": {
+            settings: { commands: [command(["install"])], files: [] },
+          },
+        },
+        data: DATA_A,
+      } as never,
+      [content],
+      [profile("codex")],
+      {},
+      {
+        scope: "project",
+        source: { repository: "https://example.invalid/recipes", commit: "c".repeat(40) },
+        cell: "linux-x64",
+        qualifications: [record as Qualification],
+      },
+    );
+    expect(plan).toMatchObject({ status: "invalid" });
+  });
+
+  it("runs a recipe's own settings commands without the standalone qualification", async () => {
+    const record = kitQualification();
+    const content = await accepting(record);
+    const plan = planned(
+      planRecipe(
+        {
+          schema: "urn:aihq:catalog:recipe:0.1.0",
+          id: "kit-base",
+          kind: "base",
+          framework: "kit",
+          content: { repository: "https://example.invalid/kit", commit: COMMIT },
+          routes: {},
+          members: [{ item: "kit.ai-setup.kit-graph", preTicked: true }],
+          aiSetup: {
+            "kit.ai-setup.kit-graph": {
+              settings: { commands: [command(["config", "set", "watch", "true"])], files: [] },
+            },
+          },
+          data: DATA_A,
+        } as never,
+        [content],
+        [profile("codex")],
+        {},
+        {
+          scope: "project",
+          source: { repository: "https://example.invalid/recipes", commit: "c".repeat(40) },
+          cell: "linux-x64",
+          qualifications: [record as Qualification],
+        },
+      ),
+    );
+    const commands = plan.plan.filter((step) => step.op === "tool-command");
+    expect(commands).toHaveLength(1);
+    expect(commands[0]).not.toHaveProperty("qualification");
+  });
+});
+
+describe("a recipe's settings files for an AI setup", () => {
+  it("refuses a settings file the AI setup does not have, instead of skipping it", async () => {
+    const record = kitQualification();
+    const content = await accepting(record);
+    const plan = planRecipe(
+      {
+        schema: "urn:aihq:catalog:recipe:0.1.0",
+        id: "kit-base",
+        kind: "base",
+        framework: "kit",
+        content: { repository: "https://example.invalid/kit", commit: COMMIT },
+        routes: {},
+        members: [{ item: "kit.ai-setup.kit-graph", preTicked: true }],
+        aiSetup: {
+          "kit.ai-setup.kit-graph": {
+            settings: {
+              commands: [],
+              files: [{ sourcePath: "absent.yml", root: "user", path: SETTINGS_PATH }],
+            },
+          },
+        },
+        data: DATA_A,
+      } as never,
+      [content],
+      [profile("codex")],
+      {},
+      {
+        scope: "project",
+        source: { repository: "https://example.invalid/recipes", commit: "c".repeat(40) },
+        cell: "linux-x64",
+        qualifications: [record as Qualification],
+      },
+    );
+    expect(plan).toMatchObject({
+      status: "invalid",
+      problems: [expect.objectContaining({ message: "names no file of the AI setup" })],
+    });
   });
 });

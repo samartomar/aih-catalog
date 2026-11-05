@@ -585,6 +585,7 @@ function checkKindFields(item: Record_, path: string, problems: Problems): void 
       Array.isArray(item.files)
         ? item.files.map((file) => (isRecord(file) ? String(file.sourcePath) : ""))
         : [],
+      typeof item.name === "string" ? item.name : undefined,
     ))
       problems.add(problem.path, problem.message);
   const settings = MCP_SETTINGS.filter((key) => own("mcp", key) && item[key] !== undefined);
