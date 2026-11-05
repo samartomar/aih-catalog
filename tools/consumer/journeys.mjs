@@ -159,12 +159,9 @@ function superpowersRecipe(routes, extra = {}) {
   const superpowers = content("superpowers");
   const entry = { source: "superpowers", path: "/", plugin: "superpowers", commit: SP[1] };
   const plugins = {
-    // Each marketplace's declared name, from its own marketplace.json.
-    "claude-code": {
-      ...entry,
-      marketplace: "https://github.com/obra/superpowers-marketplace",
-      marketplaceName: "superpowers-marketplace",
-    },
+    // Claude and Copilot install from a pinned marketplace the plan writes; Codex names the
+    // marketplace's declared name, from its own marketplace.json.
+    "claude-code": entry,
     codex: { ...entry, marketplace: SP[0], marketplaceName: "superpowers-dev" },
     copilot: entry,
   };

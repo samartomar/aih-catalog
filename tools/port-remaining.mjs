@@ -716,13 +716,12 @@ function chosen(results, recipe, ids, optional = []) {
 
 function recipes(results) {
   const pin = (name) => ({ repository: PINS[name].repository, commit: PINS[name].commit });
+  // Claude installs through a pinned marketplace the plan writes and names itself.
   const anthropicPlugin = (plugin) => ({
     source: "anthropic",
     path: "/",
     plugin,
     commit: PINS.anthropic.commit,
-    marketplace: PINS.anthropic.repository,
-    marketplaceName: results.anthropic.marketplace.name,
   });
   const pluginItems = (plugin) =>
     results.anthropic.marketplace.plugins

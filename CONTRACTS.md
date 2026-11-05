@@ -111,7 +111,7 @@ licence, keywords) beside a `recipe.json`. A recipe is a `base` or `add-on` for 
 framework (an add-on lists the recipes it `requires`) or a `combination` of frameworks. It
 records the upstream `content` pin, a `route` per client (clients it does not name use
 `items`), the `plugins` and `setup` programs those routes need (a `plugin` route on a client
-that installs `<plugin>@<marketplace-name>`, such as Claude Code or Codex, also names the
+that installs `<plugin>@<marketplace-name>` from a marketplace it adds, such as Codex, also names the
 `marketplaceName` its marketplace declares, which the `plugin` step carries), the kinds each
 items route installs (`clis`), `members` and choice `options`, `namePrefix`, built-in `overrides`, AI setup
 changes, combination `qualifications` per cell, and the Catalog `data` commit it was written
@@ -169,7 +169,7 @@ choice still uses.
 | `write` | writes a file: a copy of the recorded source file, or the bytes `renderStep` gives for its `render` |
 | `link` | links a client folder to a shared user-scope version folder; skills whose relative paths reach a sibling skill are copied in place instead, with a `copied-for-references` warning, since a linked folder resolves `..` inside its version folder |
 | `merge` | sets one keyed entry in a structured file (JSON, TOML or a Markdown block), keeping the rest |
-| `plugin` | installs a native plugin at the recorded commit with the client's own commands; `pin: "unverified"` where the client adds the marketplace unpinned, so nothing checks the installed commit |
+| `plugin` | installs a native plugin at the recorded commit with the client's own commands. Where a client adds a marketplace at its current head (Claude Code, Copilot CLI), the plan first writes its own marketplace with the plugin pinned by commit and the step names it as `{ root, path }`; a step that can still install another commit says `pin: "unverified"` |
 | `upstream-setup` | runs an upstream setup program, only after the user approves it |
 | `tool-command` | runs an AI setup's settings command after approval, then its readback. The installer runs the readback first and keeps its output as the prior value; removal runs `restore` with that value in place of `<prior>` and checks the readback shows it again |
 | `upstream-installer` | runs an upstream installer the user explicitly chose instead of a managed setup |

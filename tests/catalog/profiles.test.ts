@@ -66,6 +66,16 @@ describe("the nine shipped tool profiles", () => {
       marketplaceFolder: ".aihq/marketplaces/<framework>/",
       warnings: ["cli-only-plugin"],
     });
+    // Claude adds a marketplace at its current head, so it pins through a marketplace the plan
+    // writes itself, in a folder of its own beside Copilot's.
+    expect(profile("claude-code").plugins).toMatchObject({
+      pinForm: "local-marketplace",
+      marketplaceFolder: ".aihq/marketplaces/claude-code/<framework>/",
+    });
+    // Codex removes a plugin only by its marketplace-qualified name.
+    expect(profile("codex").plugins?.remove).toEqual([
+      ["codex", "plugin", "remove", "<plugin>@<marketplace-name>"],
+    ]);
     for (const id of NINE) expect(profile(id).plugins?.verify ?? "none", id).toBe("none");
     const local = NINE.filter((id) => profile(id).localPlugins !== undefined);
     expect(local).toEqual(["antigravity", "claude-code"]);

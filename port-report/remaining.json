@@ -2952,8 +2952,6 @@
       "plugins": {
         "claude-code": {
           "commit": "34040c9c568585f6929bedeaad110ad08f079624",
-          "marketplace": "https://github.com/anthropics/skills",
-          "marketplaceName": "anthropic-agent-skills",
           "path": "/",
           "plugin": "academy-guide",
           "source": "anthropic"
@@ -3035,8 +3033,6 @@
       "plugins": {
         "claude-code": {
           "commit": "34040c9c568585f6929bedeaad110ad08f079624",
-          "marketplace": "https://github.com/anthropics/skills",
-          "marketplaceName": "anthropic-agent-skills",
           "path": "/",
           "plugin": "example-skills",
           "source": "anthropic"
@@ -3058,8 +3054,6 @@
       "plugins": {
         "claude-code": {
           "commit": "34040c9c568585f6929bedeaad110ad08f079624",
-          "marketplace": "https://github.com/anthropics/skills",
-          "marketplaceName": "anthropic-agent-skills",
           "path": "/",
           "plugin": "claude-api",
           "source": "anthropic"
@@ -3089,8 +3083,6 @@
       "plugins": {
         "claude-code": {
           "commit": "34040c9c568585f6929bedeaad110ad08f079624",
-          "marketplace": "https://github.com/anthropics/skills",
-          "marketplaceName": "anthropic-agent-skills",
           "path": "/",
           "plugin": "discernment-nudge",
           "source": "anthropic"
@@ -3132,8 +3124,6 @@
       "plugins": {
         "claude-code": {
           "commit": "34040c9c568585f6929bedeaad110ad08f079624",
-          "marketplace": "https://github.com/anthropics/skills",
-          "marketplaceName": "anthropic-agent-skills",
           "path": "/",
           "plugin": "document-skills",
           "source": "anthropic"
