@@ -480,6 +480,17 @@ describe("MCP environment", () => {
     "PATH",
     "Path",
     "PATHEXT",
+    "HOME",
+    "USERPROFILE",
+    "APPDATA",
+    "LOCALAPPDATA",
+    "XDG_CONFIG_HOME",
+    "GIT_PROXY_COMMAND",
+    "GIT_EXTERNAL_DIFF",
+    "GIT_PAGER",
+    "PAGER",
+    "EDITOR",
+    "VISUAL",
   ];
 
   it("refuses env that changes how the server's runtime loads code", async () => {

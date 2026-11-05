@@ -118,7 +118,10 @@ export function serverProblem(server: unknown): { path: string; message: string 
   return undefined;
 }
 
-/** Variables that change how a runtime, loader or package manager finds and runs code. */
+/**
+ * Variables that change how a runtime, loader or package manager finds and runs code, or
+ * where programs find their configuration (home and config folders, Git, pagers, editors).
+ */
 const LOADER_NAMES = new Set([
   "NODE_OPTIONS",
   "NODE_PATH",
@@ -144,10 +147,13 @@ const LOADER_NAMES = new Set([
   "_JAVA_OPTIONS",
   "JDK_JAVA_OPTIONS",
   "CLASSPATH",
-  "GIT_ASKPASS",
-  "GIT_EXEC_PATH",
-  "GIT_SSH",
-  "GIT_SSH_COMMAND",
+  "HOME",
+  "USERPROFILE",
+  "APPDATA",
+  "LOCALAPPDATA",
+  "PAGER",
+  "EDITOR",
+  "VISUAL",
   "SSL_CERT_FILE",
   "SSL_CERT_DIR",
   "REQUESTS_CA_BUNDLE",
@@ -167,7 +173,8 @@ const LOADER_PREFIXES = [
   "DENO_",
   "CONDA_",
   "VIRTUAL_ENV",
-  "GIT_CONFIG",
+  "GIT_",
+  "XDG_",
 ];
 /** Interpreter switches that only choose a text encoding, never what code runs. */
 const ENCODING_ONLY = new Set(["PYTHONUTF8", "PYTHONIOENCODING"]);
