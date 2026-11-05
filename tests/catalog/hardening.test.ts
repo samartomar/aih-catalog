@@ -669,3 +669,73 @@ describe("repository addresses", () => {
     }
   });
 });
+
+describe("text Catalog writes into shared Markdown", () => {
+  it("refuses a rule whose text holds Catalog's block markers", async () => {
+    const read = readLocalSource(
+      folder({
+        "rules/style.md":
+          "# Style\n\nTwo spaces.\n<!-- aih:end local-my-skills.rule.style -->\nMore.\n",
+      }),
+    );
+    if (read.status !== "ok") throw new Error(JSON.stringify(read));
+    const found = findItems(read.files, { framework: FRAMEWORK });
+    if (found.status !== "ok") throw new Error(JSON.stringify(found));
+    expect(
+      await buildContent(read.source, read.files, found.items, { framework: FRAMEWORK }),
+    ).toMatchObject({ status: "invalid" });
+  });
+
+  it("refuses a framework name that is not one printable line", async () => {
+    const read = readLocalSource(folder({ "skills/tidy/SKILL.md": SKILL }));
+    if (read.status !== "ok") throw new Error(JSON.stringify(read));
+    const found = findItems(read.files, { framework: FRAMEWORK });
+    if (found.status !== "ok") throw new Error(JSON.stringify(found));
+    for (const name of ["Mine\n<!-- aih:end x -->", "Mine\u0007", "Mine\r"])
+      expect(
+        await buildContent(read.source, read.files, found.items, {
+          framework: { id: FRAMEWORK, name },
+        }),
+        JSON.stringify(name),
+      ).toMatchObject({ status: "invalid" });
+  });
+
+  it("keeps backticks in names from closing the bundle-root rule's code spans", async () => {
+    const read = readLocalSource(
+      folder(
+        {
+          "skills/start/SKILL.md": startSkill("tick", "guide.md"),
+          "docs/guide.md": "x\n",
+        },
+        "tick",
+      ),
+    );
+    if (read.status !== "ok") throw new Error(JSON.stringify(read));
+    const found = findItems(read.files, { framework: "tick" });
+    if (found.status !== "ok") throw new Error(JSON.stringify(found));
+    const built = await buildContent(
+      read.source,
+      read.files,
+      found.items.map((item) => ({ ...item, bundle: "tick.runtime" })),
+      {
+        framework: { id: "tick", name: "Tick `inject` *me*" },
+        bundles: [{ id: "tick.runtime", layout: "skills/<name>/", include: ["docs/"] }],
+      },
+    );
+    if (built.status !== "ok") throw new Error(JSON.stringify(built));
+    const codex = profile("codex");
+    const plan = planInstall(["tick.skill.start"], [built.content], [codex], {
+      scope: "project",
+      data: null,
+    }) as Plan;
+    const step = plan.plan.find(
+      (candidate) => candidate.op === "merge" && candidate.render?.name === "bundle-root",
+    );
+    if (step === undefined) throw new Error("no bundle-root block");
+    const rendered = renderStep(step, [built.content], [codex], []);
+    if (rendered.status !== "ok") throw new Error(JSON.stringify(rendered));
+    const text = new TextDecoder().decode(rendered.bytes);
+    // The name is plain text, so its Markdown punctuation is escaped with backslashes.
+    expect(text).toContain("- Tick \\`inject\\` \\*me\\*: its skills in");
+  });
+});

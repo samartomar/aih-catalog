@@ -436,8 +436,19 @@ export function namedBundles(
   return named;
 }
 
+/** A Markdown code span holding exactly `text`, fenced past any backticks it holds. */
+export function codeSpan(text: string): string {
+  const longest = Math.max(0, ...[...text.matchAll(/`+/g)].map((run) => run[0].length));
+  const fence = "`".repeat(longest + 1);
+  const pad = text.startsWith("`") || text.endsWith("`") ? " " : "";
+  return `${fence}${pad}${text}${pad}${fence}`;
+}
+
+/** Plain Markdown text that shows `text` as it is: its punctuation escaped. */
+const plainText = (text: string): string => text.replaceAll(/[\\`*_[\]<>]/g, "\\$&");
+
 const listed = (names: readonly string[]): string => {
-  const quoted = names.map((name) => `\`${name}\``);
+  const quoted = names.map(codeSpan);
   return quoted.length <= 1
     ? (quoted[0] ?? "")
     : `${quoted.slice(0, -1).join(", ")} and ${quoted[quoted.length - 1]}`;
@@ -455,9 +466,9 @@ export function bundleRootBytes(
   frontmatter?: Readonly<Record<string, unknown>>,
 ): Uint8Array {
   const lines = bundles.map((bundle) => {
-    const root = bundle.root === "" ? "the project root" : `\`${shown(bundle.root, scope)}\``;
+    const root = bundle.root === "" ? "the project root" : codeSpan(shown(bundle.root, scope));
     const skills = `${shown(bundle.root, scope)}${bundle.layout.replace(/<name>\/$/, "")}`;
-    return `- ${bundle.framework}: its skills in \`${skills}\` and its agents read ${listed(bundle.folders.map((folder) => `${folder}/`))} relative to ${root}.`;
+    return `- ${plainText(bundle.framework)}: its skills in ${codeSpan(skills)} and its agents read ${listed(bundle.folders.map((folder) => `${folder}/`))} relative to ${root}.`;
   });
   const text = [
     "# Bundle roots",

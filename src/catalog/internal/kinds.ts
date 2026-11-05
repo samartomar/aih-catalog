@@ -166,6 +166,9 @@ function readRule(item: DiscoveredItem, bytesOf: BytesOf): Read | string {
   if (rule === undefined || item.files.length !== 1) return "a rule is exactly one file";
   const read = markdown(rule.sourcePath, bytesOf);
   if (typeof read === "string") return read;
+  // A rule can become a block in a shared Markdown file, whose blocks these markers delimit.
+  if (decodeText(bytesOf(rule.sourcePath))?.includes(BLOCK_MARKER))
+    return `${rule.sourcePath}: a rule never holds Catalog's block marker ${BLOCK_MARKER}`;
   const name = basenameOf(rule.sourcePath).replace(/\.md$/, "");
   if (!nameOk(name)) return badName(rule.sourcePath, name);
   const description = read.frontmatter.description ?? firstLine(read.split.body);
@@ -176,6 +179,9 @@ function readRule(item: DiscoveredItem, bytesOf: BytesOf): Read | string {
   const language = languageOf(rule.sourcePath);
   return { fields: { name, description, scope, ...(language ? { language } : {}) } };
 }
+
+/** The text that starts each of Catalog's blocks in a shared Markdown file. */
+export const BLOCK_MARKER = "<!-- aih:";
 
 /** An agent is one Markdown file in Claude's format: frontmatter fields, the body is the prompt. */
 function readAgent(item: DiscoveredItem, bytesOf: BytesOf): Read | string {

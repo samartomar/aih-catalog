@@ -7,6 +7,7 @@ import { aiSetupProblems, MCP_SETTINGS, mcpSettingProblems } from "./ai-setup.js
 import { BUNDLE_LAYOUT, isIncludePattern, matchesInclude } from "./bundle.js";
 import { isRecord, isText, Problems, type Record_, TEXT_LIMITS } from "./check.js";
 import { behaviourSha256, contentSha256, kindFieldNames } from "./identity.js";
+import { BLOCK_MARKER } from "./kinds.js";
 import {
   FRAMEWORK_ID,
   ID_SEGMENT,
@@ -74,6 +75,9 @@ function checkIdList(value: unknown, path: string, problems: Problems): void {
 }
 
 /** Shape problems of a content document; empty when the record is well formed. */
+/** Control characters and line or paragraph separators: never in a one-line name. */
+const UNPRINTABLE = /[\p{Cc}\p{Zl}\p{Zp}]/u;
+
 export function contentProblems(value: unknown): Problem[] {
   const problems = new Problems();
   if (!isRecord(value)) return [{ path: "", message: "content must be an object" }];
@@ -95,6 +99,9 @@ export function contentProblems(value: unknown): Problem[] {
     else frameworkId = framework.id;
     if (!isString(framework.name, 200))
       problems.add("/framework/name", "name must be 1–200 characters");
+    // The name is written into shared Markdown: one printable line.
+    else if (UNPRINTABLE.test(framework.name) || framework.name.includes(BLOCK_MARKER))
+      problems.add("/framework/name", "name is one printable line");
   }
   const sourceIds = new Set<string>();
   if (!Array.isArray(value.sources)) problems.add("/sources", "sources must be a list");

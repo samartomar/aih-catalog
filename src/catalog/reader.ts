@@ -20,7 +20,7 @@ import {
   readCanonicalDocument,
   readStrictDocument,
 } from "./internal/json.js";
-import { readJson } from "./internal/kinds.js";
+import { BLOCK_MARKER, readJson } from "./internal/kinds.js";
 import type { Content, Item } from "./internal/model.js";
 import { compareCodeUnits, limitRefusal, quote, refused } from "./internal/paths.js";
 import {
@@ -376,9 +376,31 @@ export type RenderStepResult =
  * the supplied source file. Refuses `source-mismatch` when the file's sha256 differs from the
  * step's and `profile-mismatch` when a supplied profile's version differs from the recorded
  * one. A combined render records every participating profile, and each must be supplied at its
- * recorded version. Declared input markers in the source survive the render unchanged.
+ * recorded version. Declared input markers in the source survive the render unchanged. A
+ * Markdown block never holds Catalog's own block marker, which would end or start another block.
  */
 export function renderStep(
+  step: PlanStep,
+  suppliedContents: readonly Content[],
+  profiles: readonly ToolProfile[],
+  suppliedFiles: readonly {
+    readonly sourceId?: string;
+    readonly sourcePath: string;
+    readonly bytes: Uint8Array;
+  }[],
+): RenderStepResult {
+  const result = renderStepBytes(step, suppliedContents, profiles, suppliedFiles);
+  if (
+    result.status === "ok" &&
+    step?.op === "merge" &&
+    step.format === "markdown" &&
+    new TextDecoder().decode(result.bytes).includes(BLOCK_MARKER)
+  )
+    return badRender("a Markdown block never holds Catalog's block marker");
+  return result;
+}
+
+function renderStepBytes(
   step: PlanStep,
   suppliedContents: readonly Content[],
   profiles: readonly ToolProfile[],
