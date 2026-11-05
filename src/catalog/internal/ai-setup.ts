@@ -269,7 +269,11 @@ function checkSettings(value: unknown, path: string, problems: Problems, files?:
     });
 }
 
-const programName = (program: string) => program.toLowerCase().replace(/.(?:exe|cmd|bat|ps1)$/, "");
+const programName = (program: string) =>
+  program.toLowerCase().replace(/\.(?:exe|cmd|bat|ps1)$/, "");
+
+/** The tokens of an argv that are not flags: a subcommand matches wherever flags sit. */
+const words = (argv: readonly string[]) => argv.filter((token) => !token.startsWith("-"));
 
 /**
  * True when `[executable, ...argv]` starts with one of the upstream installers the record lists
@@ -280,15 +284,17 @@ export function startsInstaller(
   argv: readonly string[],
   doNotRun: readonly (readonly string[])[],
 ): boolean {
-  const run = [executable, ...argv];
-  return doNotRun.some(
-    (installer) =>
-      installer.length > 0 &&
+  const run = [executable, ...words(argv)];
+  return doNotRun.some((entry) => {
+    const installer = [entry[0] as string, ...words(entry.slice(1))];
+    return (
+      entry.length > 0 &&
       installer.length <= run.length &&
       installer.every((part, index) =>
         index === 0 ? programName(part) === programName(run[0] as string) : part === run[index],
-      ),
-  );
+      )
+    );
+  });
 }
 
 /** Settings commands (each argv the installer runs) that start a `doNotRun` installer. */

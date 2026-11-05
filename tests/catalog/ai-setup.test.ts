@@ -1140,6 +1140,18 @@ describe("what an AI setup may run and write", () => {
     await expect(
       kitContent({ ...KIT_SETUP, launch: { args: ["install", "--yes"] } }),
     ).rejects.toThrow(/doNotRun|never runs/);
+    // Flags before the subcommand still start the installer.
+    await expect(
+      kitContent({ ...KIT_SETUP, launch: { args: ["--verbose", "install"] } }),
+    ).rejects.toThrow(/doNotRun|never runs/);
+    // A program named like the executable with another extension is the same program.
+    await expect(
+      kitContent({
+        ...KIT_SETUP,
+        doNotRun: [["kit-graph.exe", "install"]],
+        launch: { args: ["install"] },
+      }),
+    ).rejects.toThrow(/doNotRun|never runs/);
     await expect(
       kitContent({
         ...KIT_SETUP,
