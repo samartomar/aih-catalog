@@ -1,0 +1,236 @@
+{
+  "framework": {
+    "id": "serena",
+    "name": "Serena"
+  },
+  "items": [
+    {
+      "aiSetup": {
+        "distributions": [
+          {
+            "bytes": 1144652,
+            "cells": [
+              "darwin-arm64",
+              "darwin-x64",
+              "linux-arm64",
+              "linux-x64",
+              "windows-arm64",
+              "windows-x64"
+            ],
+            "file": "serena_agent-2.1.0-py3-none-any.whl",
+            "kind": "pypi-wheel",
+            "sha256": "cc6ae542c39b4de5d98cdf35a4ceb0b551f316c5f22e9d0f0b0c5f35d6b95d87",
+            "url": "https://files.pythonhosted.org/packages/6f/95/0905a379bcde1d307b05627a2ff4ccabf18b98af3ed25da4a800c01fbd52/serena_agent-2.1.0-py3-none-any.whl"
+          }
+        ],
+        "doNotRun": [
+          [
+            "serena",
+            "setup"
+          ],
+          [
+            "serena-hooks"
+          ]
+        ],
+        "executable": "serena",
+        "launch": {
+          "args": [
+            "start-mcp-server",
+            "--project-from-cwd",
+            "--context",
+            "ide",
+            "--agent-interface",
+            "tools",
+            "--enable-web-dashboard",
+            "false",
+            "--open-web-dashboard",
+            "false",
+            "--enable-gui-log-window",
+            "false",
+            "--tool-timeout",
+            "240"
+          ],
+          "clis": {
+            "antigravity": [
+              "start-mcp-server",
+              "--project-from-cwd",
+              "--context",
+              "antigravity",
+              "--agent-interface",
+              "tools",
+              "--enable-web-dashboard",
+              "false",
+              "--open-web-dashboard",
+              "false",
+              "--enable-gui-log-window",
+              "false",
+              "--tool-timeout",
+              "240"
+            ],
+            "claude-code": [
+              "start-mcp-server",
+              "--project-from-cwd",
+              "--context",
+              "claude-code",
+              "--agent-interface",
+              "tools",
+              "--enable-web-dashboard",
+              "false",
+              "--open-web-dashboard",
+              "false",
+              "--enable-gui-log-window",
+              "false",
+              "--tool-timeout",
+              "240"
+            ],
+            "codex": [
+              "start-mcp-server",
+              "--project-from-cwd",
+              "--context",
+              "codex",
+              "--agent-interface",
+              "tools",
+              "--enable-web-dashboard",
+              "false",
+              "--open-web-dashboard",
+              "false",
+              "--enable-gui-log-window",
+              "false",
+              "--tool-timeout",
+              "240"
+            ],
+            "copilot": [
+              "start-mcp-server",
+              "--project-from-cwd",
+              "--context",
+              "copilot-cli",
+              "--agent-interface",
+              "tools",
+              "--enable-web-dashboard",
+              "false",
+              "--open-web-dashboard",
+              "false",
+              "--enable-gui-log-window",
+              "false",
+              "--tool-timeout",
+              "240"
+            ]
+          }
+        },
+        "mcpItem": "serena.mcp.serena",
+        "qualifications": [
+          "415cb167697c87defaa67d48cf51fed6a4b3852df391b12185291f4342ab959c",
+          "8e9113b6ba319e27f7b05651a35b3b91d4b1a1963a3fb29746b37735643d4b81"
+        ],
+        "runtime": {
+          "closure": "uv-lock",
+          "python": ">=3.11,<3.15"
+        },
+        "settings": {
+          "commands": [],
+          "files": []
+        },
+        "version": "2.1.0"
+      },
+      "behaviourSha256": "f00e9e90b252b432f524b863472ba1b3b1faa9e3ac46accaba904e9132e49405",
+      "contentSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "description": "Serena 2.1.0: semantic code retrieval and editing through language servers, served over MCP.",
+      "files": [],
+      "id": "serena.ai-setup.serena",
+      "kind": "ai-setup",
+      "name": "serena"
+    },
+    {
+      "behaviourSha256": "6fcb5ba6d5ab9f321d0d5a600cb70edfcf2158a633c478c5cea9a2f713c2150c",
+      "callSeconds": 300,
+      "contentSha256": "ea32a31dfc608c6bc26d04eb082aeef1a44eb125205922bc97d69ce0776a0cbe",
+      "dependencies": [
+        "serena.ai-setup.serena"
+      ],
+      "description": "A powerful toolkit for coding, providing semantic retrieval and editing capabilities.",
+      "files": [
+        {
+          "bytes": 1520,
+          "executable": false,
+          "role": "content",
+          "sha256": "28f853e37bb0835ef896daab058cb6403aa9dfb147198ad68e65ff6bb92d4256",
+          "sourceId": "serena",
+          "sourcePath": "server.json"
+        }
+      ],
+      "id": "serena.mcp.serena",
+      "kind": "mcp",
+      "name": "serena",
+      "scanKey": "git-sha1:1b7bb1fe25aadb3dfb27e4dee70be2858d55244d",
+      "server": {
+        "description": "A powerful toolkit for coding, providing semantic retrieval and editing capabilities.",
+        "name": "io.github.oraios/serena",
+        "packages": [
+          {
+            "identifier": "serena-agent",
+            "packageArguments": [
+              {
+                "type": "positional",
+                "value": "start-mcp-server"
+              },
+              {
+                "isRequired": false,
+                "type": "positional",
+                "value": "--project-from-cwd"
+              },
+              {
+                "default": "desktop-app",
+                "description": "The name of a markdown file representing Serena's execution context, typically related to the executing client.  Allowed values are: agent, antigravity, chatgpt, claude-code, codex, context.template, copilot-cli, desktop-app, ide, jb-ai-assistant, jb-copilot-plugin, junie, oaicompat-agent, vscode ",
+                "isRequired": false,
+                "name": "--context",
+                "type": "named"
+              }
+            ],
+            "registryType": "pypi",
+            "runtimeArguments": [
+              {
+                "description": "Select the python version",
+                "name": "-p",
+                "type": "named",
+                "value": "3.13"
+              }
+            ],
+            "runtimeHint": "uvx",
+            "transport": {
+              "type": "stdio"
+            },
+            "version": "2.1.0"
+          }
+        ],
+        "version": "2.1.0"
+      },
+      "startupSeconds": 60
+    }
+  ],
+  "schema": "urn:aihq:catalog:content:0.1.0",
+  "sources": [
+    {
+      "commit": "5e4f5cd173c7ff3eed37ee3f1de6c266b937c5dc",
+      "id": "serena",
+      "kind": "git",
+      "notices": [
+        {
+          "covers": "/",
+          "sha256": "6239f4be78ccff409aedfbce88ac89b26f488f76aac7ab199fb6876dc7fdeb4c",
+          "sourcePath": "LICENSE"
+        },
+        {
+          "covers": "/",
+          "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986",
+          "sourcePath": "LICENSES/GPL-3.0-or-later.txt"
+        },
+        {
+          "covers": "/",
+          "sha256": "16017e50562bb112006f6f32d17ca989e0e573b011bd6790b642018b1c195b0c",
+          "sourcePath": "LICENSES/MIT.txt"
+        }
+      ],
+      "repository": "https://github.com/oraios/serena"
+    }
+  ]
+}

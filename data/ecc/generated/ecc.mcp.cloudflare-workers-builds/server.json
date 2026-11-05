@@ -1,0 +1,10 @@
+{
+  "description": "Cloudflare Workers builds",
+  "name": "cloudflare-workers-builds",
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://builds.mcp.cloudflare.com/mcp"
+    }
+  ]
+}

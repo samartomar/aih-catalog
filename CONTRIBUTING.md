@@ -1,193 +1,125 @@
 # Contributing
 
-Start with [AGENTS.md](AGENTS.md) for issue ownership and repository boundaries.
-Accepted bugs/enhancements use the owning Catalog issue; link the PR and verified
-release outcome there. Keep private planning and reproductions out of public text.
+Start with [AGENTS.md](AGENTS.md) for issue ownership and repository boundaries. Accepted
+bugs and enhancements use the owning Catalog issue; link the pull request and the verified
+outcome there. Keep private planning and reproductions out of public text.
 
-[Contract fixtures](docs/CONTRACT-FIXTURES.md) are exported data, tested by the
-active packed outside consumer. Run `npm run check:contract-fixtures` after a
-build to check deterministic regeneration. CI additionally runs
-`npm run check:scan-fixtures` against the exact registry version in
-`tools/scan-fixture-pin.json`; before publication, registry 404 is recorded as
-unavailable. Network errors and a published incompatible package fail.
+## Setup and checks
 
-[Baseline contract checks](docs/SCAN-BASELINE.md) cover complete content projection
-and versioned release admission. `npm run check:baseline-schemas` checks generated
-schemas; regenerate through `node tools/generate-baseline-schemas.mjs`. The bounded
-`tools/verify-baseline-consumer.mjs` proof additionally takes exact public Scan/Core
-tarballs and an isolated locked runtime. It uses fixture signatures and no scanners.
-`node tools/verify-package-consumer.mjs <exact-installed-runtime> <new-output>`
-additionally exercises complete package qualification, packing, installed
-readback, reuse and substitution refusals with fixture evidence. The runtime must
-already contain the selected exact public Catalog/Scan/Core packages and v3 npm
-lock. [Full package preparation](docs/SCAN-BASELINE.md#assemble-the-complete-local-package)
-is maintainer tooling, not production execution or publication authority.
+Use Node 26.12.1 or a later 26.x. Install with `npm ci --ignore-scripts`, then run
+`npm run verify` before requesting review. It builds `dist/catalog`, checks that the embedded
+tool profiles match `profiles/`, typechecks, lints, runs every test once and checks that
+workflow actions are pinned. CI runs the same command, then `npm audit --audit-level=high`,
+`npm audit signatures` and `git diff --check`.
 
-Install dependencies with `npm ci --ignore-scripts` and run `npm run verify` before
-requesting review. The active checks cover the release reader, acquisition,
-configuration, selection and packed material, the targeted candidate producer
-([docs/PRODUCER.md](docs/PRODUCER.md)) and its whole-package check
-(`npm run check:release`), alongside retained donor producer checks. Read
-[the transition](docs/TRANSITION.md) when changing these checks. Keep changes scoped
-and add focused tests for changed behavior. Public authoring checks exercise the
-declaration/compiler and checked-release resolver seams;
-`node tools/verify-authoring-consumer.mjs` runs one packed outside headless
-consumer with digest-qualified independent and maintained inventories plus
-data-only expansion. See [the public guide](docs/PUBLIC-AUTHORING.md). Publication is blocked during migration.
-Extensions checks compile its separate v3 declarations and exact source inventory
-with `node tools/generate-extensions-release.mjs --check`; regenerate through that
-owning script after reviewed data edits. Its packed public-only consumer is active
-in the focused test inventory; `node tools/verify-extensions-consumer.mjs <core.tgz>`
-adds the explicit reviewed generic Core artifact proof. See
-[Extensions content](docs/EXTENSIONS-CONTENT.md) for source and execution limits.
+Dependency install scripts never run. `--ignore-scripts` on every documented install skips
+them, and the repository's `.npmrc` sets `strict-allow-scripts=true`, so an install without
+the flag (npm 11.20, bundled with Node 26.12.1) fails on any dependency install script that
+`allowScripts` in `package.json` does not list. Every locked package with an install script
+is listed there as denied (`false`), and a test keeps that list equal to the lockfile's. An
+older npm would ignore that setting, so `engines.npm` requires 11.20 and `.npmrc` sets
+`engine-strict=true`: such an install stops instead. The
+package's own lifecycle scripts do run: `prepack` builds `dist/catalog` before `npm pack`, and
+`prepublishOnly` refuses publication. A project-wide `ignore-scripts=true` would silently skip
+both, so it is not used.
 
-ECC release 1.7.0 content is built from the shipped ECC release and the pinned install
-manifests by `node tools/generate-ecc-release-17.mjs --check`, part of `npm run
-check:materials`; regenerate through that script. `node
-tools/verify-ecc-release-17-consumer.mjs [catalog.tgz]` runs its packed public-only
-consumer, part of `npm test`. See [ECC content](docs/ECC-CONTENT.md#release-170-content).
+`@aihq/scan` is the one dependency Catalog adds. The package depends on the exact version
+`0.0.0-dev.1`. Until Scan is on the npm registry, this repository installs that version from
+`vendor/aihq-scan-0.0.0-dev.1.tgz` (sha256
+`4f1368c9b89d4055d71f6dc788d0838300f80e39603273cfd663ce1d7ff508c0`): the development
+dependency of the same name points at the tarball, npm prefers it inside this repository, and
+the lockfile records its integrity. The sha256 is written in three places: here, in
+[README.md](README.md#install) and as `SCAN_SHA256` in `tests/catalog/package.test.ts`, which
+checks the tarball against it and fails when either document quotes another value. Replacing
+the tarball means updating all three (and `npm install --ignore-scripts` for the lockfile);
+`validation/packed-consumer.json` records the tarball's sha256 itself. Only
+`@aihq/scan/contracts` may be imported.
 
-ECC checks compile its separate v3 declarations, complete pinned-tree disposition
-and donor ledger with `node tools/generate-ecc-release.mjs --check`; regenerate
-through that owning script after reviewed data edits. The active packed public
-consumer tests all item configuration and one mixed-source resolution.
-`node tools/verify-ecc-consumer.mjs <core.tgz>` adds the reviewed generic Core
-Prepare/Apply proof. See [ECC content](docs/ECC-CONTENT.md) for prerequisites and limits.
+## Tests
 
-Superpowers checks compile its ordinary v3 declarations and complete pinned tree
-with `node tools/generate-superpowers-release.mjs --check`; regenerate through that
-script. `node tools/verify-superpowers-consumer.mjs <core.tgz>` adds the exact reviewed
-Core packed proof. Its prepared release 1.7.0 content is built by
-`node tools/generate-superpowers-release-17.mjs --check`, part of `npm run check:materials`;
-regenerate through that script after `release-superpowers.json` or
-`producer/superpowers/release-1-7.json` changes. `node tools/verify-superpowers-17-consumer.mjs
-[catalog.tgz]` runs its packed public-only consumer. See [Superpowers content](docs/SUPERPOWERS-CONTENT.md).
+`npm test` runs `vitest.config.ts`: every `tests/**/*.test.ts`. Each run, including a
+single file, first builds `dist/catalog` from the current source (`tests/build-dist.ts`), so a
+fresh `npm ci --ignore-scripts` needs no separate build. While working on one behaviour, run
+only its file, for example `npx vitest run tests/catalog/own-folder.test.ts`.
 
-Anthropic checks compile ordinary v3 declarations and verify the complete pinned
-tree, individual notices and donor closures through
-`node tools/generate-anthropic-release.mjs --check`. Regenerate using that script.
-`node tools/verify-anthropic-consumer.mjs <core.tgz>` adds exact reviewed Core
-material proof and one harmless script/interpreter check; native use remains separate.
-See [Anthropic content](docs/ANTHROPIC-CONTENT.md) for rights and prerequisites.
+- Tests call the public functions of `src/catalog` against disposable folders, local Git
+  repositories and a local npm registry. They never mock internal modules and never use the
+  network. The fetching tests need `git` and `npm` on `PATH`.
+- `tests/catalog/contracts.test.ts` checks the published schemas, fixtures and profiles, and
+  that every committed content file, qualification and drafted recipe conforms.
+- `tests/catalog/package.test.ts` checks the five exports, the dependency on Scan and the
+  packed file list of the build, the repository npm configuration, and that nothing of the
+  earlier release model remains.
+- Tests over committed data use the pinned upstream files in `tests/fixtures/`, whose Git blob
+  ids are checked against the upstream trees.
+- `tests/publication-guard.test.ts`, `tests/self-hosting` and `tests/bootstrap` check the
+  publication refusal, the repository instructions and the optional helper tooling.
 
-`node tools/verify-contract-checks.mjs <core.tgz> [catalog.tgz]` runs Core's public
-`checkContracts` with `loadFixture` between the packed Catalog and the reviewed Core
-artifact, with each package's own public readers. See
-[package support and golden fixtures](docs/CONTRACT-FIXTURES.md).
+Write tests first, one behaviour at a time, against the public entry points.
 
-Release 1.7 checks: `npm run check:restructuring` (part of `npm run verify`) re-derives
-`restructuring/expected-1.7.0.json` from the promoted dry run and compares every listed
-1.7.0 release with it; a framework's 1.7.0 release and index entry cannot ship until it
-passes ([the restructuring check](docs/RESTRUCTURING.md)).
-`node tools/verify-release-17-consumer.mjs [catalog.tgz] [--older <older-catalog.tgz>]`
-runs the packed release 1.7 consumer through public exports only; with `--older` an
-earlier packed Catalog must refuse the whole 1.7.0 format and still read 1.6.0. Pack the
-older archive from an exact earlier commit and identify it by commit and SHA-256.
+### The packed public consumer
 
-Project basics checks build its prepared release 1.7.0 content, members and frozen
-content inventory with `node tools/generate-project-basics-release.mjs --check`, part of
-`npm run check:materials`; regenerate through that script. It fails when a text names a
-folder or an adapter note, or uses a placeholder outside the closed list.
-`node tools/verify-project-basics-consumer.mjs [catalog.tgz]` runs its packed public-only
-consumer, and `node tools/verify-project-basics-internal-consumer.mjs [--core <core.tgz>]
-[catalog.tgz]` checks the internal local-package path through `readInstalledPreparedContent`,
-with an exact Core archive also preparing and applying the content. See
-[Project basics content](docs/PROJECT-BASICS.md).
+`npm run check:consumer` builds and packs this checkout with `npm pack`, installs the exact
+tarball and the vendored Scan tarball offline into a disposable consumer outside the
+repository, and replays the fifteen acceptance journeys and the consumer regressions there
+through the five exports only (`tools/check-consumer.mjs`, scenarios in `tools/consumer/`).
+Its inputs come through the package's own `fetchSource` from this repository's Git history at
+the packed commit, so commit first. The journeys run under Node's permission model with no
+child process, worker or network, and the browser-safe entry points are loaded without any
+Node built-in. It takes a few seconds and CI runs it after `npm run verify`.
 
-The closing default release is built from the frozen default and the committed Extensions
-and Project basics content with `node tools/generate-default-closing-release.mjs --check`,
-part of `npm run check:materials`; regenerate through that script after either changes. It
-fails unless all 46 frozen items have exactly one disposition. `node
-tools/verify-default-closing-consumer.mjs [catalog.tgz]` runs its packed public-only
-consumer. See [the default release](docs/DEFAULT-RELEASE.md).
+Each row is `passed`, `failed`, `open` (a recorded gap against the journey's expected
+result, with its reason) or `pending` (proof the replay cannot give, such as a real
+qualification). Each check has one of the same statuses except `pending`. An open check gives
+its reason and is never recorded as passed. Every row names its basis: a fixture, the
+committed candidate data or, with `-- --network`, the real upstream bytes at their pins.
+`-- --write` records the results for a clean checkout in
+[validation/packed-consumer.json](validation/packed-consumer.json),
+identified by source commit and tarball sha256. None of these results shows native client
+support, a real qualification or accepted production data.
 
-Extensions release 1.7.0 checks build the Extensions prepared content with
-`node tools/generate-extensions-17-release.mjs --check`, part of `npm run
-check:materials`; regenerate through that script after reviewed data edits. It fails
-when the transition build no longer reproduces the committed content, the frozen
-inventory, the behaviour files or the merged hook recipes. Its scripted comparison
-against the amended expected projection runs in `npm run check:restructuring`.
-`node tools/verify-extensions-17-consumer.mjs [catalog.tgz]` runs its packed
-public-only consumer. See [Extensions content](docs/EXTENSIONS-CONTENT.md#release-170-prepared-content-samartomaraih-catalog145).
+## Formats, schemas and profiles
 
-`node tools/verify-conformance-consumer.mjs [catalog.tgz]` (run by
-`tests/release/conformance-packed.test.ts`) checks the prepared 1.7.0 contents against
-the Catalog contract through the packed public exports only: hook runners and
-registration files, ECC's hooks as optional never-pre-ticked items, no empty set,
-Matt's buckets, ECC's set words and pick-several option, both identity encodings
-recomputed independently, measured sizes, provenance hops, skill invocation and tool
-hints. Pass an earlier commit's tarball to see which clauses it breaks.
+A format change updates its reader, its schema in `src/catalog/internal/schemas.ts`, its two
+fixtures in `src/catalog/internal/fixtures.ts` and [CONTRACTS.md](CONTRACTS.md) together.
+Tool profiles live in `profiles/<id>.json` as canonical JSON. After changing one, run
+`npm run generate:profiles` to refresh the copy `/contracts` embeds, and increase the
+profile's `version` when its rendered output changes.
 
-`node tools/verify-item-evidence-scan-consumer.mjs <scan.tgz> [catalog.tgz]` installs
-the packed Catalog and an exact packed Scan archive into a disposable consumer and
-maps prepared release 1.7 items (a skill and three hooks, with executable scripts) to
-Scan's item descriptor, then derives records with Scan's public `recordItems` and
-`verifyItemRecord` from a local request 2.0.0 assessment of their exact package
-members. On Linux every item is `matched`; Windows records no file modes, so there
-every record is `unavailable`. A payload-only or executable-only change is never
-covered by the old assessment. Scan runs its local detector over a disposable copy
-only — no live network scanning and no scan against this checkout. The Scan archive is built from exact committed Scan source; identify it by
-commit and SHA-256. See [baseline contract checks](docs/SCAN-BASELINE.md#item-evidence-descriptors).
+## Data and the port report
 
-`node tools/verify-source-link-consumer.mjs [catalog.tgz]` installs the packed
-Catalog into a disposable consumer and exercises `parseSourceLink` from
-`@aihq/catalog/source` through the public export only: every accepted form, the
-published 2,048-character limit and its named refusal, exact-versus-mutable
-references, discovery notes and the no-guessed-candidate rule. Throwing guards
-on the process and network surfaces are armed before import, proving the parser
-never fetches, installs, executes or discovers the host. See
-[source links](docs/SOURCE-LINKS.md).
+Framework content, AI setups and qualifications live under `data/`. The port tools rebuild
+them from exact upstream pins with `fetchSource` (network, no hooks, no lifecycle scripts, no
+checkout), and `-- --check` compares instead of writing:
 
-`node tools/verify-source-description-consumer.mjs [catalog.tgz]` installs the
-packed Catalog into a disposable consumer and exercises `readSourceDescription`
-and `checkExactSourceIdentity` from `@aihq/catalog/source` through the public
-export only: every locator and exact identity kind, the discovery-versus-exact
-split, named refusals for non-https git repositories, unknown fields, unknown
-format versions and mutable references. Throwing guards on the process and
-network surfaces are armed before import. See
-[source descriptions](docs/SOURCE-DESCRIPTION.md).
+| Command | Writes |
+| --- | --- |
+| `npm run port:maintained` | `data/{ecc,superpowers,extensions,project-basics}`, `port-report/maintained.json` |
+| `npm run port:remaining` | `data/{anthropic,web-artifacts,guide,pstack,gstack,egm}`, `port-report/remaining.json` |
+| `npm run port:ai-setup` | `data/{crg,cbm,serena}`, `data/qualifications/`, `port-report/ai-setup.json` |
+| `npm run port:report` | `port-report/report.json`, from the three section reports and the data (offline) |
 
-`node tools/verify-codex-config-drift.mjs <core.tgz>` uses the reviewed Core artifact
-in disposable offline fixtures to prove simulated Codex config table drift inside a
-managed block, recovery by moving the table below its END marker, and the matching
-control with the table below the block from the start. It runs no native client.
+Each section report carries the earlier Catalog items it disposes, so the tools check against
+it. A new qualification is a new `data/qualifications/<sha256>.json` referenced by its AI
+setup item, with the status its recorded run gave; it never needs a package release. Never
+commit upstream bytes whose licence forbids redistribution: record their identity and mark
+the item `fetch: "upstream"`.
 
-`node tools/verify-codex-mcp-config.mjs --expect-removal=clean <core.tgz> [catalog.tgz]` installs the packed
-Catalog (packed from this checkout unless supplied) and the Core artifact offline into
-a disposable consumer and fixture home. It applies the real `ecc.codex.mcp.github` and
-`ecc.codex.mcp.browser-use` recipes to a realistic Codex `config.toml`, then checks
-byte preservation, simulated client edits, repeat setup, managed drift and removal. It
-runs no native client. Require `clean` for a Core build containing samartomar/aih-core#69, or
-`--expect-removal=empty-managed-table-headers-remain` for an older compatible build; an unexpected
-outcome fails. [CONTRACTS.md](CONTRACTS.md#current-contract-codex-mcp-servers-through-structured-toml-entries)
-records the source-build boundary and custody limits. Identify the Core artifact by commit and SHA-256.
+The 2026-11-05 native qualification inputs are in `tools/lib/native-qualifications.json`;
+`port:ai-setup` preserves the historical runs and writes these additional records, references
+and combination recipe. Their `result.run` names the sha256 of canonical public-safe facts
+under `validation/native/<sha256>.json`. Preserve the run's conditional scope and auxiliary
+prerequisites: a configured-fixture MCP result does not establish clean plan installation.
 
-Release generation renders the authored project context through the built release
-module, so run `npm run build:dist` before `npm test` or `npm run check:materials` on
-their own; `npm run verify` and `npm run generate:release` build first. `npm pack`
-builds through `prepack`; packing with `--ignore-scripts` skips it, so build first.
+An MCP package the upstream leaves unpinned gets the exact version the previous Catalog
+release reviewed for the same package. Its entry in `port-report/maintained.json` records
+that in `pinBasis` (`previous-release-review`, or `upstream` where the upstream names the
+version) and the version in `pinnedVersion`. An entry whose package npm marks deprecated is
+dropped (`mcp-package-deprecated`) with the registry's message; no other package or hosted
+server takes its place.
 
-Every PR needs exactly one `semver:none|patch|minor|major` label before merge. Labels are
-maintainer-owned; external contributors need not apply them. Use `semver:none` only when
-the merge requires no new public package bytes. See [VERSIONING.md](VERSIONING.md) and
-[RELEASING.md](RELEASING.md).
+## Commits and pull requests
 
-Sign off commits under the Developer Certificate of Origin with `git commit -s`.
-
-`node tools/verify-npm-snapshot-consumer.mjs [catalog.tgz]` checks exact ordinary
-npm acquisition and supplied-snapshot preparation through installed public exports,
-with offline fixture transport and execution guards. The active tests include it.
-See [npm snapshots](docs/NPM-SNAPSHOTS.md) for bounds and named refusals.
-
-The Catalog-authored standalone artifact adaptation is generated separately with
-`node tools/generate-web-artifacts-release.mjs [--check]` from
-`producer/web-artifacts`. It preserves the complete Anthropic release bytes.
-`node tools/verify-web-artifacts-consumer.mjs --without-core` checks a packed
-public scaffold without acquiring tools; supply an exact Core tarball for
-Prepare/review/Apply. The explicit isolated build/browser fixture and platform
-limits are documented in [Anthropic content](docs/ANTHROPIC-CONTENT.md#modern-standalone-artifact-adaptation).
-
-The bounded Nuclei authoring candidate has an offline fixture preparer at
-`tools/prepare-nuclei-candidate.mjs`. See [candidate qualification](docs/NUCLEI-CANDIDATE.md)
-for exact image metadata, provisioned Docker prerequisites and separate native
-execution gates. Controlled Docker consumer checks do not qualify the real candidate.
+Keep commits focused, with conventional messages. Every pull request carries exactly one
+`semver:` label ([VERSIONING.md](VERSIONING.md)). Publication is refused
+([RELEASING.md](RELEASING.md)).

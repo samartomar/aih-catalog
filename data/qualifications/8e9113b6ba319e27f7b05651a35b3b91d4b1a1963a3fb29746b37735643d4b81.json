@@ -1,0 +1,23 @@
+{
+  "observed": {
+    "artifact": {
+      "bytes": 1144652,
+      "file": "serena_agent-2.1.0-py3-none-any.whl",
+      "sha256": "cc6ae542c39b4de5d98cdf35a4ceb0b551f316c5f22e9d0f0b0c5f35d6b95d87"
+    },
+    "closure": null,
+    "interpreter": null
+  },
+  "result": {
+    "date": "2026-10-27",
+    "reason": "no binary-only closure: proxy-tools 0.1.0 publishes only a source distribution, and serena-agent 2.1.0 pins pyyaml 6.0.2, which has no CPython 3.14 wheel; a source build is not accepted, so nothing ran natively",
+    "run": "65ea61da2d1c7ef2c0f2747fa1a8448c6a7f2cc13810ae6c9d23244c348332a8",
+    "status": "blocked"
+  },
+  "schema": "urn:aihq:catalog:qualification:0.1.0",
+  "subject": {
+    "aiSetup": "serena.ai-setup.serena",
+    "cell": "linux-x64",
+    "version": "2.1.0"
+  }
+}

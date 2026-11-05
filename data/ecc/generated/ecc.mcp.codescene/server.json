@@ -1,0 +1,29 @@
+{
+  "description": "Optional. CodeScene Code Health MCP (community skill: codehealth-mcp). Not enabled by default — copy only if you opt in. Requires your own CS_ACCESS_TOKEN (no bundled credentials). See skills/codehealth-mcp/SKILL.md for data boundaries and failure behavior.",
+  "name": "codescene",
+  "packages": [
+    {
+      "environmentVariables": [
+        {
+          "description": "CS_ACCESS_TOKEN",
+          "isRequired": true,
+          "isSecret": true,
+          "name": "CS_ACCESS_TOKEN"
+        }
+      ],
+      "identifier": "@codescene/codehealth-mcp",
+      "registryType": "npm",
+      "runtimeArguments": [
+        {
+          "type": "positional",
+          "value": "-y"
+        }
+      ],
+      "runtimeHint": "npx",
+      "transport": {
+        "type": "stdio"
+      },
+      "version": "1.5.13"
+    }
+  ]
+}

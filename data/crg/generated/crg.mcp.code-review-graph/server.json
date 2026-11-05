@@ -1,0 +1,21 @@
+{
+  "description": "code-review-graph MCP server: a local knowledge graph of the repository for token-efficient code review.",
+  "name": "code-review-graph",
+  "packages": [
+    {
+      "identifier": "code-review-graph",
+      "packageArguments": [
+        {
+          "type": "positional",
+          "value": "serve"
+        }
+      ],
+      "registryType": "pypi",
+      "runtimeHint": "uvx",
+      "transport": {
+        "type": "stdio"
+      },
+      "version": "2.3.9"
+    }
+  ]
+}

@@ -1,0 +1,324 @@
+{
+  "agentFile": {
+    "format": "claude-md",
+    "model": "keep",
+    "tools": "keep"
+  },
+  "arguments": "substituted",
+  "checkedWith": [
+    {
+      "app": "claude-code",
+      "date": "2026-11-02",
+      "version": "2.1.316"
+    }
+  ],
+  "disableBuiltIn": {
+    "sameName": "replaces",
+    "setting": {
+      "entry": "off",
+      "file": ".claude/settings.json",
+      "format": "json",
+      "key": "/skillOverrides/<name>",
+      "root": "user"
+    },
+    "warnings": [
+      "claude-alias-lost"
+    ]
+  },
+  "hookEvents": {
+    "post-tool-use": "PostToolUse",
+    "pre-compact": "PreCompact",
+    "pre-tool-use": "PreToolUse",
+    "session-end": "SessionEnd",
+    "session-start": "SessionStart",
+    "stop": "Stop",
+    "subagent-start": "SubagentStart",
+    "subagent-stop": "SubagentStop",
+    "user-prompt-submit": "UserPromptSubmit"
+  },
+  "id": "claude-code",
+  "inputReferences": {
+    "file": "unknown",
+    "mcp-argv": {
+      "syntax": "${<name>}"
+    },
+    "mcp-env": {
+      "syntax": "${<name>}"
+    },
+    "mcp-header": {
+      "syntax": "${<name>}"
+    }
+  },
+  "links": {
+    "skill": "documented"
+  },
+  "localPlugins": {
+    "project": {
+      "folder": ".aihq/plugins/<framework>/",
+      "manifests": [
+        ".claude-plugin/marketplace.json"
+      ],
+      "register": [
+        {
+          "entry": {
+            "source": {
+              "path": "./<folder>",
+              "source": "directory"
+            }
+          },
+          "file": ".claude/settings.json",
+          "format": "json",
+          "key": "/extraKnownMarketplaces/<marketplace>"
+        },
+        {
+          "entry": true,
+          "file": ".claude/settings.json",
+          "format": "json",
+          "key": "/enabledPlugins/<plugin>@<marketplace>"
+        }
+      ],
+      "warnings": [
+        "claude-known-marketplaces",
+        "claude-start-at-root"
+      ]
+    }
+  },
+  "mcpFile": {
+    "remote": {
+      "sse": {
+        "headers": "headers",
+        "set": {
+          "type": "sse"
+        },
+        "url": "url"
+      },
+      "streamable-http": {
+        "headers": "headers",
+        "set": {
+          "type": "http"
+        },
+        "url": "url"
+      }
+    },
+    "stdio": {
+      "args": "args",
+      "command": "command",
+      "env": "env",
+      "set": {
+        "type": "stdio"
+      }
+    }
+  },
+  "name": "Claude Code",
+  "places": {
+    "agent": {
+      "project": ".claude/agents/<name>.md",
+      "user": ".claude/agents/<name>.md"
+    },
+    "mcp": {
+      "project": {
+        "file": ".mcp.json",
+        "format": "json",
+        "key": "/mcpServers/<name>"
+      },
+      "user": {
+        "file": ".claude.json",
+        "format": "json",
+        "key": "/mcpServers/<name>"
+      }
+    },
+    "rule": {
+      "project": {
+        "always": ".claude/rules/<name>.md",
+        "paths": ".claude/rules/<name>.md"
+      },
+      "user": {
+        "always": {
+          "file": ".claude/CLAUDE.md",
+          "merge": "markdown"
+        }
+      }
+    },
+    "skill": {
+      "project": ".claude/skills/<name>/",
+      "user": ".claude/skills/<name>/"
+    }
+  },
+  "plugins": {
+    "install": [
+      [
+        "claude",
+        "plugin",
+        "marketplace",
+        "add",
+        "<marketplace>",
+        "--scope",
+        "<scope>"
+      ],
+      [
+        "claude",
+        "plugin",
+        "install",
+        "<plugin>@<marketplace-name>",
+        "--scope",
+        "<scope>"
+      ]
+    ],
+    "marketplaceFolder": ".aihq/marketplaces/claude-code/<framework>/",
+    "pin": "holds",
+    "pinForm": "local-marketplace",
+    "remove": [
+      [
+        "claude",
+        "plugin",
+        "uninstall",
+        "<plugin>"
+      ]
+    ],
+    "scopes": [
+      "project",
+      "user"
+    ],
+    "verify": "none"
+  },
+  "provides": {
+    "agent": [
+      "Explore",
+      "Plan",
+      "claude",
+      "general-purpose",
+      "statusline-setup",
+      "web-fetch"
+    ],
+    "command": [
+      "add-dir",
+      "advisor",
+      "artifacts",
+      "auto-mode-setup",
+      "autocompact",
+      "autofix-pr",
+      "background",
+      "branch",
+      "btw",
+      "bug",
+      "cd",
+      "chrome",
+      "clear",
+      "color",
+      "compact",
+      "config",
+      "context",
+      "copy",
+      "design-login",
+      "diff",
+      "effort",
+      "exit",
+      "export",
+      "fast",
+      "feedback",
+      "focus",
+      "fork",
+      "goal",
+      "help",
+      "hooks",
+      "ide",
+      "import",
+      "install-github-app",
+      "install-slack-app",
+      "keybindings",
+      "list-agents",
+      "login",
+      "logout",
+      "mcp",
+      "memory",
+      "mobile",
+      "model",
+      "output-style",
+      "passes",
+      "permissions",
+      "plan",
+      "plugin",
+      "powerup",
+      "privacy-settings",
+      "radio",
+      "rate-limit-options",
+      "recap",
+      "release-notes",
+      "reload-plugins",
+      "reload-skills",
+      "remote-control",
+      "remote-env",
+      "rename",
+      "restart",
+      "resume",
+      "rewind",
+      "sandbox",
+      "skill-doctor",
+      "skills",
+      "status",
+      "stickers",
+      "subtask",
+      "tasks",
+      "teleport",
+      "terminal-setup",
+      "theme",
+      "tui",
+      "ultrareview",
+      "upgrade",
+      "usage",
+      "usage-credits",
+      "voice",
+      "web-setup",
+      "workflows"
+    ],
+    "skill": [
+      "artifact-capabilities",
+      "artifact-diagramming",
+      "batch",
+      "claude-api",
+      "claude-in-chrome",
+      "code-review",
+      "dataviz",
+      "debug",
+      "deep-research",
+      "design",
+      "design-sync",
+      "doctor",
+      "fewer-permission-prompts",
+      "init",
+      "insights",
+      "loop",
+      "pdf",
+      "plugin-authoring",
+      "review",
+      "run",
+      "run-skill-generator",
+      "schedule",
+      "security-review",
+      "simplify",
+      "statusline",
+      "team-onboarding",
+      "update-config",
+      "verify",
+      "workflow-authoring",
+      "xlsx"
+    ]
+  },
+  "ruleScopes": {
+    "always": {
+      "frontmatter": {}
+    },
+    "paths": {
+      "form": "list",
+      "frontmatter": {},
+      "globs": "paths"
+    }
+  },
+  "schema": "urn:aihq:catalog:tool-profile:0.1.0",
+  "userOnly": {
+    "frontmatter": {
+      "disable-model-invocation": true
+    }
+  },
+  "version": 5
+}

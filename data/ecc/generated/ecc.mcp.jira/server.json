@@ -1,0 +1,35 @@
+{
+  "description": "Jira issue tracking — search, create, update, comment, transition issues",
+  "name": "jira",
+  "packages": [
+    {
+      "environmentVariables": [
+        {
+          "description": "JIRA_URL",
+          "isRequired": true,
+          "isSecret": true,
+          "name": "JIRA_URL"
+        },
+        {
+          "description": "JIRA_EMAIL",
+          "isRequired": true,
+          "isSecret": true,
+          "name": "JIRA_EMAIL"
+        },
+        {
+          "description": "JIRA_API_TOKEN",
+          "isRequired": true,
+          "isSecret": true,
+          "name": "JIRA_API_TOKEN"
+        }
+      ],
+      "identifier": "mcp-atlassian",
+      "registryType": "pypi",
+      "runtimeHint": "uvx",
+      "transport": {
+        "type": "stdio"
+      },
+      "version": "0.21.0"
+    }
+  ]
+}

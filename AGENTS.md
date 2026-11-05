@@ -1,13 +1,11 @@
 # AIH Catalog
 
-This repository builds the `@aihq/catalog` content package. The retained
-`aih-supported` CLI is historical donor source and is excluded from the package.
-[README.md](README.md) owns usage, [CONTRIBUTING.md](CONTRIBUTING.md) owns
-contributor checks, and [RELEASING.md](RELEASING.md) owns release gates.
-For source, tests, CI or release changes, read [the transition](docs/TRANSITION.md)
-for the accepted direction, donor-code disposition and unfinished release gates.
-The retained Catalog V2 references describe historical implementation, not a
-compatibility requirement or the target public interface.
+This repository builds the `@aihq/catalog` library: it reads sources, identifies
+items, checks them and plans installations; its content lives under `data/`.
+[README.md](README.md) owns usage, [CONTRACTS.md](CONTRACTS.md) owns formats and
+plans, [CONTRIBUTING.md](CONTRIBUTING.md) owns contributor checks, and
+[RELEASING.md](RELEASING.md) owns release gates. [The transition](docs/TRANSITION.md)
+records what replaced the earlier release model and what is still open.
 
 ## Source and safety boundaries
 
@@ -27,8 +25,8 @@ review, with Extensions for complementary checks. Use /ask-matt for that flow an
 /ship handles launch readiness. Preserve the owning contribution and release gates.
 
 AGENTS.md is the maintained instruction entry point. The ai-coding directory
-retains product contracts and technical references; it does not select another
-engineering workflow or require helper installation.
+holds technical references; it does not select another engineering workflow or
+require helper installation.
 
 ## Issue and delivery routing
 

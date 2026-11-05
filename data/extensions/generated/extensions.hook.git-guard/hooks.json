@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/git-guard.mjs\"",
+            "timeout": 10,
+            "type": "command"
+          }
+        ],
+        "matcher": "Bash|PowerShell"
+      }
+    ]
+  }
+}

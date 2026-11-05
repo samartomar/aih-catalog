@@ -1,0 +1,45 @@
+{
+  "observed": {
+    "artifact": {
+      "bytes": 47934918,
+      "file": "codebase-memory-mcp-windows-arm64.zip",
+      "sha256": "934ab6bd67a76c6ebd9e110d87b7090ffd629919bedaeddabe5a19175038b063"
+    },
+    "closure": null,
+    "interpreter": null,
+    "members": [
+      {
+        "executable": false,
+        "path": "LICENSE",
+        "sha256": "1f58f9911dc5e3bcb96de28bb28e7b6bb7eb323952d29569c5d7214a152146bb"
+      },
+      {
+        "executable": false,
+        "path": "THIRD_PARTY_NOTICES.md",
+        "sha256": "3beaf2bc23fed38ae8e926a5bdff1a5d4ea20aa34972bf9a5aa6a8d890a9347c"
+      },
+      {
+        "executable": true,
+        "path": "codebase-memory-mcp.exe",
+        "sha256": "b19816bb88ef3145a0f4b81856665c67a684cc038e06ae696e76960277c67b41"
+      },
+      {
+        "executable": false,
+        "path": "install.ps1",
+        "sha256": "edc5e194702e21b01d38648a25d44d783022bba992b5fb62b08528e2c71ca370"
+      }
+    ]
+  },
+  "result": {
+    "date": "2026-10-27",
+    "reason": "artifact and members verified against the release digests; not run natively on this cell",
+    "run": "29cafd8ab5b9f0fd320d504b57a75932fd96a05a14371feaa67e200988bb070a",
+    "status": "unknown"
+  },
+  "schema": "urn:aihq:catalog:qualification:0.1.0",
+  "subject": {
+    "aiSetup": "cbm.ai-setup.codebase-memory-mcp",
+    "cell": "windows-arm64",
+    "version": "0.12.1"
+  }
+}

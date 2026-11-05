@@ -28,7 +28,9 @@ if (!process.argv.includes("--online")) {
 }
 
 const uniqueReferences = [
-  ...new Map(references.map((reference) => [`${reference.action}@${reference.revision}`, reference])).values(),
+  ...new Map(
+    references.map((reference) => [`${reference.action}@${reference.revision}`, reference]),
+  ).values(),
 ];
 for (const { action, revision } of uniqueReferences) {
   const response = await fetch(`https://api.github.com/repos/${action}/commits/${revision}`, {

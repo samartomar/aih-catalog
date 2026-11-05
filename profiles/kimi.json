@@ -1,0 +1,131 @@
+{
+  "agentFile": {
+    "fields": [
+      "name",
+      "description"
+    ],
+    "format": "md",
+    "model": "drop",
+    "tools": {}
+  },
+  "arguments": "substituted",
+  "bundleWarnings": [
+    "kimi-lists-bundle-agents"
+  ],
+  "checkedWith": [
+    {
+      "app": "kimi",
+      "date": "2026-11-02",
+      "version": "2.4.1"
+    }
+  ],
+  "configFiles": {
+    "project": [
+      ".kimi-code/local.toml"
+    ],
+    "user": [
+      ".kimi-code/config.toml",
+      ".kimi-code/mcp.json",
+      ".kimi-code/tui.toml"
+    ]
+  },
+  "disableBuiltIn": {
+    "manual": "builtin_product_skills = false switches every bundled skill off; an agent replaces a built-in agent with override: true"
+  },
+  "hookEvents": {
+    "pre-tool-use": "PreToolUse",
+    "session-start": "SessionStart"
+  },
+  "id": "kimi",
+  "inputReferences": {
+    "file": "unknown",
+    "mcp-argv": "unknown",
+    "mcp-env": "unknown",
+    "mcp-header": "unknown"
+  },
+  "links": {
+    "skill": "documented"
+  },
+  "mcpFile": {
+    "remote": {
+      "streamable-http": {
+        "headers": "headers",
+        "url": "url"
+      }
+    },
+    "stdio": {
+      "args": "args",
+      "command": "command",
+      "env": "env"
+    }
+  },
+  "name": "Kimi Code",
+  "places": {
+    "agent": {
+      "project": ".agents/agents/<name>.md"
+    },
+    "mcp": {
+      "project": {
+        "file": ".kimi-code/mcp.json",
+        "format": "json",
+        "key": "/mcpServers/<name>"
+      }
+    },
+    "rule": {
+      "project": {
+        "always": {
+          "file": "AGENTS.md",
+          "merge": "markdown"
+        }
+      },
+      "user": {
+        "always": {
+          "file": ".agents/AGENTS.md",
+          "merge": "markdown"
+        }
+      }
+    },
+    "skill": {
+      "project": ".agents/skills/<name>/",
+      "user": ".kimi-code/skills/<name>/"
+    }
+  },
+  "plugins": {
+    "pin": "drops-on-update",
+    "scopes": [
+      "user"
+    ],
+    "verify": "none"
+  },
+  "provides": {
+    "agent": [
+      "agent",
+      "coder",
+      "explore",
+      "plan"
+    ],
+    "skill": [
+      "check-kimi-code-docs",
+      "custom-theme",
+      "import-from-cc-codex",
+      "mcp-config",
+      "sub-skill",
+      "sub-skill.consolidate",
+      "sub-skill.review",
+      "update-config",
+      "write-goal"
+    ]
+  },
+  "ruleScopes": {
+    "always": {
+      "frontmatter": {}
+    }
+  },
+  "schema": "urn:aihq:catalog:tool-profile:0.1.0",
+  "userOnly": {
+    "frontmatter": {
+      "disableModelInvocation": true
+    }
+  },
+  "version": 6
+}

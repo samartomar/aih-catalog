@@ -1,0 +1,219 @@
+{
+  "agentFile": {
+    "format": "json",
+    "model": "drop",
+    "tools": {}
+  },
+  "arguments": "substituted",
+  "bundleRoot": {
+    "project": ".kiro/aih/<framework>/",
+    "user": ".kiro/aih/<framework>/"
+  },
+  "checkedWith": [
+    {
+      "app": "kiro-cli",
+      "date": "2026-11-02",
+      "version": "2.37.1"
+    },
+    {
+      "app": "kiro-ide",
+      "date": "2026-11-02",
+      "version": "1.4.86"
+    }
+  ],
+  "disableBuiltIn": "not-documented",
+  "editionPlaces": {
+    "agent": {
+      "project": ".kiro/agents/",
+      "user": ".kiro/agents/"
+    },
+    "hook": {
+      "project": ".kiro/hooks/",
+      "user": ".kiro/hooks/"
+    },
+    "rule": {
+      "project": ".kiro/steering/",
+      "user": ".kiro/steering/"
+    }
+  },
+  "foldDescription": true,
+  "id": "kiro",
+  "inputReferences": {
+    "file": "unknown",
+    "mcp-argv": "unknown",
+    "mcp-env": "unknown",
+    "mcp-header": "unknown"
+  },
+  "links": {
+    "skill": "documented"
+  },
+  "mcpFile": {
+    "remote": {
+      "streamable-http": {
+        "headers": "headers",
+        "url": "url"
+      }
+    },
+    "stdio": {
+      "args": "args",
+      "command": "command",
+      "env": "env"
+    },
+    "tools": {
+      "disabled": "disabledTools"
+    }
+  },
+  "name": "Kiro (CLI and IDE)",
+  "places": {
+    "agent": {
+      "project": ".kiro/agents/<name>.json",
+      "user": ".kiro/agents/<name>.json"
+    },
+    "mcp": {
+      "project": {
+        "file": ".kiro/settings/mcp.json",
+        "format": "json",
+        "key": "/mcpServers/<name>"
+      },
+      "user": {
+        "file": ".kiro/settings/mcp.json",
+        "format": "json",
+        "key": "/mcpServers/<name>"
+      }
+    },
+    "rule": {
+      "project": {
+        "always": ".kiro/steering/<name>.md",
+        "by-description": ".kiro/steering/<name>.md",
+        "on-request": ".kiro/steering/<name>.md",
+        "paths": ".kiro/steering/<name>.md"
+      },
+      "user": {
+        "always": ".kiro/steering/<name>.md",
+        "by-description": ".kiro/steering/<name>.md",
+        "on-request": ".kiro/steering/<name>.md",
+        "paths": ".kiro/steering/<name>.md"
+      }
+    },
+    "skill": {
+      "project": ".kiro/skills/<name>/",
+      "user": ".kiro/skills/<name>/"
+    }
+  },
+  "provides": {
+    "agent": [
+      "Bug Fix",
+      "Default",
+      "Guide",
+      "Help",
+      "Plan",
+      "Quick Spec",
+      "Spec",
+      "kiro_default",
+      "kiro_help",
+      "kiro_planner"
+    ],
+    "command": [
+      "agent",
+      "changelog",
+      "chat",
+      "checkpoint",
+      "clear",
+      "code",
+      "compact",
+      "context",
+      "copy",
+      "editor",
+      "effort",
+      "exit",
+      "feedback",
+      "fullscreen",
+      "goal",
+      "guide",
+      "help",
+      "hooks",
+      "knowledge",
+      "mcp",
+      "model",
+      "paste",
+      "plan",
+      "prompts",
+      "quit",
+      "reply",
+      "rewind",
+      "session-id",
+      "settings",
+      "spawn",
+      "spec",
+      "switch",
+      "theme",
+      "title",
+      "tools",
+      "transcript",
+      "usage"
+    ]
+  },
+  "ruleScopes": {
+    "always": {
+      "frontmatter": {
+        "inclusion": "always"
+      }
+    },
+    "by-description": {
+      "describe": [
+        "name",
+        "description"
+      ],
+      "frontmatter": {
+        "inclusion": "auto"
+      }
+    },
+    "on-request": {
+      "frontmatter": {
+        "inclusion": "manual"
+      }
+    },
+    "paths": {
+      "form": "single-or-list",
+      "frontmatter": {
+        "inclusion": "fileMatch"
+      },
+      "globs": "fileMatchPattern"
+    }
+  },
+  "schema": "urn:aihq:catalog:tool-profile:0.1.0",
+  "userOnly": "none",
+  "userOnlyFallback": {
+    "project": [
+      {
+        "arguments": "kept",
+        "id": "prompt",
+        "path": ".kiro/prompts/<name>.md"
+      },
+      {
+        "arguments": "reworded",
+        "frontmatter": {
+          "inclusion": "manual"
+        },
+        "id": "steering",
+        "path": ".kiro/steering/<name>.md"
+      }
+    ],
+    "user": [
+      {
+        "arguments": "kept",
+        "id": "prompt",
+        "path": ".kiro/prompts/<name>.md"
+      },
+      {
+        "arguments": "reworded",
+        "frontmatter": {
+          "inclusion": "manual"
+        },
+        "id": "steering",
+        "path": ".kiro/steering/<name>.md"
+      }
+    ]
+  },
+  "version": 7
+}

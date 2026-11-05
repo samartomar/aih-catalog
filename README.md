@@ -1,321 +1,152 @@
 # @aihq/catalog
 
-Consumers can inspect [package support and golden fixtures](docs/CONTRACT-FIXTURES.md)
-through `@aihq/catalog/package-support.json` and
-`@aihq/catalog/fixtures/manifest.json` before reading content.
-Fixture-aware consumers can use `contractSupport11` from `@aihq/catalog/contracts`
-or `@aihq/catalog/package-support-1.1.json`; the 1.0 declaration remains available.
+Catalog reads AI content, works out what pieces it holds, checks them and turns a choice into
+an exact installation plan for each AI client. Catalog never installs anything and never runs
+what it is given: it reads files and text, and an installer carries out the plan after asking
+the user for any step that needs approval.
 
-Catalog carries canonical content, pinned source material and generic executable
-recipes. Read and select content through portable APIs, acquire explicit package
-material through the Node adapter, then hand the selected recipes to Core.
+It knows nine clients through its tool profiles: Claude Code, Codex, GitHub Copilot, Kiro,
+Antigravity, OpenCode, Cursor, Kimi and dsh.
 
-**Publication remains blocked during migration.** These interfaces and the targeted
-candidate producer are implemented for packed consumer checks; release activation is
-still pending. See [the transition](docs/TRANSITION.md) for status,
-[the greenfield integration scope](docs/GREENFIELD-INTEGRATION.md) for the replacement
-of the old release proposal,
-[the content contract](docs/CATALOG-CONTENT.md) for integrity and execution boundaries,
-[the producer guide](docs/PRODUCER.md) for preparing candidates,
-and [CONTRIBUTING.md](CONTRIBUTING.md) for contributor checks.
+**Status.** The package carries the temporary prerelease version 0.0.0-dev.1; 0.1.0 is
+unreleased. It is not published to npm and refuses publication until a release path is
+separately authorized ([RELEASING.md](RELEASING.md)). A passing test shows that Catalog plans
+correctly. It does not show that a client loads the result. The content under `data/` is
+candidate data, not yet admitted ([data](#data)).
 
-## Optional Ask AIH Guide
+## Terms
 
-The optional `aihq.guide` item in `@aihq/catalog/release-guide.json` packages the
-canonical Extensions offline manual and reference agent profiles. Save the manual
-as ordinary Markdown or select the generic Core recipe for reviewed installation,
-owned updates and removal. No native conversational entry is registered; installing
-an agent profile does not prove direct conversation. See [Guide content](docs/GUIDE-CONTENT.md)
-for provenance, offline saving, evidence limits and current unpublished availability.
+- **Source:** where files come from: a local folder, a Git repository or subfolder at an exact
+  commit, or an npm package at an exact version.
+- **Framework:** one upstream's body of content, such as ECC or Superpowers.
+- **Item:** one piece of content with its files: a `skill`, `agent`, `rule`, `hook`, `mcp`
+  server, `document` or `ai-setup`. An item id never names a client.
+- **Edition:** the upstream's own version of an item for one client. Catalog uses an edition
+  where one exists and otherwise renders the item from the client's tool profile.
+- **Tool profile:** Catalog's description of one client: where each kind goes, how it is
+  written, and which native mechanisms exist.
+- **Route:** how a framework reaches a client: `plugin`, `local-plugin`, `setup` or `items`.
+- **Recipe:** a one-click choice, shipped as a Git plugin, that pins the Catalog data it was
+  written against.
+- **Plan:** the steps an installation would take, plus what the checks found: clashes,
+  duplicates, missing dependencies, references and warnings.
+- **AI setup and qualification:** a tool Catalog pins per platform cell (such as
+  codebase-memory-mcp), and the exact bytes a qualification run saw for it with the run's
+  result.
 
-## Optional Extensions workflow
+## Entry points
 
-`@aihq/catalog/release-extensions.json` offers granular pinned Extensions and Matt
-companion skills, profiles, commands, optional templates and independently owned
-Claude hook groups. Choose the Claude, Kiro or Copilot material projection through
-the ordinary reader/resolver. [Extensions content](docs/EXTENSIONS-CONTENT.md)
-records the full upstream inventory, required command configuration, source-overlay
-attribution and precise native/removal evidence limits.
+The package exports exactly five entry points. Nothing else can be imported.
 
-## Optional ECC content
-
-`@aihq/catalog/release-ecc.json` offers granular pinned ECC instruction material
-and individually selected Claude MCP configurations alongside other releases.
-[Content guidance](docs/ECC-CONTENT.md) describes client-specific facts, real
-runtime/credential prerequisites and native execution limits; [the inventory](docs/ECC-INVENTORY.md)
-accounts for every selected source file and historical donor asset.
-
-## Optional Superpowers content
-
-`@aihq/catalog/release-superpowers.json` offers all 15 pinned Superpowers skills
-as project material choices for Claude Code, Kiro IDE and Copilot VS Code, plus
-runtime source references and an opt-in caller-configured Claude SessionStart group.
-[Content guidance](docs/SUPERPOWERS-CONTENT.md) and [inventory](docs/SUPERPOWERS-INVENTORY.md)
-record exact source identities, support closures, notices and native execution limits.
-
-`@aihq/catalog/release-superpowers.content.json` is the prepared release 1.7.0 content
-of the same pinned framework: the 15 skills listed once, the start-of-session bootstrap
-hook with a one-line fallback rule, the plugin bundles and duplicate skill library
-retired with reasons, and upstream's plugin routes as display-only lines. It awaits its
-baseline assessment: read it with `readReleaseContent`; `readRelease` refuses it until
-then. See [Superpowers release 1.7.0](docs/SUPERPOWERS-CONTENT.md#release-170-one-item-per-skill).
-
-## Optional Anthropic skills
-
-`@aihq/catalog/release-anthropic.json` offers complete permitted pinned skill
-material and script/support closures. [Content guidance](docs/ANTHROPIC-CONTENT.md)
-and [inventory](docs/ANTHROPIC-INVENTORY.md) distinguish per-item rights, restricted
-document skills, actual tool prerequisites and unobserved native use.
-
-## Project basics
-
-`@aihq/catalog/release-project-basics.content.json` is the prepared release 1.7.0
-content of the Project basics framework: a router guide, the working rules and a shared
-block for a project's entry files. Its baseline assessment is not bound yet, so it is
-listed in `preparedReleaseContent`, read with `readReleaseContent`, and refused by
-`readRelease`. For internal use of a local package before release,
-`readInstalledPreparedContent({ root, frameworkId })` from `@aihq/catalog/node` reads
-any listed prepared content from an installed package with every byte verified, and
-labels it unbound and unauthenticated. See [Project basics content](docs/PROJECT-BASICS.md#internal-use-before-release).
-
-## The closing default release
-
-`@aihq/catalog/release.json` stays the frozen default, unchanged and readable through
-1.x by its recorded digest. `@aihq/catalog/release-default.content.json` is the prepared
-release 1.7.0 content that closes it: no items, and one retirement with a reason and its
-successors for each of the default's 46 items. It awaits its baseline assessment like the
-other prepared content. See [the default release](docs/DEFAULT-RELEASE.md).
-
-## ECC release 1.7.0 content
-
-`@aihq/catalog/release-ecc.content.json` is the prepared release 1.7.0 content of ECC:
-one item per piece of content, ECC's install modules and profiles as sets, its
-languages and frameworks as one pick-several option, and its Kiro edition as one set,
-"ECC for Kiro". Like Project basics it awaits its
-baseline assessment, so it is listed in `preparedReleaseContent` and refused by
-`readRelease`; `release-ecc.json` stays the ordinary ECC release. See
-[ECC content](docs/ECC-CONTENT.md#release-170-content).
-
-## Optional Nuclei workflow
-
-`@aihq/catalog/workflows/nuclei` supplies local policy authoring; its adjacent manifest pins
-standalone Windows x64 and Linux x64 helpers as ordinary archive data. See
-[the authoring instructions](workflows/nuclei/AUTHORING.md) for separately approved template
-preparation, immutable one-target assessment and explicit reconciliation. No assessment,
-installation or image pull happens on import. The package remains an unpublished candidate;
-platform evidence and real-tool execution limits are recorded in [delivery evidence](docs/NUCLEI-EVIDENCE.md).
-
-## Public entries
-
-| Entry | Purpose | Runtime |
+| Entry point | Runs in | Gives |
 | --- | --- | --- |
-| `@aihq/catalog/contracts` | Public types, format identity, support declaration and the `releaseInventory` of every exported release | Portable |
-| `@aihq/catalog/reader` | Read, browse, configure, resolve relationships and validate selections | Portable |
-| `@aihq/catalog/producer` | Check v3 declarations and compile explicitly supplied source bytes | Node 26.12.1–26.x |
-| `@aihq/catalog/source` | Portable source facts (`extractSourceFacts`), side-effect-free source-link parsing (`parseSourceLink`), and source description reading with exact identity checking (`readSourceDescription`, `checkExactSourceIdentity`) | Portable |
-| `@aihq/catalog/schemas/producer-declaration/3.0.0.json` | Public producer declaration schema | Data |
-| `@aihq/catalog/node` | Read an installed root, resolve an exact archive/registry version, resolve a GitHub ref to an exact reachable commit, acquire a bounded snapshot at that commit, acquire an ordinary npm package at an exact integrity pin, or prepare the project context for a chosen instruction directory | Node 26.12.1–26.x |
-| `@aihq/catalog/workflows/nuclei` | Author Nuclei preparation, assessment and reconciliation Core policies, with TypeScript declarations | Node 26.12.1–26.x; native helper qualification remains separate |
-| `@aihq/catalog/release.json` | Default release (format 1.4.0) | Data |
-| `@aihq/catalog/schemas/release/1.5.0.json` | New release format with a pinned content baseline | Data |
-| `@aihq/catalog/schemas/content-inventory/1.0.0.json` | Complete content projection before evidence | Data |
-| `@aihq/catalog/schemas/scan-baseline/1.0.0.json` | Exact evidence binding and requested scope | Data |
-| `@aihq/catalog/release-guide.json` | Optional Ask AIH Guide manual and reference profiles; read it explicitly | Data |
-| `@aihq/catalog/release-1.1.json` | Release of Core recipe 1.1 items (client hook groups); read it explicitly | Data |
-| `@aihq/catalog/schemas/release/1.0.0.json` | Release structural schema | Data |
-| `@aihq/catalog/schemas/release/1.1.0.json` | Release 1.1 structural schema | Data |
-| `@aihq/catalog/release-ecc.json` | Optional pinned ECC declarations and exact MCP configurations | Data |
-| `@aihq/catalog/release-superpowers.json` | Optional pinned Superpowers skills and caller-configured Claude hook | Data |
-| `@aihq/catalog/release-anthropic.json` | Optional permitted Anthropic skill closures and notices | Data |
-| `@aihq/catalog/release-project-basics.content.json` | Prepared Project basics release 1.7.0 content, awaiting its baseline; read with `readReleaseContent` | Data |
-| `@aihq/catalog/release/baselines/project-basics/content-inventory.json` | Its frozen content inventory | Data |
-| `@aihq/catalog/release-ecc.content.json` | Prepared ECC release 1.7.0 content, awaiting its baseline; read with `readReleaseContent` | Data |
-| `@aihq/catalog/release/baselines/ecc/content-inventory.json` | Its frozen content inventory | Data |
-| `@aihq/catalog/release-superpowers.content.json` | Prepared Superpowers release 1.7.0 content, awaiting its baseline; read with `readReleaseContent` | Data |
-| `@aihq/catalog/release/baselines/superpowers/content-inventory.json` | Its frozen content inventory | Data |
-| `@aihq/catalog/package.json` | Installed package identity and location | Data |
+| `@aihq/catalog/source` | browser or Node | `parseSourceLink(text)`, `findItems(files, { framework })` |
+| `@aihq/catalog/node` | Node | `readLocalSource(path)`, `fetchSource(candidate, { outDir, fromUser?, registry?, npmConfig?, integrity? })`, `readContentFile(path)` |
+| `@aihq/catalog/producer` | Node | `buildContent(source, files, items, { framework })`, `checkContent(content, files?, { scannedKeys? })` |
+| `@aihq/catalog/reader` | browser or Node | `readContent`, `readToolProfile`, `readRecipe`, `readQualification`, `listItems`, `getItem`, `derive`, `availability`, `planInstall`, `planRecipe`, `renderStep` |
+| `@aihq/catalog/contracts` | browser or Node | format identities, `schemas`, `fixtures`, `toolProfiles`, `kinds`, `limits`, refusal codes |
 
-`releaseInventory` gives each exported release document's format, purpose (ordinary content, client hooks or a native acceptance fixture) and support tier, plus the package identity; selection still names one release explicitly. The [content contract](docs/CATALOG-CONTENT.md#release-inventory-and-format-compatibility) has the inventory, the current authoring target and the format compatibility table.
+Functions that take outside input never throw on bad input. They return a result with a
+`status`: `ok`, `invalid` with `problems`, `refused` with a `code` and `reason`, or
+`unsupported-version`. A plan can also be `incomplete`, and then it lists why.
+`parseSourceLink` returns `recognised`, `unrecognised` or `refused`. `listItems`, `derive` and
+`availability` work on content already read and return plain values. The same input always
+gives the same plan, byte for byte.
 
-The portable entries use standard JavaScript and `Uint8Array`; they access neither
-files nor the network. The Node adapter verifies package, recipe and material bytes
-without installing packages, running lifecycle scripts or importing package code.
-Callers hold the expected integrity pin. Reading a document or calculating its hash
-from the same untrusted download alone does not authenticate its publisher.
+[CONTRACTS.md](CONTRACTS.md) describes the formats, plan steps and checks.
 
-## Read and configure
+## Plan an installation from your own folder
 
 ```js
-import { readRelease, listItems, configureItem } from "@aihq/catalog/reader";
+import { readFileSync } from "node:fs";
+import { toolProfiles } from "@aihq/catalog/contracts";
+import { readLocalSource } from "@aihq/catalog/node";
+import { buildContent } from "@aihq/catalog/producer";
+import { planInstall, readToolProfile, renderStep } from "@aihq/catalog/reader";
+import { findItems } from "@aihq/catalog/source";
 
-// bytes and expectedSha256 come from the caller's reviewed acquisition.
-const read = readRelease(bytes, { expectedSha256 });
-if (!read.valid) throw new Error(JSON.stringify(read.diagnostics));
-const items = listItems(read.release);
-const configured = configureItem({
-  release: read.release,
-  itemId: "mattpocock.grill-me",
-  configuration: {},
-  materialSource: { kind: "local", input: "catalog" },
-});
-if (!configured.valid) throw new Error(JSON.stringify(configured.diagnostics));
+const read = readLocalSource("./my-skills");              // files, sha256, modes; links not followed
+const found = findItems(read.files, { framework: "my-skills" }); // items plus what was left over
+const built = await buildContent(read.source, read.files, found.items, { framework: "my-skills" });
+
+const encode = (text) => new TextEncoder().encode(text);
+const profiles = ["claude-code", "kiro", "antigravity"].map(
+  (id) => readToolProfile(encode(toolProfiles[id])).profile,
+);
+const plan = planInstall(
+  found.items.map((item) => item.id),
+  [built.content],
+  profiles,
+  { scope: "project", data: null },
+);
+// plan.status is "ok" or "incomplete"; plan.plan lists write, link, merge and other steps,
+// each naming its root ("project" or "user"), path, items and clients.
 ```
 
-The Matt Pocock inventory carries all 27 skills in the pinned upstream plugin,
-including 23 referenced support files. [The refresh record](docs/MATTPOCOCK-REFRESH.md)
-records the exact commit, curation and version metadata.
-The carried `mattpocock.grill-me` item requires `mattpocock.grilling`. Both contain
-complete Core `file.write` recipes for their pinned `SKILL.md` and license bytes,
-with hash checks. Their `agentDirectory` input defaults to `.claude`; configure it
-explicitly to select another relative agent directory. Omitted defaults stay omitted
-in authored configuration so Core can report their default origin.
+A `write` step that carries a `render` gets its bytes from `renderStep(step, contents,
+profiles, files)`, so an installer never implements a render itself. A copied step names the
+source file and sha256 to copy. Steps the installer must not take without the user's approval,
+such as an upstream setup program or a tool command, say `approval: "required"`.
 
-Select required items explicitly, or use `resolveSelections` over checked releases
-to calculate required closure with inclusion paths, optional suggestions and removal
-impact. See [public authoring and resolution](docs/PUBLIC-AUTHORING.md) for the v3
-producer schema, explicit V2 migration, independent input examples and failure behavior.
-Then call `validateSelectionSet` and copy its
-`requiresBySelectionId` into your Core policy. Catalog never installs dependencies
-or silently selects optional suggestions. See [the execution example](docs/CATALOG-CONTENT.md#explicit-dependencies-and-core-handoff).
+Sources other than a local folder start from text a user pastes: `parseSourceLink` reads a
+folder path, a Git URL (with an optional branch, tag or subfolder), an npm specifier or a
+known installer command, without fetching or running it. `fetchSource` then pins it to an
+exact commit or version and reads it with Git hooks, checkout and lifecycle scripts disabled.
 
-To check a candidate release for content updates, call `compareReleases` from
-`@aihq/catalog/reader` with two checked releases. It reports whether they share a
-package, how their versions order (`unknown` when Semantic Versioning cannot order
-them) and, per item, whether it is in both with changed or unchanged recipe/material
-content, or in only one. Changes to an item's inputs, dependencies, targets, scopes,
-kind or `clientId` are record-only (`content` unchanged, `record` changed), so check
-`record` for those. It recommends nothing. With a stored version, use
-`compareVersions({first,second})` for the same strict ordering. With only recorded
-provenance, `compareReleaseIdentity({release,recorded:{package:{name},sha256}})`
-reports package and release equality without acquiring the recorded release.
-Unavailable resolver references carry their declared `itemSha256` when present;
-refusals may carry `partial:{status:"partial",inclusions}` for informational
-required paths, with no runnable selections. See
-[compare two checked releases](docs/PUBLIC-AUTHORING.md#compare-two-checked-releases).
+`fetchSource` runs `git` and `npm` from absolute `PATH` entries and never through a shell
+(on Windows, npm's own script runs with node). Git runs without credential helpers,
+password prompts or interactive SSH; a repository address carrying a password, or a user
+other than on SSH, is refused. npm reads only the given registry (https, or plain http on a
+loopback address; the public registry by default) and no global, project or environment
+configuration. To use your own private registry, pass `npmConfig`: the path of an npm config
+file you chose, holding its token. It is the only user configuration npm reads, every
+registry it names must follow the same https rule, and its contents never appear in results
+or refusals. Pass `integrity` to require a known tarball. A local folder, local Git path or `file:` URL is
+read only with `fromUser: true`, for a source the user typed. Each fetch works in a new
+folder inside `outDir`, removed afterwards, and is stopped after 10 minutes or once that
+folder holds four times `sourceBytes`; `timeoutMs` and `diskBytes` may only lower these.
+Refusals do not repeat local paths, the `outDir` or Git and npm output.
 
-The `aihq.project-context` family supplies shared project AI context
-(under `ai-coding/` in the published release), native entry pointers and adapter
-notes for the supported client baseline as ordinary selectable items with the same
-contracts; see [the context content contract](docs/CONTEXT-CONTENT.md). A project
-that wants another instruction directory calls `prepareProjectContext` from
-`@aihq/catalog/node` with that required directory, a caller-owned staging directory
-and the installed release's `materialRoots`. It writes a derived release with its
-own identities to the staging directory and returns the checked release, a local
-material source and its `materialRoots` entry for the ordinary configure, validate
-and Core prepare/apply flow. Output overlapping the installed package is refused, and
-no release is regenerated. Delivering a client entry file does not prove the
-client loads it.
+## Recipes and maintained content
 
-Catalog-side preparation for persistent MCP configuration can proceed while native
-acceptance continues separately. [The preparation and acceptance lanes](docs/NATIVE-PREPARATION.md)
-keep the full client roster explicit; this integration admits no native cell.
+Maintained frameworks are Catalog data, read from this repository's `data/` folder at a
+pinned commit with `fetchSource` and checked against every recorded sha256. A recipe is a
+separate Git plugin: its `plugin.json` plus a `recipe.json` naming its routes,
+members, choice groups and the data commit it was written against. `readRecipe` reads it, and
+`planRecipe` plans it through each client's route and records the recipe's exact origin.
 
-`release-native-fixture.json` and `release-native-bundles.json` (support tier `test-scope` in `releaseInventory`) carry a test-scope Claude project MCP fixture, `aihq.mcp.claude.graph-fixture`, and the `NativeVerificationBundle` that pins it. The fixture server is a small read-only call graph, not a production graph server; the bundle prepares later native verification and proves nothing about a client loading it. See [the content contract](docs/CATALOG-CONTENT.md#native-graph-fixture-test-scope).
+## Data
 
-## Client hook items
+`data/<framework>/content.json` holds the content of ECC, Superpowers, Extensions,
+project-basics, Anthropic's skills, web-artifacts, the AIH guide, pstack, gstack, the
+Elephant-Goldfish Model, code-review-graph, codebase-memory-mcp and Serena.
+`data/qualifications/` holds the qualification records by sha256. A data change is a commit,
+never a package release. All of this data is a candidate: none of its scan keys has been
+scanned and admitted yet. [The port report](port-report/report.json) gives each earlier
+Catalog item one disposition and lists the known limits.
 
-`release-1.1.json` carries opt-in client hook items that add, update and remove only their own group in a shared client settings array through Core's generic `hook.group` operation (Core recipe and execution policy 1.1). The first item, `aihq.hook.claude.protect-env`, blocks Claude Code edits to local `.env` files. Read it with `readInstalledRelease({ root, release: "./release-1.1.json" })`; a reader or Core without 1.1 support refuses it as unsupported rather than installing part of it. See [the content contract](docs/CATALOG-CONTENT.md#client-hook-items-release-11).
+## Install
 
-## Parse a brought source link
-
-`parseSourceLink(text)` from `@aihq/catalog/source` turns pasted text — a GitHub
-link, an install command such as `npx -y package@1.2.3` or `npx skills add
-https://github.com/owner/repo --skill name`, an npm package page, or an npm
-package name — into a candidate source description, with nothing fetched,
-installed or run. Input above the published 2,048-character limit
-(`PARSE_SOURCE_LINK_MAX_CHARACTERS`) is refused as `input-too-long`. A mutable
-reference (a branch, tag or `latest`) stays recognised but reports
-`reference-not-exact`; discovery links such as the MCP servers directory page
-are kept as non-authoritative notes, never treated as the source. Unrecognised
-input never yields a guessed candidate. See [source links](docs/SOURCE-LINKS.md)
-for the contract and the packed consumer check.
-
-## Describe a brought source
-
-`urn:aihq:catalog:source-description:1.0.0` is discovery data only: `{ id, label, publisher?, locator }`, where a locator is a git repository (`{ kind: "git", repository, ref? }`, https only), an npm package (`{ kind: "npm", package, versionSpec? }`) or a local folder (`{ kind: "local", label }`). `readSourceDescription(bytes)` from `@aihq/catalog/source` admits one bounded canonical JSON document (at most 64 KiB), refusing another format version as a whole with `SCHEMA_UNSUPPORTED` and naming every unknown field, non-https git repository or malformed locator precisely. A consumer builds, validates, saves and re-reads descriptions for MCP, skill and agent sources without inventing a format.
-
-The exact source of saved intent or an install is a separate type, produced only by resolution and acquisition: `{ kind: "git", repository, commit, reachable }`, `{ kind: "npm", package, version, integrity }` or `{ kind: "local", captureSha256 }`. `checkExactSourceIdentity(identity)` validates one, refusing mutable references (a branch, tag, range or `latest`) precisely; parsing or reading a description never produces an exact identity. An organization's published source list uses the same descriptor and grants no authority or policy. See [source descriptions](docs/SOURCE-DESCRIPTION.md) for the contract and the packed consumer check.
-
-## Resolve and acquire a brought GitHub source
-
-`resolveGitRef({ repository, ref }, controls)` from `@aihq/catalog/node`
-resolves one GitHub repository at a branch or tag to an exact 40-character
-commit and proves the commit is reachable from the named repository, because
-GitHub serves any fork-network commit under the parent's name. The result
-reports `{ commit, reachable: true | false | "unchecked" }`, the exact git
-source identity, and `installable`, which is `true` exactly when the commit is
-reachable: `reachable: false` refuses a fork-only commit, and an unchecked
-result records that the source cannot be made installable until it is checked.
-
-`acquireGitSnapshot({ repository, commit }, controls)` acquires a bounded
-snapshot of the files at that exact commit — the commit object and every blob
-verified against its git object id — sized by the published capture limits
-`GIT_SNAPSHOT_MAX_SOURCE_ENTRIES` (100,000) and `GIT_SNAPSHOT_MAX_SOURCE_BYTES`
-(256 MiB), which follow Scan's capture limits; exceeding one is a named
-refusal. The published per-file and file-count envelope
-(`GIT_SNAPSHOT_MAX_FILE_BYTES`, 16 MiB; `GIT_SNAPSHOT_MAX_FILES`, 65,536) is
-what `prepareSourceRefresh` consumes, so every accepted snapshot is usable by
-it. The snapshot's `revision`, `files` and `modes` pass straight to
-`prepareSourceRefresh`. All transport authority sits behind the public
-`GitRemoteTransport` seam with a contained `git` default, nothing acquired is
-executed, and exceeding a bound, a case-folded path conflict, a submodule, a
-git link or reserved `.git` metadata is refused by name. See
-[GitHub sources](docs/SOURCE-GITHUB.md) for the contract and the packed
-consumer check.
-
-## Prepare a content candidate
+Catalog needs Node `>=26.12.1 <27`. Its one runtime dependency besides `yaml` is
+`@aihq/scan@0.0.0-dev.1`, which is not on the npm registry yet. Until it is, install the Scan
+tarball kept in this repository (`vendor/aihq-scan-0.0.0-dev.1.tgz`, sha256
+`4f1368c9b89d4055d71f6dc788d0838300f80e39603273cfd663ce1d7ff508c0`) together with a Catalog
+tarball you built:
 
 ```sh
-npm run build:dist
-node tools/prepare-candidate.mjs --commit <full upstream commit>
+npm install --ignore-scripts ./aihq-scan-0.0.0-dev.1.tgz ./aihq-catalog-0.0.0-dev.1.tgz
 ```
 
-A maintainer pins one upstream commit; the producer fetches it, regenerates only the
-affected items and their real dependents, carries everything else over byte for byte,
-checks and packs the complete result and writes a review page and a timing summary.
-It does not wait for Scan, allocate a version or publish. Without `--apply` it is a
-dry run. See [the producer guide](docs/PRODUCER.md) and
-[its migration evidence](docs/PRODUCER-MIGRATION.md).
+Catalog uses only `scanKeyOf` from `@aihq/scan/contracts`, so content scan keys and Scan's
+own keys are the same Git tree hash.
 
-## Verify packed consumers
+## Contributing
 
-```sh
-npm ci --ignore-scripts
-npm run verify
-node tools/verify-core-consumer.mjs /absolute/path/to/reviewed-core.tgz
-```
+See [CONTRIBUTING.md](CONTRIBUTING.md). [VERSIONING.md](VERSIONING.md) describes how changes
+are classified and [docs/TRANSITION.md](docs/TRANSITION.md) records what replaced the earlier
+release model.
 
-The consumer check packs Catalog, installs those exact Catalog and Core artifacts
-with lifecycle scripts disabled, and runs public prepare/apply in disposable roots.
-It checks local/archive identity, explicit dependencies, default origin, applied
-material hashes and refusal after selected material changes. Supply a reviewed Core
-artifact; the check does not choose a moving registry version. Pass a prepared Catalog tarball as a second argument to check that exact
-candidate instead of packing this checkout. Run `node tools/verify-hook-consumer.mjs /absolute/path/to/reviewed-core.tgz` for the same packed-consumer check of the hook group lifecycle; the Core artifact must support recipe and execution-policy 1.1. Add `--instruction-directory <dir>` to
-prepare the project context for that directory through the installed package's
-`prepareProjectContext` and run the context scenario against the derived release.
+## Licence
 
-For a real browser check, pack Catalog and run
-`node tools/verify-portable-browser.mjs /absolute/path/to/catalog.tgz`.
-Open the reported local URL, inspect the result, then send `quit` to stop the helper.
-
-The retained V1/V2 source and historical documentation are migration donor material.
-Their root exports, JSON subpaths and `aih-supported` CLI are excluded from the new
-package. Publication, signing and candidate allocation remain separately owned by
-[RELEASING.md](RELEASING.md) and [VERSIONING.md](VERSIONING.md).
-
-Catalog is Apache-2.0 licensed. Carried third-party material retains its source
-license and pinned provenance.
-
-For an ordinary npm package containing no Catalog release, call
-`acquireNpmSnapshot({ name, version, integrity })` from `@aihq/catalog/node`.
-It verifies an exact version and caller-held SHA-512 pin, returns bounded files
-and executable modes plus the exact npm identity, and runs no package code.
-See [npm snapshots](docs/NPM-SNAPSHOTS.md) for producer preparation and refusals.
-
-`readReleaseIndex` reads unsigned sources until the host selects a TUF root.
-With a selected root it requires opaque cryptographic evidence from the public
-Node `verifyReleaseIndexTuf` seam over host-acquired metadata; unsigned copies
-are withheld. [Release trust](docs/RELEASE-TRUST.md) covers Core's optional trust
-update handoff, rotation, expiry, scoped revocation, expected publisher identity,
-cosign verification and the inert signing blueprint. Production signer activation
-and the offline root ceremony remain separately authorized future work.
+Apache-2.0. Content under `data/` keeps its upstream licences; each framework's notices are
+recorded with its sources and copied with any item a plan installs.

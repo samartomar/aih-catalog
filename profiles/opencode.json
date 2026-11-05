@@ -1,0 +1,179 @@
+{
+  "agentFile": {
+    "fields": [
+      "description"
+    ],
+    "format": "md",
+    "model": "drop",
+    "tools": "none"
+  },
+  "arguments": "chat-text",
+  "checkedWith": [
+    {
+      "app": "opencode",
+      "date": "2026-11-02",
+      "version": "1.19.5"
+    }
+  ],
+  "configFiles": {
+    "project": [
+      ".opencode/opencode.json",
+      ".opencode/opencode.jsonc",
+      ".opencode/plugin/",
+      ".opencode/plugins/",
+      ".opencode/tool/",
+      ".opencode/tools/",
+      ".opencode/tui.json",
+      ".opencode/tui.jsonc",
+      "opencode.jsonc",
+      "tui.json",
+      "tui.jsonc"
+    ],
+    "user": [
+      ".config/opencode/opencode.json",
+      ".config/opencode/opencode.jsonc",
+      ".config/opencode/package.json",
+      ".config/opencode/plugin/",
+      ".config/opencode/plugins/",
+      ".config/opencode/tool/",
+      ".config/opencode/tools/",
+      ".config/opencode/tui.json",
+      ".config/opencode/tui.jsonc"
+    ]
+  },
+  "disableBuiltIn": "not-documented",
+  "id": "opencode",
+  "inputReferences": {
+    "file": "unknown",
+    "mcp-argv": {
+      "syntax": "{env:<name>}"
+    },
+    "mcp-env": {
+      "syntax": "{env:<name>}"
+    },
+    "mcp-header": {
+      "syntax": "{env:<name>}"
+    }
+  },
+  "links": {
+    "skill": "documented"
+  },
+  "mcpFile": {
+    "remote": {
+      "streamable-http": {
+        "headers": "headers",
+        "set": {
+          "type": "remote"
+        },
+        "url": "url"
+      }
+    },
+    "stdio": {
+      "argv": "command",
+      "env": "environment",
+      "set": {
+        "type": "local"
+      }
+    }
+  },
+  "name": "OpenCode",
+  "places": {
+    "agent": {
+      "project": ".opencode/agents/<name>.md"
+    },
+    "mcp": {
+      "project": {
+        "file": "opencode.json",
+        "format": "json",
+        "key": "/mcp/<name>"
+      }
+    },
+    "rule": {
+      "project": {
+        "always": {
+          "file": "AGENTS.md",
+          "merge": "markdown"
+        }
+      }
+    },
+    "skill": {
+      "project": {
+        "otherwise": ".agents/skills/<name>/",
+        "reuse": [
+          ".agents/skills/<name>/",
+          ".claude/skills/<name>/"
+        ]
+      },
+      "user": ".config/opencode/skills/<name>/"
+    }
+  },
+  "plugins": {
+    "install": [
+      [
+        "opencode",
+        "plugin",
+        "<plugin>@git+<repository>.git#<commit>"
+      ]
+    ],
+    "pin": "holds",
+    "pinForm": "spec",
+    "scopes": [
+      "project"
+    ],
+    "verify": "none"
+  },
+  "provides": {
+    "agent": [
+      "build",
+      "compaction",
+      "explore",
+      "general",
+      "plan",
+      "summary",
+      "title"
+    ],
+    "command": [
+      "agents",
+      "compact",
+      "connect",
+      "debug",
+      "diff",
+      "editor",
+      "exit",
+      "help",
+      "init",
+      "mcps",
+      "models",
+      "move",
+      "new",
+      "review",
+      "sessions",
+      "skills",
+      "status",
+      "themes",
+      "undo",
+      "update",
+      "variants"
+    ],
+    "skill": [
+      "customize-opencode"
+    ]
+  },
+  "ruleScopes": {
+    "always": {
+      "frontmatter": {}
+    }
+  },
+  "schema": "urn:aihq:catalog:tool-profile:0.1.0",
+  "userOnly": "none",
+  "userOnlyFallback": {
+    "project": [
+      {
+        "arguments": "kept",
+        "id": "command",
+        "path": ".opencode/commands/<name>.md"
+      }
+    ]
+  },
+  "version": 5
+}

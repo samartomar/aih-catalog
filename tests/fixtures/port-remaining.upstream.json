@@ -1,0 +1,215 @@
+{
+  "anthropic": {
+    "commit": "34040c9c568585f6929bedeaad110ad08f079624",
+    "entries": [
+      {
+        "blob": "1969092344b3405a5459f82c1dd252d30b335a6e",
+        "mode": "100644",
+        "path": ".claude-plugin/marketplace.json"
+      },
+      {
+        "blob": "ffef92c48b351a3ed036556ed32dda934e8cf41a",
+        "mode": "100644",
+        "path": "THIRD_PARTY_NOTICES.md"
+      },
+      {
+        "blob": "4f881c52d1f72f4cfb720e339e2d35c3058d01a9",
+        "mode": "100644",
+        "path": "skills/web-artifacts-builder/LICENSE.txt"
+      },
+      {
+        "blob": "8b39b19f259b4216ecb07574741dd8eaa9863a07",
+        "mode": "100644",
+        "path": "skills/web-artifacts-builder/SKILL.md"
+      },
+      {
+        "blob": "c13d229e0523623a23f979771ccf99ac149c8bfb",
+        "mode": "100755",
+        "path": "skills/web-artifacts-builder/scripts/bundle-artifact.sh"
+      },
+      {
+        "blob": "7d1022d88bec529f00ef385e10ed6084601d710b",
+        "mode": "100755",
+        "path": "skills/web-artifacts-builder/scripts/init-artifact.sh"
+      },
+      {
+        "blob": "cdbe7cdd1e724a7c9840387e17a6a7f26d3477e1",
+        "mode": "100644",
+        "path": "skills/web-artifacts-builder/scripts/shadcn-components.tar.gz"
+      },
+      {
+        "blob": "4f881c52d1f72f4cfb720e339e2d35c3058d01a9",
+        "mode": "100644",
+        "path": "skills/webapp-testing/LICENSE.txt"
+      },
+      {
+        "blob": "4726215301db64a0cc4d41fc3219c61f37a30f4a",
+        "mode": "100644",
+        "path": "skills/webapp-testing/SKILL.md"
+      },
+      {
+        "blob": "9329b5e232ed53d944bfe95e750070117d31b9ab",
+        "mode": "100644",
+        "path": "skills/webapp-testing/examples/console_logging.py"
+      },
+      {
+        "blob": "917ba72f52421a1b324f93ae8e38af72010a87b9",
+        "mode": "100644",
+        "path": "skills/webapp-testing/examples/element_discovery.py"
+      },
+      {
+        "blob": "90bbedcc08cdb345c74fb938ebad02c0baf56603",
+        "mode": "100644",
+        "path": "skills/webapp-testing/examples/static_html_automation.py"
+      },
+      {
+        "blob": "431f2eba16b268b7f3e2ae4daae9db41c0289b6d",
+        "mode": "100755",
+        "path": "skills/webapp-testing/scripts/with_server.py"
+      }
+    ],
+    "repository": "https://github.com/anthropics/skills"
+  },
+  "gstack": {
+    "commit": "1ea86923a86129d1f32828b36acfe6f91f17c8e6",
+    "entries": [
+      {
+        "blob": "35029511144443297cad2d26e4bac17d0e352f93",
+        "mode": "100644",
+        "path": "LICENSE"
+      },
+      {
+        "blob": "cf8a99447ff0fe953add68b0d7062cdcf1670c4b",
+        "mode": "100644",
+        "path": "NOTICE.md"
+      },
+      {
+        "blob": "ef4b7bd7990e736aeb6e9d178f80427a18666766",
+        "mode": "100644",
+        "path": "guard/SKILL.md"
+      },
+      {
+        "blob": "a7a27891369b91ca01f43c3420f7b350e179894a",
+        "mode": "100644",
+        "path": "guard/SKILL.md.tmpl"
+      },
+      {
+        "blob": "d645695673349e3947e8e5ae42332d0ac3164cd7",
+        "mode": "100644",
+        "path": "licenses/Apache-2.0.txt"
+      },
+      {
+        "blob": "9ff21c8c5b2e713c357d3e15e641172a211eac21",
+        "mode": "100644",
+        "path": "licenses/MIT-elaya.txt"
+      },
+      {
+        "blob": "f4bfc53d8d773d3b10d95c2d58a5773dd4e2f3aa",
+        "mode": "100644",
+        "path": "licenses/MIT-hallmark.txt"
+      },
+      {
+        "blob": "6b5400237fdf6545be0b8fae370d6f2fcff8fb25",
+        "mode": "100644",
+        "path": "licenses/MIT-pstack.txt"
+      },
+      {
+        "blob": "2389b2cb8871401b345202edc39c23bbbdce5f39",
+        "mode": "100644",
+        "path": "licenses/MIT-skill-diet.txt"
+      },
+      {
+        "blob": "eccbd9f1c676d8cbb191a5064c48118492b74125",
+        "mode": "100644",
+        "path": "licenses/MIT-tstack.txt"
+      }
+    ],
+    "repository": "https://github.com/garrytan/gstack"
+  },
+  "guide": {
+    "commit": "2481164a51ea7f9e480d51ef52f3d5cf15b017fa",
+    "entries": [
+      {
+        "blob": "c9b56b81ea1b19a27181ac54e365cf3cdf99805f",
+        "mode": "100644",
+        "path": "LICENSE"
+      },
+      {
+        "blob": "3d9ae98581405c6c28020e715c3bb661a15fb3c7",
+        "mode": "100644",
+        "path": "guide/MANUAL.md"
+      },
+      {
+        "blob": "d5cf4b9701e5d3b88515f06c3ace57763967a2a4",
+        "mode": "100644",
+        "path": "guide/generated/claude/aih-guide.md"
+      },
+      {
+        "blob": "aca56a2df480494045a391d6217d203ff350cfa5",
+        "mode": "100644",
+        "path": "guide/generated/kimi/aih-guide.md"
+      },
+      {
+        "blob": "d2c778f94b3e1a8c090f341fc9259f5ca725971b",
+        "mode": "100644",
+        "path": "guide/generated/opencode/aih-guide.md"
+      }
+    ],
+    "repository": "https://github.com/samartomar/aih-extensions"
+  },
+  "pstack": {
+    "commit": "ae5650febf4320793844c12c4adaa937f417f8da",
+    "entries": [
+      {
+        "blob": "6b5400237fdf6545be0b8fae370d6f2fcff8fb25",
+        "mode": "100644",
+        "path": "LICENSE"
+      },
+      {
+        "blob": "209e3704dfa75022060c936bd3f3362fa3bbe254",
+        "mode": "100644",
+        "path": "agents/comment-sicko.md"
+      },
+      {
+        "blob": "7580c3c9a7770d81b9dd7a537d9caa7362c04279",
+        "mode": "100644",
+        "path": "skills/arena/SKILL.md"
+      }
+    ],
+    "repository": "https://github.com/cursor/plugins",
+    "subpath": "pstack"
+  },
+  "pstack-claude": {
+    "commit": "ae5650febf4320793844c12c4adaa937f417f8da",
+    "entries": [
+      {
+        "blob": "209e3704dfa75022060c936bd3f3362fa3bbe254",
+        "mode": "100644",
+        "path": "agents/comment-sicko.md"
+      },
+      {
+        "blob": "bf154e6464a6cca96a9627bbe10a628092e8c09e",
+        "mode": "100644",
+        "path": "docs/harness/claude-code.md"
+      },
+      {
+        "blob": "0daa7c5279bf83accac731de9c0d639d0f772de8",
+        "mode": "100644",
+        "path": "skills/arena/SKILL.md"
+      }
+    ],
+    "repository": "https://github.com/cursor/plugins",
+    "subpath": "harness/pstack/claude-code"
+  },
+  "shadcn-notice": {
+    "commit": "f3d14c48cbad1b6a3b3c9c81db9f198a4188f712",
+    "entries": [
+      {
+        "blob": "fad4d887a681dd49233e5ed01ee2c7a1513089a0",
+        "mode": "100644",
+        "path": "LICENSE.md"
+      }
+    ],
+    "repository": "https://github.com/shadcn-ui/ui"
+  }
+}

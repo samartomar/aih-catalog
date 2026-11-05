@@ -1,0 +1,214 @@
+{
+  "agentFile": {
+    "fields": [
+      "name",
+      "description"
+    ],
+    "format": "md",
+    "model": "drop",
+    "tools": {}
+  },
+  "arguments": "chat-text",
+  "checkedWith": [
+    {
+      "app": "agy",
+      "date": "2026-11-02",
+      "version": "1.4.12"
+    },
+    {
+      "app": "antigravity-app",
+      "date": "2026-11-02",
+      "version": "2.28.2"
+    }
+  ],
+  "configFiles": {
+    "project": [
+      ".agents/hooks.json",
+      ".agents/plugins/"
+    ],
+    "user": [
+      ".gemini/antigravity-cli/keybindings.json",
+      ".gemini/antigravity-cli/settings.json",
+      ".gemini/config/hooks.json",
+      ".gemini/config/mcp_config.json",
+      ".gemini/config/plugins/"
+    ]
+  },
+  "disableBuiltIn": "not-documented",
+  "hookEvents": {
+    "post-tool-use": "PostToolUse",
+    "pre-tool-use": "PreToolUse",
+    "session-start": "SessionStart",
+    "stop": "Stop"
+  },
+  "id": "antigravity",
+  "inputReferences": {
+    "file": "unknown",
+    "mcp-argv": "unknown",
+    "mcp-env": "unknown",
+    "mcp-header": "unknown"
+  },
+  "links": {
+    "skill": "not-documented"
+  },
+  "localPlugins": {
+    "project": {
+      "folder": ".agents/plugins/<plugin>/",
+      "manifests": [
+        ".antigravity-plugin/plugin.json",
+        "plugin.json"
+      ]
+    },
+    "user": {
+      "folder": ".gemini/config/plugins/<plugin>/",
+      "manifests": [
+        ".antigravity-plugin/plugin.json",
+        "plugin.json"
+      ]
+    }
+  },
+  "mcpFile": {
+    "remote": {
+      "streamable-http": {
+        "headers": "headers",
+        "url": "serverUrl"
+      }
+    },
+    "stdio": {
+      "args": "args",
+      "command": "command",
+      "env": "env"
+    }
+  },
+  "name": "Antigravity",
+  "places": {
+    "agent": {
+      "project": ".agents/agents/<name>.md"
+    },
+    "mcp": {
+      "project": {
+        "file": ".agents/mcp_config.json",
+        "format": "json",
+        "key": "/mcpServers/<name>"
+      }
+    },
+    "rule": {
+      "project": {
+        "always": ".agents/rules/<name>.md",
+        "by-description": ".agents/rules/<name>.md",
+        "on-request": ".agents/rules/<name>.md",
+        "paths": ".agents/rules/<name>.md"
+      }
+    },
+    "skill": {
+      "project": ".agents/skills/<name>/",
+      "user": ".gemini/config/skills/<name>/"
+    }
+  },
+  "plugins": {
+    "pin": "none",
+    "verify": "none"
+  },
+  "provides": {
+    "agent": [
+      "browser",
+      "default",
+      "research",
+      "self"
+    ],
+    "command": [
+      "add-dir",
+      "agents",
+      "artifact",
+      "branch",
+      "browser",
+      "btw",
+      "changelog",
+      "clear",
+      "codesearch",
+      "compact",
+      "config",
+      "context",
+      "copy",
+      "credits",
+      "cs",
+      "diff",
+      "effort",
+      "exit",
+      "feedback",
+      "fork",
+      "goal",
+      "grill-me",
+      "help",
+      "hooks",
+      "keybindings",
+      "learn",
+      "logout",
+      "mcp",
+      "model",
+      "new",
+      "open",
+      "permissions",
+      "plan",
+      "plugin",
+      "quit",
+      "quota",
+      "record",
+      "remote-control",
+      "rename",
+      "resume",
+      "rewind",
+      "schedule",
+      "settings",
+      "skills",
+      "statusline",
+      "switch",
+      "tasks",
+      "title",
+      "undo",
+      "usage",
+      "voice"
+    ],
+    "skill": [
+      "agy-customizations",
+      "antigravity-guide",
+      "automation",
+      "migrate-workflows",
+      "run-workflow"
+    ]
+  },
+  "ruleScopes": {
+    "always": {
+      "frontmatter": {
+        "trigger": "always_on"
+      }
+    },
+    "by-description": {
+      "describe": [
+        "description"
+      ],
+      "frontmatter": {
+        "trigger": "model_decision"
+      }
+    },
+    "on-request": {
+      "frontmatter": {
+        "trigger": "manual"
+      }
+    },
+    "paths": {
+      "form": "single-or-list",
+      "frontmatter": {
+        "trigger": "glob"
+      },
+      "globs": "globs"
+    }
+  },
+  "schema": "urn:aihq:catalog:tool-profile:0.1.0",
+  "userOnly": {
+    "frontmatter": {
+      "disable-model-invocation": true
+    }
+  },
+  "version": 6
+}

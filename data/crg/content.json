@@ -1,0 +1,284 @@
+{
+  "framework": {
+    "id": "crg",
+    "name": "code-review-graph"
+  },
+  "items": [
+    {
+      "aiSetup": {
+        "distributions": [
+          {
+            "bytes": 786718,
+            "cells": [
+              "darwin-arm64",
+              "darwin-x64",
+              "linux-arm64",
+              "linux-x64",
+              "windows-arm64",
+              "windows-x64"
+            ],
+            "file": "code_review_graph-2.3.9-py3-none-any.whl",
+            "kind": "pypi-wheel",
+            "sha256": "908500a23f23fe05566090a2e5fce95f7f177d054090a355b46367546db5d910",
+            "url": "https://files.pythonhosted.org/packages/f3/79/f76be5687b87124039255fe70de06b2f266ece877f1038d9a3d0bde4a1c2/code_review_graph-2.3.9-py3-none-any.whl"
+          }
+        ],
+        "doNotRun": [
+          [
+            "code-review-graph",
+            "install"
+          ]
+        ],
+        "executable": "code-review-graph",
+        "launch": {
+          "args": [
+            "serve"
+          ]
+        },
+        "mcpItem": "crg.mcp.code-review-graph",
+        "qualifications": [
+          "3231792df571912e5edc5584d6ea1c991bed4b6b09637346169d994dfd40d970",
+          "62ffd2ad66a947a446c008a7dd6c74cc8d49b83427822be6e6ffd0ccad61fe4b",
+          "7e4a2e5cbea1ccc3b0a399739a1f9a3e81d87fca37e22ce036ece13ab148e3ac"
+        ],
+        "runtime": {
+          "closure": "uv-lock",
+          "python": ">=3.10"
+        },
+        "settings": {
+          "commands": [],
+          "files": []
+        },
+        "version": "2.3.9"
+      },
+      "behaviourSha256": "c62a367b5a129f364e337d215b38572be10a018ff9e85fbc52e7a62df85dce47",
+      "contentSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "description": "code-review-graph 2.3.9: a local knowledge graph of the repository for token-efficient code review, served over MCP.",
+      "files": [],
+      "id": "crg.ai-setup.code-review-graph",
+      "kind": "ai-setup",
+      "name": "code-review-graph"
+    },
+    {
+      "behaviourSha256": "e6f8a10054ce3574eb9cfc4fe1235ba41dcfb557b292d0bcff7974479b9aaa63",
+      "callSeconds": 300,
+      "contentSha256": "552c273e78245abf0c434ae0ec6387b821e0a199e1994713e14f1bdcd0ab486b",
+      "dependencies": [
+        "crg.ai-setup.code-review-graph"
+      ],
+      "description": "code-review-graph MCP server: a local knowledge graph of the repository for token-efficient code review.",
+      "env": {
+        "CRG_TOOL_TIMEOUT": "120",
+        "PYTHONUTF8": "1"
+      },
+      "files": [
+        {
+          "bytes": 486,
+          "derivedFrom": {
+            "pointer": "/mcpServers/code-review-graph",
+            "sourcePath": ".mcp.json"
+          },
+          "executable": false,
+          "role": "content",
+          "sha256": "1613e74dbd40e2169e1c20d8be5846f9ce13f8488445dc6e08b271e907b23cdb",
+          "sourceId": "crg-generated",
+          "sourcePath": "crg.mcp.code-review-graph/server.json"
+        }
+      ],
+      "id": "crg.mcp.code-review-graph",
+      "kind": "mcp",
+      "name": "code-review-graph",
+      "scanKey": "git-sha1:ae7c646051997d2c05685741e1fe624d7cda0ded",
+      "server": {
+        "description": "code-review-graph MCP server: a local knowledge graph of the repository for token-efficient code review.",
+        "name": "code-review-graph",
+        "packages": [
+          {
+            "identifier": "code-review-graph",
+            "packageArguments": [
+              {
+                "type": "positional",
+                "value": "serve"
+              }
+            ],
+            "registryType": "pypi",
+            "runtimeHint": "uvx",
+            "transport": {
+              "type": "stdio"
+            },
+            "version": "2.3.9"
+          }
+        ]
+      },
+      "startupSeconds": 30
+    },
+    {
+      "arguments": false,
+      "behaviourSha256": "d4127f9778528407cbb8acf19d476a5f1d5a8920e7c526f313d3460ac51435c5",
+      "contentSha256": "e4dbdc1638a3faead8553bbf7431e359fb0caa485c86f7ac3ec001222988349f",
+      "description": "Build or update the code review knowledge graph. Run this first to initialize, or let hooks keep it updated automatically.",
+      "files": [
+        {
+          "bytes": 1177,
+          "executable": false,
+          "role": "content",
+          "sha256": "4faf95f2ff33fdfeb280ce27581ae75ba8ed06aff1e143a53c50947990e6ffb2",
+          "sourceId": "crg",
+          "sourcePath": "skills/build-graph/SKILL.md"
+        }
+      ],
+      "id": "crg.skill.build-graph",
+      "kind": "skill",
+      "name": "build-graph",
+      "scanKey": "git-sha1:595569736f131c379b86d726b050a31bf028e6c3",
+      "userOnly": false
+    },
+    {
+      "arguments": false,
+      "behaviourSha256": "46c09d17ef0e026e2a079af7fedf602aaacd69ccbe68ad22bf5fe56551ecec47",
+      "contentSha256": "e2c42c33d380c0d486b605903f8642b4f4c8e99f532f52018a58cee9d9dba688",
+      "description": "Systematically debug issues using graph-powered code navigation",
+      "files": [
+        {
+          "bytes": 1146,
+          "executable": false,
+          "role": "content",
+          "sha256": "17d008a2c6cbe549998be332b5f69d6e51397f0a5f869fea0e12af098f855806",
+          "sourceId": "crg",
+          "sourcePath": "skills/debug-issue/SKILL.md"
+        }
+      ],
+      "id": "crg.skill.debug-issue",
+      "kind": "skill",
+      "name": "debug-issue",
+      "scanKey": "git-sha1:d429602de54d8d59956ffd418398dbd1f036ee09",
+      "userOnly": false
+    },
+    {
+      "arguments": false,
+      "behaviourSha256": "ec1f31f29e025d34ec30692808febbadd1dfee31f4b5ba541c49ab0b4f3a3461",
+      "contentSha256": "586e6fcf43f76f034fd75224c31a179b86c17b45dcafc1214a88335b235f51de",
+      "description": "Navigate and understand codebase structure using the knowledge graph",
+      "files": [
+        {
+          "bytes": 1340,
+          "executable": false,
+          "role": "content",
+          "sha256": "1781b3e70d525f777a8cb5a966f4405c20cfb25570ce3794b6b75c0d0a5bcedb",
+          "sourceId": "crg",
+          "sourcePath": "skills/explore-codebase/SKILL.md"
+        }
+      ],
+      "id": "crg.skill.explore-codebase",
+      "kind": "skill",
+      "name": "explore-codebase",
+      "scanKey": "git-sha1:268b416d26049d1326dce3859e730c7c6749a5d1",
+      "userOnly": false
+    },
+    {
+      "arguments": false,
+      "behaviourSha256": "3c016b02fc63bb6eb70d1bec7dbe53f8186220faf66e2ac208e30574968898cb",
+      "contentSha256": "97dde76cc745ddb13d55fd74c2d9a53afbb5c90886109eb449f76d330b1a5040",
+      "description": "Plan and execute safe refactoring using dependency analysis",
+      "files": [
+        {
+          "bytes": 1326,
+          "executable": false,
+          "role": "content",
+          "sha256": "4b8aeb462113180e97861505b8e6ed17cf9a2c30762b9d4c70b241121d7fdbe0",
+          "sourceId": "crg",
+          "sourcePath": "skills/refactor-safely/SKILL.md"
+        }
+      ],
+      "id": "crg.skill.refactor-safely",
+      "kind": "skill",
+      "name": "refactor-safely",
+      "scanKey": "git-sha1:b99050886c7b4ea73ba1c86b8d3a56c3f48385a9",
+      "userOnly": false
+    },
+    {
+      "arguments": false,
+      "behaviourSha256": "2944ab4cf6ebe5b37012915fa7fd329e0b6bdff8552cae25b5dc9c307387063e",
+      "contentSha256": "d85ae1c2d3bf980f37a4584ead740baa0a40c609a308aecb7de14cf86d4daed0",
+      "description": "Perform a structured code review using change detection and impact",
+      "files": [
+        {
+          "bytes": 1322,
+          "executable": false,
+          "role": "content",
+          "sha256": "0f1c77813829f48ea895caffc155d022c5f7ef41f4586045823e9682a9aa9542",
+          "sourceId": "crg",
+          "sourcePath": "skills/review-changes/SKILL.md"
+        }
+      ],
+      "id": "crg.skill.review-changes",
+      "kind": "skill",
+      "name": "review-changes",
+      "scanKey": "git-sha1:b3748b592585deb76192a0765f75e135f491dc9c",
+      "userOnly": false
+    },
+    {
+      "arguments": false,
+      "behaviourSha256": "fd85b3b12d48dda5874800666508a5d6830f51433c37a32a77e809666cc603a0",
+      "contentSha256": "2b442ebc90cea49162d8e7ffec757bbde74bce9a6a32d361fc5403af44c49166",
+      "description": "Review only changes since last commit using impact analysis. Token-efficient delta review with automatic blast-radius detection.",
+      "files": [
+        {
+          "bytes": 1300,
+          "executable": false,
+          "role": "content",
+          "sha256": "141c520fa4e778c32718748b11ad3ace5c114c2c014deb07506421f5213aec04",
+          "sourceId": "crg",
+          "sourcePath": "skills/review-delta/SKILL.md"
+        }
+      ],
+      "id": "crg.skill.review-delta",
+      "kind": "skill",
+      "name": "review-delta",
+      "scanKey": "git-sha1:298b694fe23a46f8ceb037f6eb0211ea39a1b21e",
+      "userOnly": false
+    },
+    {
+      "arguments": false,
+      "behaviourSha256": "48edebfd3da0906f1808ca486c1cd2057f9ebcf311a19285f519d91bd6d7dedb",
+      "contentSha256": "e74ad9a298dafae832f247bda81fbfb01d4df23bc0057180e2295f0cff82b581",
+      "description": "Review a PR or branch diff using the knowledge graph for full structural context. Outputs a structured review with blast-radius analysis.",
+      "files": [
+        {
+          "bytes": 1805,
+          "executable": false,
+          "role": "content",
+          "sha256": "c7e47dc757dba96e04494a8141b192fc2d50b52cd3ad1e989c8a6541448b6bf1",
+          "sourceId": "crg",
+          "sourcePath": "skills/review-pr/SKILL.md"
+        }
+      ],
+      "id": "crg.skill.review-pr",
+      "kind": "skill",
+      "name": "review-pr",
+      "scanKey": "git-sha1:b43690bcc1ef34c4d38a4575f3f9ac721e38f2d4",
+      "userOnly": false
+    }
+  ],
+  "schema": "urn:aihq:catalog:content:0.1.0",
+  "sources": [
+    {
+      "commit": "343ab7cea29d47a3e805381e09f8243a43d43d88",
+      "id": "crg",
+      "kind": "git",
+      "notices": [
+        {
+          "covers": "/",
+          "sha256": "4608284d776c4ca9b88d05c7210f71ab03400520bf7334d72404eba53f56dd4e",
+          "sourcePath": "LICENSE"
+        }
+      ],
+      "repository": "https://github.com/tirth8205/code-review-graph"
+    },
+    {
+      "id": "crg-generated",
+      "kind": "authored",
+      "notices": []
+    }
+  ]
+}

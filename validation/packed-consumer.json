@@ -1,0 +1,728 @@
+{
+  "candidate": {
+    "package": "@aihq/catalog@0.0.0-dev.1",
+    "sourceCommit": "c7df7fc307ba776033465046ebfe173697435f77",
+    "sourceClean": true,
+    "file": "aihq-catalog-0.0.0-dev.1.tgz",
+    "sha256": "3a2b335cffcee980aa62317ad9a92ffe24ede5b5e3e331be9828b886e1a0a6bf",
+    "integrity": "sha512-dQSVLsm7gEedQYRvBY6vg6VZqJy3d5MblljJpbxJXYNgNNBjiq4NJ+CQ6ClhbGDVG5UGcqYyALJ6ArbZSWtLRQ==",
+    "bytes": 189285,
+    "entries": 70
+  },
+  "scan": {
+    "package": "@aihq/scan@0.0.0-dev.1",
+    "sha256": "4f1368c9b89d4055d71f6dc788d0838300f80e39603273cfd663ce1d7ff508c0"
+  },
+  "runtime": {
+    "node": "26.12.1",
+    "npm": "11.20.0"
+  },
+  "inputs": {
+    "data": {
+      "kind": "git",
+      "commit": "c7df7fc307ba776033465046ebfe173697435f77",
+      "subpath": "data",
+      "files": 100,
+      "sha256": "16e8eff64595aa708bcf92258a5f8ebfbd6c9d17ffb1b562a23bcb78c3a4fd07",
+      "skipped": 0
+    },
+    "port-report": {
+      "kind": "git",
+      "commit": "c7df7fc307ba776033465046ebfe173697435f77",
+      "subpath": "port-report",
+      "files": 4,
+      "sha256": "567aaf5cccf382a59bdf38ffe5f93e1c4c564c1bbd2b25b6821cf5b9c98b6458",
+      "skipped": 0
+    },
+    "tests/fixtures": {
+      "kind": "git",
+      "commit": "c7df7fc307ba776033465046ebfe173697435f77",
+      "subpath": "tests/fixtures",
+      "files": 169,
+      "sha256": "e6881a0497f82fbc9830092389aa1f78931256e6c21d4e568048ae6b5f637259",
+      "skipped": 0
+    },
+    "upstream": {
+      "ecc": {
+        "kind": "git",
+        "repository": "https://github.com/affaan-m/ECC",
+        "commit": "5064474d4d762dc9640234a41617cccb79185cec",
+        "files": 3538,
+        "sha256": "32305daffaa6025c3bdd6adfc4c44da24344ef6978fc47fe666717ab8db6753e",
+        "skipped": 0
+      },
+      "superpowers": {
+        "kind": "git",
+        "repository": "https://github.com/obra/superpowers",
+        "commit": "5bf4e78011075bcfc0dc295f0724994cd123ee71",
+        "files": 231,
+        "sha256": "11e486fb9ab588bcefa9c17d7446d3a7eaef6911440d03e0140e7284ac5b7878",
+        "skipped": 0
+      }
+    },
+    "dataCommits": {
+      "before": {
+        "commit": "40608e5db63fa05600449784a03a00fb1206a071"
+      },
+      "after": {
+        "commit": "773aebc8dc3176d7352084f9c291ccd9b7a6b255",
+        "qualification": "8d8b278142b3001fe193a6825713485d0cc0cb4ff15966d56abca021ecbb4712"
+      }
+    }
+  },
+  "network": true,
+  "basis": {
+    "fixture": "synthetic files written by the journey, or pinned upstream fixture bytes",
+    "candidate-data": "committed data/ at the packed commit: unadmitted candidate data, not trusted production data",
+    "upstream": "real upstream bytes fetched at the recorded pins (--network only)"
+  },
+  "limits": [
+    "Fixture and candidate-data outcomes establish package behaviour only: no native client loaded any plan, no installer carried one out, and no qualification run took place here."
+  ],
+  "journeys": [
+    {
+      "id": 1,
+      "title": "Your own folder: copies only, leftovers listed, nothing runs",
+      "basis": "fixture",
+      "outcome": "passed",
+      "checks": [
+        {
+          "name": "readLocalSource reads the folder as a local source",
+          "status": "passed"
+        },
+        {
+          "name": "findItems gives the two skills and the rule, and lists every leftover",
+          "status": "passed"
+        },
+        {
+          "name": "buildContent records the items",
+          "status": "passed"
+        },
+        {
+          "name": "planInstall for claude-code, kiro and antigravity is ok",
+          "status": "passed"
+        },
+        {
+          "name": "every path is the profile's project place, and there are only copies",
+          "status": "passed"
+        },
+        {
+          "name": "the same input gives the same plan, byte for byte",
+          "status": "passed"
+        },
+        {
+          "name": "nothing ran: no lifecycle script, hook or executable left a mark",
+          "status": "passed"
+        }
+      ],
+      "pending": [],
+      "plans": {
+        "own-folder": "9897f1f6ffdbc74765e3c8a778dc44c581a2648c4e433f3e6a2d35e9fe5cf161"
+      }
+    },
+    {
+      "id": 2,
+      "title": "Superpowers whole: plugins on Claude, Codex, Copilot; items on Kiro; ok",
+      "basis": "candidate-data",
+      "outcome": "passed",
+      "checks": [
+        {
+          "name": "plugin steps for Claude, Codex and Copilot, pinned to the recorded commit",
+          "status": "passed"
+        },
+        {
+          "name": "Kiro gets items: skills linked, the session-bootstrap rule in global steering",
+          "status": "passed"
+        },
+        {
+          "name": "the recipe origin is the recipe's own bytes and source",
+          "status": "passed"
+        },
+        {
+          "name": "status is ok with the default links: skills joined by sibling paths are copied in place on Kiro, with a warning",
+          "status": "passed"
+        },
+        {
+          "name": "with copies at user scope (copy: true) Kiro's sibling skill paths resolve and the plan is ok",
+          "status": "passed"
+        },
+        {
+          "name": "upstream: each plugin step's scan key is the pinned plugin folder's",
+          "status": "passed"
+        }
+      ],
+      "pending": [],
+      "plans": {
+        "superpowers-user": "e60dc02f52a89087946edb8293536ef9f3331df7207ab4989c069e51a7f8219f"
+      }
+    },
+    {
+      "id": 3,
+      "title": "ECC base for Kiro through items: editions, prefixes, prompts, notices, references",
+      "basis": "candidate-data",
+      "outcome": "passed",
+      "checks": [
+        {
+          "name": "33 agent editions, two files each, copied as they are",
+          "status": "passed"
+        },
+        {
+          "name": "22 steering editions and 13 hook editions",
+          "status": "passed"
+        },
+        {
+          "name": "chosen skills install with the ecc- prefix",
+          "status": "passed"
+        },
+        {
+          "name": "commands become prompt files plus manual steering",
+          "status": "passed"
+        },
+        {
+          "name": "notices are written once",
+          "status": "passed"
+        },
+        {
+          "name": "references list the ecc: names",
+          "status": "passed"
+        },
+        {
+          "name": "planning ECC twice gives the same plan, byte for byte",
+          "status": "passed"
+        }
+      ],
+      "pending": [],
+      "notes": [
+        "Status incomplete (the journey states no status): 78 path references, 0 unavailable item/client pairs, 0 clashes."
+      ],
+      "plans": {
+        "ecc-kiro": "daf44f61f85a6d1e7e9711d8027bcd0129b5b98cc8b6c68fad96eb7ccf62fa12"
+      }
+    },
+    {
+      "id": 4,
+      "title": "gstack for Codex: one approval-requiring upstream setup; ok",
+      "basis": "candidate-data",
+      "outcome": "passed",
+      "checks": [
+        {
+          "name": "exactly one upstream-setup step with the exact command and needs",
+          "status": "passed"
+        },
+        {
+          "name": "status is ok: approval does not make a plan incomplete",
+          "status": "passed"
+        }
+      ],
+      "pending": []
+    },
+    {
+      "id": 5,
+      "title": "One ECC command on Codex, user scope: shared version folder, link, openai.yaml",
+      "basis": "candidate-data",
+      "outcome": "passed",
+      "checks": [
+        {
+          "name": "the folder link is .agents/skills/ecc-plan, into the shared version folder",
+          "status": "passed"
+        },
+        {
+          "name": "openai.yaml sits inside the version folder",
+          "status": "passed"
+        },
+        {
+          "name": "openai.yaml sets allow_implicit_invocation: false",
+          "status": "passed"
+        },
+        {
+          "name": "$ARGUMENTS is reworded (ECC gan-build, pinned fixture bytes)",
+          "status": "passed"
+        },
+        {
+          "name": "upstream: ECC plan's SKILL.md renders from the real pinned bytes",
+          "status": "passed"
+        },
+        {
+          "name": "status is ok, as the contract's example plan for this command is",
+          "status": "passed"
+        }
+      ],
+      "pending": []
+    },
+    {
+      "id": 6,
+      "title": "Mixing Extensions and pstack: duplicates, the resolver, dsh warning",
+      "basis": "candidate-data",
+      "outcome": "passed",
+      "checks": [
+        {
+          "name": "duplicates name tdd and teach across the two frameworks, with no winner",
+          "status": "passed"
+        },
+        {
+          "name": "the resolver is placed on Claude and Codex, and .aihq/duplicates.json is written",
+          "status": "passed"
+        },
+        {
+          "name": "on dsh the missing helper only warns: the renamed mix is ok",
+          "status": "passed"
+        },
+        {
+          "name": "an unsupported agent the user selects on dsh still makes the plan incomplete",
+          "status": "passed"
+        }
+      ],
+      "pending": []
+    },
+    {
+      "id": 7,
+      "title": "Built-ins: a bare plan skill clashes on Claude; a recipe override is not reported",
+      "basis": "fixture",
+      "outcome": "passed",
+      "checks": [
+        {
+          "name": "a bare plan skill on Claude is a built-in clash and the plan is incomplete",
+          "status": "passed"
+        },
+        {
+          "name": "Extensions' code-review with a recipe override is not reported on Claude",
+          "status": "passed"
+        }
+      ],
+      "pending": [],
+      "notes": [
+        "The override recipe is written by this journey: Extensions has no base recipe until its package declares per-client routes."
+      ]
+    },
+    {
+      "id": 8,
+      "title": "Scope fallback and pins: warnings, items on Cursor/Antigravity/Kimi, Copilot's local marketplace",
+      "basis": "candidate-data",
+      "outcome": "passed",
+      "checks": [
+        {
+          "name": "a plugin route at a scope the client does not list warns and falls back",
+          "status": "passed"
+        },
+        {
+          "name": "Superpowers on Cursor, Antigravity and Kimi plans items, never a plugin step",
+          "status": "passed"
+        },
+        {
+          "name": "Copilot: the pinned local marketplace write, a plugin step naming it, cli-only-plugin",
+          "status": "passed"
+        }
+      ],
+      "pending": []
+    },
+    {
+      "id": 9,
+      "title": "Links: every input in the source table gives the listed result",
+      "basis": "fixture",
+      "outcome": "passed",
+      "checks": [
+        {
+          "name": "local paths and file URLs",
+          "status": "passed"
+        },
+        {
+          "name": "HTTPS, SSH and owner/repo Git repositories",
+          "status": "passed"
+        },
+        {
+          "name": "tree, blob and GitLab links keep ref and subpath (pstack keeps its subpath)",
+          "status": "passed"
+        },
+        {
+          "name": "npm names, exact versions, ranges and npx",
+          "status": "passed"
+        },
+        {
+          "name": "installer commands name their source",
+          "status": "passed"
+        },
+        {
+          "name": "anything else is unrecognised with a reason, never a guess; over the limit is refused",
+          "status": "passed"
+        }
+      ],
+      "pending": []
+    },
+    {
+      "id": 10,
+      "title": "Port report: all 777 measured items are mapped or dropped with a reason",
+      "basis": "candidate-data",
+      "outcome": "passed",
+      "checks": [
+        {
+          "name": "777 dispositions, one per baseline item, each mapped or dropped with a reason",
+          "status": "passed"
+        },
+        {
+          "name": "every mapped item and edition exists in the committed data",
+          "status": "passed"
+        },
+        {
+          "name": "the combined report reconciles the same 777 baseline items and their kinds",
+          "status": "passed"
+        }
+      ],
+      "pending": []
+    },
+    {
+      "id": 11,
+      "title": "EGM at project scope: local plugin, bundle layout, bundle-root rule, dsh, bundle removed",
+      "basis": "candidate-data",
+      "outcome": "passed",
+      "checks": [
+        {
+          "name": "Claude gets the local plugin in .aihq/plugins/egm/ and a settings merge",
+          "status": "passed"
+        },
+        {
+          "name": "the adapters' ${CLAUDE_PLUGIN_ROOT} paths resolve inside the copied plugin",
+          "status": "passed"
+        },
+        {
+          "name": "Codex and Antigravity get .agents/skills/egm-*/ with agents, resources and docs beside them",
+          "status": "passed"
+        },
+        {
+          "name": "all 7 skills are user-only, and the bundle-root rule is at each client's always-on place",
+          "status": "passed"
+        },
+        {
+          "name": "references are empty and the status is ok",
+          "status": "passed"
+        },
+        {
+          "name": "with dsh added: the same .agents layout, the rule in AGENTS.md, personas unavailable",
+          "status": "passed"
+        },
+        {
+          "name": "the fixture-built EGM content equals the committed data, and without its bundle the plan is incomplete with the paths listed",
+          "status": "passed"
+        }
+      ],
+      "pending": [],
+      "notes": [
+        "With dsh the plan is ok; the journey states no status for that variant (completeness does not force clients the upstream does not install on, while a selected agent a client cannot take blocks)."
+      ],
+      "plans": {
+        "egm-project": "e053517f98bc9cb8e854804fee067d7b09cd941f4e41744e80f5cf1892215602"
+      }
+    },
+    {
+      "id": 12,
+      "title": "Tool trio on linux-x64: acquire, settings, MCP config, no installer; ok once qualified",
+      "basis": "candidate-data",
+      "outcome": "pending",
+      "checks": [
+        {
+          "name": "real data: the qualified configured-fixture combination plans ok",
+          "status": "passed"
+        },
+        {
+          "name": "CBM's tool-command steps carry readbacks",
+          "status": "passed"
+        },
+        {
+          "name": "MCP config for each chosen client with the trio's tool lists, and no installer",
+          "status": "passed"
+        },
+        {
+          "name": "fixture qualifications for every member and the trio read ok and plan",
+          "status": "passed"
+        },
+        {
+          "name": "fixture qualifications: three acquire steps, each naming its qualification, and ok",
+          "status": "passed"
+        },
+        {
+          "name": "Serena selects its packaged upstream context and tools interface for each supported client",
+          "status": "passed"
+        }
+      ],
+      "pending": [
+        "Clean first-time installation remains unproven: the real qualification covers configured-fixture direct MCP sessions with Serena ide context and a separately prepared Python language server. Source-built wheels require caller artifact custody; consumer transport, auxiliary runtime provisioning and named-client loading are separate proof."
+      ],
+      "plans": {
+        "trio-linux-x64": "14909167fd512398ceae356745cf7c294cac91f60a7be1be33534e072ee4cd33"
+      }
+    },
+    {
+      "id": 13,
+      "title": "Scans: scan keys equal Scan's and Git's; cut-outs; exact MCP versions; unscanned keys",
+      "basis": "fixture",
+      "outcome": "passed",
+      "checks": [
+        {
+          "name": "item, edition and bundle scan keys equal git write-tree of the same folders",
+          "status": "passed"
+        },
+        {
+          "name": "and equal @aihq/scan/contracts scanKeyOf over the install-relative files",
+          "status": "passed"
+        },
+        {
+          "name": "candidate data: ECC keys agree with scanKeyOf for every item wholly in the pinned fixture",
+          "status": "passed"
+        },
+        {
+          "name": "candidate data: each ECC MCP cut-out is its own server.json with derivedFrom",
+          "status": "passed"
+        },
+        {
+          "name": "an MCP package without an exact version is invalid",
+          "status": "passed"
+        },
+        {
+          "name": "checkContent lists the keys with no matching scan",
+          "status": "passed"
+        },
+        {
+          "name": "a render step shows scanned: false",
+          "status": "passed"
+        },
+        {
+          "name": "upstream: checkContent re-derives all of ECC from the real pinned bytes, keys included",
+          "status": "passed"
+        }
+      ],
+      "pending": []
+    },
+    {
+      "id": 14,
+      "title": "Data without a release: a new qualification in a new data commit changes the plan",
+      "basis": "fixture",
+      "outcome": "passed",
+      "checks": [
+        {
+          "name": "the same installed package plans both data commits",
+          "status": "passed"
+        },
+        {
+          "name": "before: darwin-arm64 is not qualified; after the new data commit it plans ok",
+          "status": "passed"
+        },
+        {
+          "name": "item digests do not change when a qualification is added",
+          "status": "passed"
+        }
+      ],
+      "pending": [],
+      "notes": [
+        "The added qualification is a fixture record made for this journey; the real darwin-arm64 record stays unknown."
+      ]
+    },
+    {
+      "id": 15,
+      "title": "Exports: five entry points, five schemas, ten fixtures; nothing removed is importable",
+      "basis": "fixture",
+      "outcome": "passed",
+      "checks": [
+        {
+          "name": "package.json exports exactly /source, /node, /producer, /reader and /contracts",
+          "status": "passed"
+        },
+        {
+          "name": "the root, package.json and every earlier export are not importable",
+          "status": "passed"
+        },
+        {
+          "name": "none of the removed functions or formats is exported",
+          "status": "passed"
+        },
+        {
+          "name": "/contracts gives exactly five schemas and ten fixtures; valid ones read ok, invalid ones invalid",
+          "status": "passed"
+        },
+        {
+          "name": "the nine tool profiles ship in /contracts and every committed document conforms to its schema",
+          "status": "passed"
+        }
+      ],
+      "pending": []
+    },
+    {
+      "id": "browser",
+      "title": "Browser-safe /source, /reader and /contracts import no Node built-in and run without Node globals",
+      "basis": "fixture",
+      "outcome": "passed",
+      "checks": [
+        {
+          "name": "@aihq/catalog/source links and evaluates with no Node built-in",
+          "status": "passed"
+        },
+        {
+          "name": "@aihq/catalog/reader links and evaluates with no Node built-in",
+          "status": "passed"
+        },
+        {
+          "name": "@aihq/catalog/contracts links and evaluates with no Node built-in",
+          "status": "passed"
+        },
+        {
+          "name": "parsing, reading and planning run in that realm",
+          "status": "passed"
+        },
+        {
+          "name": "/node and /producer are the Node-only entry points",
+          "status": "passed"
+        }
+      ],
+      "pending": []
+    }
+  ],
+  "regressions": [
+    {
+      "id": "resolver-warning",
+      "title": "Resolver-unavailable warning versus an explicitly selected unsupported agent",
+      "basis": "candidate-data",
+      "outcome": "passed",
+      "checks": [
+        {
+          "name": "the helper's absence on dsh warns and does not block; a chosen agent does",
+          "status": "passed"
+        }
+      ],
+      "pending": []
+    },
+    {
+      "id": "choice-completeness",
+      "title": "Optional completeness versus required dependencies and supporting files",
+      "basis": "fixture",
+      "outcome": "passed",
+      "checks": [
+        {
+          "name": "explicitly skipping an optional item leaves the plan ok",
+          "status": "passed"
+        },
+        {
+          "name": "a retained choice missing its required dependency is incomplete",
+          "status": "passed"
+        },
+        {
+          "name": "a retained choice missing its supporting files (EGM without its bundle) is incomplete",
+          "status": "passed"
+        }
+      ],
+      "pending": []
+    },
+    {
+      "id": "artifact-size",
+      "title": "No separate artifact size cap: artifact byte counts are exposed",
+      "basis": "candidate-data",
+      "outcome": "passed",
+      "checks": [
+        {
+          "name": "/contracts publishes no artifact cap, and acquire steps carry the recorded byte count",
+          "status": "passed"
+        }
+      ],
+      "pending": []
+    },
+    {
+      "id": "schema-identity",
+      "title": "Schema identities and recomputed hashes",
+      "basis": "candidate-data",
+      "outcome": "passed",
+      "checks": [
+        {
+          "name": "every format names its URN, and the former names are not read",
+          "status": "passed"
+        },
+        {
+          "name": "qualifications are named by the sha256 of their bytes, and readers recompute it",
+          "status": "passed"
+        }
+      ],
+      "pending": []
+    },
+    {
+      "id": "unioned-clients",
+      "title": "Unioned clients on shared placements",
+      "basis": "candidate-data",
+      "outcome": "passed",
+      "checks": [
+        {
+          "name": "a placement shared by several clients lists every one it serves",
+          "status": "passed"
+        }
+      ],
+      "pending": []
+    },
+    {
+      "id": "plugin-presence",
+      "title": "Plugin presence verification stays none unless evidenced",
+      "basis": "candidate-data",
+      "outcome": "passed",
+      "checks": [
+        {
+          "name": "every plugin step and every profile's plugin section says verify: none",
+          "status": "passed"
+        }
+      ],
+      "pending": []
+    },
+    {
+      "id": "local-plugin-membership",
+      "title": "Local-plugin attribution and contained-item inventory survive ordering",
+      "basis": "candidate-data",
+      "outcome": "passed",
+      "checks": [
+        {
+          "name": "local-plugin steps carry route and framework; only the first in plan order lists contains",
+          "status": "passed"
+        }
+      ],
+      "pending": []
+    },
+    {
+      "id": "input-destinations",
+      "title": "Typed input destinations without values or secrets",
+      "basis": "candidate-data",
+      "outcome": "passed",
+      "checks": [
+        {
+          "name": "MCP inputs bind at typed destinations, and the plan and renders carry no secret value",
+          "status": "passed"
+        }
+      ],
+      "pending": []
+    },
+    {
+      "id": "refusals",
+      "title": "Refusal cases: unsafe paths, limits, mismatched bytes and profiles, data identity",
+      "basis": "fixture",
+      "outcome": "passed",
+      "checks": [
+        {
+          "name": "renderStep refuses a source whose bytes differ, and a profile at another version",
+          "status": "passed"
+        },
+        {
+          "name": "a recipe plan refuses a different data identity",
+          "status": "passed"
+        },
+        {
+          "name": "a content document with duplicate keys or a byte-order mark, or over the limit, is refused or invalid; nothing throws",
+          "status": "passed"
+        },
+        {
+          "name": "unsafe paths and links in a local source are refused or listed, never followed",
+          "status": "passed"
+        }
+      ],
+      "pending": []
+    }
+  ],
+  "missingProof": [
+    "Native use: no client loaded any planned layout; plugin presence checks stay none.",
+    "The real linux-x64 qualification covers configured-fixture direct MCP use only; clean first-time installation, caller wheel transport, Serena auxiliary language-server provisioning and named-client loading remain outside this replay.",
+    "This packed-consumer check does not verify production scan admission; separate matching trusted-evidence verification is required.",
+    "Recipe publication: no recipe is published with a real data commit; the journeys write their recipes and use the drafted ones in the port report.",
+    "Extensions routes: aih-extensions declares no per-client routes, so no Extensions base recipe exists.",
+    "Registry install: @aihq/scan 0.0.0-dev.1 is not on the npm registry; consumers install the vendored tarball."
+  ]
+}

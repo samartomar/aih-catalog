@@ -1,0 +1,94 @@
+{
+  "framework": {
+    "id": "guide",
+    "name": "AIH Guide"
+  },
+  "items": [
+    {
+      "agent": {
+        "prompt": "guide/generated/claude/aih-guide.md"
+      },
+      "behaviourSha256": "9ddb1c61d41ffa24ba4f69ae83b815798e7af5faf8f59ffe00064acaaaecda3a",
+      "contentSha256": "fdc7fdefdd3a5664d4b8c119a147612df5afa8a94fa4558435f2ced72b057425",
+      "description": "Guidance for AI CLI setup recovery and reviewed Nuclei workflows.",
+      "editions": {
+        "kimi": {
+          "files": [
+            {
+              "bytes": 26541,
+              "executable": false,
+              "role": "content",
+              "sha256": "06c72ead940c670ce0a1140ff4ac5fe421225e03d6cc232bacfc362040531038",
+              "sourceId": "guide",
+              "sourcePath": "guide/generated/kimi/aih-guide.md"
+            }
+          ],
+          "scanKey": "git-sha1:c65b2bab3d7ecc24cb0104bfa3115f1e166ab610"
+        },
+        "opencode": {
+          "files": [
+            {
+              "bytes": 26601,
+              "executable": false,
+              "role": "content",
+              "sha256": "b214964575abaa7820859437b9ba00549a0e268dc5f26852dd8618a624d3eaa2",
+              "sourceId": "guide",
+              "sourcePath": "guide/generated/opencode/aih-guide.md"
+            }
+          ],
+          "scanKey": "git-sha1:47c0ba3ded00d97ba4ef920e6663d2ba075d0596"
+        }
+      },
+      "files": [
+        {
+          "bytes": 26630,
+          "executable": false,
+          "role": "content",
+          "sha256": "e83244a1841d9c2f1b15471de294a14477ea08baeed79051f66ae8a39f0355cb",
+          "sourceId": "guide",
+          "sourcePath": "guide/generated/claude/aih-guide.md"
+        }
+      ],
+      "id": "guide.agent.aih-guide",
+      "kind": "agent",
+      "name": "aih-guide",
+      "scanKey": "git-sha1:71f5cfc560801b4ff47e09c20e07e259bd4814b4"
+    },
+    {
+      "behaviourSha256": "3c2b91ca6083110fa280cf1af99d1bb401553d14aa68fb7767694b19d8248daa",
+      "contentSha256": "ee1918cce9568d8ead33a80a6bb7bbbdd53c1db8d2c96a4d80b54c968a1804a8",
+      "description": "🧭 Ask AIH Guide",
+      "files": [
+        {
+          "bytes": 26402,
+          "executable": false,
+          "role": "content",
+          "sha256": "77b5c9d21968cf194ca2a86cb4cd2b94cf421081780c59d7fa5289de6a364462",
+          "sourceId": "guide",
+          "sourcePath": "guide/MANUAL.md"
+        }
+      ],
+      "id": "guide.document.manual",
+      "kind": "document",
+      "name": "manual",
+      "purpose": "guide",
+      "scanKey": "git-sha1:b569f74cfb3f0f30c035adb897cffe54fe73edc9"
+    }
+  ],
+  "schema": "urn:aihq:catalog:content:0.1.0",
+  "sources": [
+    {
+      "commit": "2481164a51ea7f9e480d51ef52f3d5cf15b017fa",
+      "id": "guide",
+      "kind": "git",
+      "notices": [
+        {
+          "covers": "/",
+          "sha256": "1d2d5be1cce51a92aead6ac9018d25480097edd5470dc06701154493f084527d",
+          "sourcePath": "LICENSE"
+        }
+      ],
+      "repository": "https://github.com/samartomar/aih-extensions"
+    }
+  ]
+}

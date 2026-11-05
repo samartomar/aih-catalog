@@ -1,1 +1,0 @@
-{"dependencies":{"conflicts":[],"optional":[{"itemId":"extensions.matt.code-review"}],"requires":[{"itemId":"extensions.notices"},{"itemId":"extensions.references"}]},"executable":{"LICENSE":false,"agents/code-reviewer.md":false},"kind":"agent","payload":{"files":["asset-1","license"]},"requirements":{"inputs":{}}}

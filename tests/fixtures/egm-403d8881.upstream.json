@@ -1,0 +1,430 @@
+{
+  "commit": "403d8881d62022490637d740657b33f01e321ea8",
+  "entries": [
+    {
+      "blob": "f2d8d4e1649f219b8d5964c8df01acc927b5b731",
+      "mode": "100644",
+      "path": ".agents/plugins/marketplace.json"
+    },
+    {
+      "blob": "f3290f4f43e306b6433bce99081f825738415f45",
+      "mode": "100644",
+      "path": ".claude-plugin/agents/bootstrap_orchestrator.md"
+    },
+    {
+      "blob": "ae07930c57cfb5d4aabcdb171bfbcc3f23f7a066",
+      "mode": "100644",
+      "path": ".claude-plugin/agents/codebase_details.md"
+    },
+    {
+      "blob": "545b5f07f9614b31da00bc87eb5bed497c968c08",
+      "mode": "100644",
+      "path": ".claude-plugin/agents/comprehension.md"
+    },
+    {
+      "blob": "855987f73d4ce60a510134767dc9e58ab81ff1e3",
+      "mode": "100644",
+      "path": ".claude-plugin/agents/design_critic.md"
+    },
+    {
+      "blob": "9cb4d74c05441bdfca8399c8a718f7fbf1c3431c",
+      "mode": "100644",
+      "path": ".claude-plugin/agents/implementation_readiness.md"
+    },
+    {
+      "blob": "3c01832450e50f94ade18abebbecccc2784bb4e7",
+      "mode": "100644",
+      "path": ".claude-plugin/agents/structural.md"
+    },
+    {
+      "blob": "e70269beb68206cfb6a5d786847648d327db565b",
+      "mode": "100644",
+      "path": ".claude-plugin/agents/style.md"
+    },
+    {
+      "blob": "a04ada9d27738b26851a49bce46218ea7f910cc2",
+      "mode": "100644",
+      "path": ".claude-plugin/agents/synthesizer.md"
+    },
+    {
+      "blob": "cca33916ff1d22e7110b4f1195e5f7036732245b",
+      "mode": "100644",
+      "path": ".claude-plugin/agents/zoom_out.md"
+    },
+    {
+      "blob": "febc2b243aad89121686b6d8ad82e0c14021d45f",
+      "mode": "100644",
+      "path": ".claude-plugin/icon.png"
+    },
+    {
+      "blob": "95f74713a0c0d8184f1e06fc57db5750d8e8d94c",
+      "mode": "100644",
+      "path": ".claude-plugin/marketplace.json"
+    },
+    {
+      "blob": "2cf61a28b89a4979bb72106ef6343039218d70f0",
+      "mode": "100644",
+      "path": ".claude-plugin/plugin.json"
+    },
+    {
+      "blob": "82558b4e9730733c96fe01ef4834c2b2bacbaf6f",
+      "mode": "100644",
+      "path": ".codex-plugin/plugin.json"
+    },
+    {
+      "blob": "d645695673349e3947e8e5ae42332d0ac3164cd7",
+      "mode": "100644",
+      "path": "LICENSE"
+    },
+    {
+      "blob": "2368ca78124df2b931bc274d5aa3eba2e155ea15",
+      "mode": "100644",
+      "path": "README.md"
+    },
+    {
+      "blob": "2ca3cf571d0bbbe2cbc8d47c0e227071078dc52e",
+      "mode": "100644",
+      "path": "TESTING.md"
+    },
+    {
+      "blob": "fed422c3cf6772cd7f12099636259afa347f3f5e",
+      "mode": "100644",
+      "path": "agents/bootstrap_orchestrator.md"
+    },
+    {
+      "blob": "67d151455f4be51f45f2fa893883d197c1ff7be8",
+      "mode": "100644",
+      "path": "agents/codebase_details.md"
+    },
+    {
+      "blob": "b4e32cbae3cc60d322ba00cccff188d95dfb49a8",
+      "mode": "100644",
+      "path": "agents/comprehension.md"
+    },
+    {
+      "blob": "7f57159d623f898a8e683a5b7f312e8f11f84321",
+      "mode": "100644",
+      "path": "agents/design_critic.md"
+    },
+    {
+      "blob": "51de42969dd7c4816140f55329f15bf88b27d3c1",
+      "mode": "100644",
+      "path": "agents/implementation_readiness.md"
+    },
+    {
+      "blob": "313083b5db2496f1be689ff5adc43b9b3c7cb997",
+      "mode": "100644",
+      "path": "agents/structural.md"
+    },
+    {
+      "blob": "2040c77a89e2b7bdb707fa39f8e569876665766a",
+      "mode": "100644",
+      "path": "agents/style.md"
+    },
+    {
+      "blob": "7fb8d9a17310682b97ef949db76a181d95041548",
+      "mode": "100644",
+      "path": "agents/synthesizer.md"
+    },
+    {
+      "blob": "fc2b24bfa8cc295072915e7197401dd70b111129",
+      "mode": "100644",
+      "path": "agents/zoom_out.md"
+    },
+    {
+      "blob": "f5d50f68896aff669ef8b88295e84c0986f047d6",
+      "mode": "100644",
+      "path": "assets/icon.svg"
+    },
+    {
+      "blob": "22f9e5c5c8d4517f302f4f5861f6435fad2be257",
+      "mode": "100644",
+      "path": "docs/assets/readme-header.svg"
+    },
+    {
+      "blob": "b9b97a6e032af4233f6b01c024b9eeaffe268c4b",
+      "mode": "100644",
+      "path": "docs/claude.md"
+    },
+    {
+      "blob": "ac90f90464a012faf6a1add49d329e73c2464b35",
+      "mode": "100644",
+      "path": "docs/codex.md"
+    },
+    {
+      "blob": "1066a15ee8abf702788afcb5df5f259699997bab",
+      "mode": "100644",
+      "path": "docs/directory.md"
+    },
+    {
+      "blob": "80a7593808a37663daf28e56f0ee56a68177fd71",
+      "mode": "100644",
+      "path": "docs/faq.md"
+    },
+    {
+      "blob": "688b4d098d84923662ba069c0515312b66779438",
+      "mode": "100644",
+      "path": "docs/getting_started.md"
+    },
+    {
+      "blob": "7b6fecc77bc16232ee1f72bd6be48d78971a2b93",
+      "mode": "100644",
+      "path": "docs/harnesses.md"
+    },
+    {
+      "blob": "b4a7024f9ca9017f2f674864907ebcbad5dec9ea",
+      "mode": "100644",
+      "path": "docs/index.md"
+    },
+    {
+      "blob": "a48c5af34e21240e438631317a4e6c032b9b4407",
+      "mode": "100644",
+      "path": "docs/privacy.md"
+    },
+    {
+      "blob": "7531dfd4476c567ca15ee65c04c109a5e7c4a711",
+      "mode": "100644",
+      "path": "docs/releases.md"
+    },
+    {
+      "blob": "3c92f7d82df6c35df00158d323dbec269cd841b7",
+      "mode": "100644",
+      "path": "plugin.json"
+    },
+    {
+      "blob": "753fbd4dc811557c89f8913c907dfecaafce0b80",
+      "mode": "100644",
+      "path": "resources/README.md"
+    },
+    {
+      "blob": "04aec5269375354c242e1c3b55a761384bf8f917",
+      "mode": "100644",
+      "path": "resources/document_standards/feature-spec-standard.md"
+    },
+    {
+      "blob": "d9e93541ad2c3b107e016a85c26e952d5a6ec327",
+      "mode": "100644",
+      "path": "resources/document_standards/heilmeier-standard.md"
+    },
+    {
+      "blob": "371dccf1926596203986ce6a6bb4b48c86106869",
+      "mode": "100644",
+      "path": "resources/document_standards/implementation-readiness-standard.md"
+    },
+    {
+      "blob": "ff97b3a1e97a0c1885c7c2aeab03f29a0695762d",
+      "mode": "100644",
+      "path": "resources/document_standards/re-implementation-standard.md"
+    },
+    {
+      "blob": "de01edd8c458730241dea17a2d7bcaad153c9f94",
+      "mode": "100644",
+      "path": "resources/document_standards/zoom-out-standard.md"
+    },
+    {
+      "blob": "068fb8402db7783ba46be1eab95ea5baae7a018f",
+      "mode": "100644",
+      "path": "resources/execution_instructions.md"
+    },
+    {
+      "blob": "bf20013e4895028e68e059b15e7517859606bab7",
+      "mode": "100644",
+      "path": "scripts/pack_plugin.py"
+    },
+    {
+      "blob": "8ca24f7865031e604a2614f44850555d429acd7e",
+      "mode": "100644",
+      "path": "skills/egm-bootstrap/SKILL.md"
+    },
+    {
+      "blob": "40af035c3365d3781be278a83f70f057bfadeea8",
+      "mode": "100644",
+      "path": "skills/egm-bootstrap/TEST.md"
+    },
+    {
+      "blob": "e6d6e6a9d0e0aa1d19ff39e3f259603c150b692a",
+      "mode": "100644",
+      "path": "skills/egm-bootstrap/agents/openai.yaml"
+    },
+    {
+      "blob": "eb0ec3b534793dde8004c0c84c3ada0d88794881",
+      "mode": "100644",
+      "path": "skills/egm-bootstrap/assets/icon.svg"
+    },
+    {
+      "blob": "44028363808e33faddf0d0a371e8c43a86839bfe",
+      "mode": "100644",
+      "path": "skills/egm-bootstrap/references/templates.md"
+    },
+    {
+      "blob": "7e892955ce232bb9047ba55d3884c2295638b83f",
+      "mode": "100644",
+      "path": "skills/egm-bootstrap/references/worker-return.schema.json"
+    },
+    {
+      "blob": "ccf96c2b56cdec23579642190bfd25086b836226",
+      "mode": "100644",
+      "path": "skills/egm-bootstrap/test_scenarios.yaml"
+    },
+    {
+      "blob": "b2772c74edc60f3abe8ff85517e7301bcbc50666",
+      "mode": "100644",
+      "path": "skills/egm-brainstorm/SKILL.md"
+    },
+    {
+      "blob": "31f033ef32f925bec5f458d915520d651606b3da",
+      "mode": "100644",
+      "path": "skills/egm-brainstorm/TEST.md"
+    },
+    {
+      "blob": "55348cd560481e16e5d280de744e3b4d7fad2960",
+      "mode": "100644",
+      "path": "skills/egm-brainstorm/agents/openai.yaml"
+    },
+    {
+      "blob": "b2b09c6af551d1e1c4f6484001fd9ddc382c86d9",
+      "mode": "100644",
+      "path": "skills/egm-brainstorm/assets/icon.svg"
+    },
+    {
+      "blob": "a20c93da303c22244d2af1c05c18159772887d42",
+      "mode": "100644",
+      "path": "skills/egm-brainstorm/test_scenarios.yaml"
+    },
+    {
+      "blob": "b6065ccbd52205dceab063ac8a952f5d006e9f97",
+      "mode": "100644",
+      "path": "skills/egm-draft/SKILL.md"
+    },
+    {
+      "blob": "668a2d83722a0bbef00a13e47b9463c5a93eed54",
+      "mode": "100644",
+      "path": "skills/egm-draft/TEST.md"
+    },
+    {
+      "blob": "c9695a889a5e31504d9294a46c7bda22fea829e2",
+      "mode": "100644",
+      "path": "skills/egm-draft/agents/openai.yaml"
+    },
+    {
+      "blob": "d388c78b0aeeeb71b6748fce2a2b7111360710f6",
+      "mode": "100644",
+      "path": "skills/egm-draft/assets/icon.svg"
+    },
+    {
+      "blob": "b0c575406c7f730375e712a7badcc256844345a4",
+      "mode": "100644",
+      "path": "skills/egm-draft/references/design_doc.md"
+    },
+    {
+      "blob": "a2da19f6c55ea01aefc1b2c15fc415d1f6501939",
+      "mode": "100644",
+      "path": "skills/egm-draft/test_scenarios.yaml"
+    },
+    {
+      "blob": "1947221778bea357a98409c0d580c741a7b72be9",
+      "mode": "100644",
+      "path": "skills/egm-drift-report/SKILL.md"
+    },
+    {
+      "blob": "a90dbbcc84e7e8cf44cf08caded11b116d7127f1",
+      "mode": "100644",
+      "path": "skills/egm-drift-report/TEST.md"
+    },
+    {
+      "blob": "f03ed6233c9149f5bbd7bc540d785bf89fef840d",
+      "mode": "100644",
+      "path": "skills/egm-drift-report/agents/openai.yaml"
+    },
+    {
+      "blob": "a9120e6fafd7f46a1e65b0142786529655a87886",
+      "mode": "100644",
+      "path": "skills/egm-drift-report/assets/icon.svg"
+    },
+    {
+      "blob": "d0a221648414dad8b727d55c9d239eecbb90c14c",
+      "mode": "100644",
+      "path": "skills/egm-drift-report/test_scenarios.yaml"
+    },
+    {
+      "blob": "f762263f9fa6abc7bf327ce96ae9eb327662b778",
+      "mode": "100644",
+      "path": "skills/egm-resolve/SKILL.md"
+    },
+    {
+      "blob": "0551c4ea76ea545d9dc13b82de6736e1bbee0f1a",
+      "mode": "100644",
+      "path": "skills/egm-resolve/TEST.md"
+    },
+    {
+      "blob": "e75a197b52b6da6f6acabfa683d0abed13ea4f32",
+      "mode": "100644",
+      "path": "skills/egm-resolve/agents/openai.yaml"
+    },
+    {
+      "blob": "0dd1809295e10fc4e9fc9604eeeffef31b7a8cc3",
+      "mode": "100644",
+      "path": "skills/egm-resolve/assets/icon.svg"
+    },
+    {
+      "blob": "5acdfe387918e357cb1edbc8dc0e88707cfb9537",
+      "mode": "100644",
+      "path": "skills/egm-resolve/test_scenarios.yaml"
+    },
+    {
+      "blob": "c08cbfe074ede9285abe4ed4612d45973f9dbcd2",
+      "mode": "100644",
+      "path": "skills/egm-review-loop/SKILL.md"
+    },
+    {
+      "blob": "5732305b0c9d5e5bcf2b0b126c763be48dd3a69b",
+      "mode": "100644",
+      "path": "skills/egm-review-loop/TEST.md"
+    },
+    {
+      "blob": "e69abce4e88e2f8ae7d7e8b0b8347b24305c7dcf",
+      "mode": "100644",
+      "path": "skills/egm-review-loop/agents/openai.yaml"
+    },
+    {
+      "blob": "b08f86131b1f7bfa9c0b29616056f8c567fff51e",
+      "mode": "100644",
+      "path": "skills/egm-review-loop/assets/icon.svg"
+    },
+    {
+      "blob": "56a441aa42d97fb9dd15c0b7f52e08a754f2358b",
+      "mode": "100644",
+      "path": "skills/egm-review-loop/test_scenarios.yaml"
+    },
+    {
+      "blob": "e497822381cd09d14f235d499bc7a1f95edf8f6a",
+      "mode": "100644",
+      "path": "skills/egm-review/SKILL.md"
+    },
+    {
+      "blob": "c266749f76116fbc1243c08f1cb36f5b51e3a522",
+      "mode": "100644",
+      "path": "skills/egm-review/TEST.md"
+    },
+    {
+      "blob": "974d61dc961bfb67c245c1d83dbefd4189e8570c",
+      "mode": "100644",
+      "path": "skills/egm-review/agents/openai.yaml"
+    },
+    {
+      "blob": "36f385934ed2241dcfe5c47bf95e167c70b360f6",
+      "mode": "100644",
+      "path": "skills/egm-review/assets/icon.svg"
+    },
+    {
+      "blob": "7745fc3a3b095f6e08b890f7943285fdb17402a6",
+      "mode": "100644",
+      "path": "skills/egm-review/test_scenarios.yaml"
+    }
+  ],
+  "licence": "Apache-2.0",
+  "note": "Exact bytes of these upstream files at the commit, copied unmodified for tests. Everything else in the upstream tree is left out.",
+  "repository": "https://github.com/google/elephant-goldfish-model",
+  "tag": "v0.1.0",
+  "tree": "1b923b12bb559dc7809ff4374b1eec50d9f5cc8e"
+}

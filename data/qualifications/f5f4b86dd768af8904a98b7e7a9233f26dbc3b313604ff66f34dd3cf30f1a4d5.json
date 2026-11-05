@@ -1,0 +1,45 @@
+{
+  "observed": {
+    "artifact": {
+      "bytes": 48466763,
+      "file": "codebase-memory-mcp-linux-arm64-portable.tar.gz",
+      "sha256": "ed0f1f548cd79b121c401c2e9f7841c189a001af26d3768368088c24f6a53533"
+    },
+    "closure": null,
+    "interpreter": null,
+    "members": [
+      {
+        "executable": false,
+        "path": "LICENSE",
+        "sha256": "1f58f9911dc5e3bcb96de28bb28e7b6bb7eb323952d29569c5d7214a152146bb"
+      },
+      {
+        "executable": false,
+        "path": "THIRD_PARTY_NOTICES.md",
+        "sha256": "85ba0e25610a3d1a71df75c46425141644b416f290de5c8d985ae5d2d02092e4"
+      },
+      {
+        "executable": true,
+        "path": "codebase-memory-mcp",
+        "sha256": "6a64e20e2ca8dc15b4a412e981e5aea60804ed3e952d693ab491c93ccd36ed45"
+      },
+      {
+        "executable": true,
+        "path": "install.sh",
+        "sha256": "13049c7cc51bc508d68b8ecb8a9fd9574ecb7c6f2c9dd5a19bf7d4c187321145"
+      }
+    ]
+  },
+  "result": {
+    "date": "2026-10-27",
+    "reason": "artifact and members verified against the release digests; not run natively on this cell",
+    "run": "29cafd8ab5b9f0fd320d504b57a75932fd96a05a14371feaa67e200988bb070a",
+    "status": "unknown"
+  },
+  "schema": "urn:aihq:catalog:qualification:0.1.0",
+  "subject": {
+    "aiSetup": "cbm.ai-setup.codebase-memory-mcp",
+    "cell": "linux-arm64",
+    "version": "0.12.1"
+  }
+}

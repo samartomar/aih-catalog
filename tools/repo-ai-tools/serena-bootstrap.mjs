@@ -21,12 +21,35 @@ export const serenaTools = [
 ];
 
 export const serenaBlockers = [
-  { code: "python-artifact", detail: "Exact Python 3.13.18 distribution is unqualified; selected uv 0.13.5 inventory has no candidate. No substitution or compilation." },
-  { code: "proxy-tools", detail: "proxy-tools==0.1.0 is source-only; audited bounded artifact or upstream correction required. No automatic build." },
-  { code: "multipart-override", detail: "Upstream python-multipart==0.0.31 conflicts with retained 0.0.32 override; compatibility/source disposition required, including retained Starlette 1.3.1." },
-  { code: "dependency-closure", detail: "Full isolated Python 3.13.18/MCP 2.2.0 artifact closure is unqualified." },
-  { code: "language-server", detail: "Explicit backend/runtime/artifact acquisition and offline query proof required before launch; no first-query download." },
-  { code: "native-qualification", detail: "Initial session, symbols/references/diagnostics, untrusted TypeScript and outside-root/symlink refusal remain unqualified." },
+  {
+    code: "python-artifact",
+    detail:
+      "Exact Python 3.13.18 distribution is unqualified; selected uv 0.13.5 inventory has no candidate. No substitution or compilation.",
+  },
+  {
+    code: "proxy-tools",
+    detail:
+      "proxy-tools==0.1.0 is source-only; audited bounded artifact or upstream correction required. No automatic build.",
+  },
+  {
+    code: "multipart-override",
+    detail:
+      "Upstream python-multipart==0.0.31 conflicts with retained 0.0.32 override; compatibility/source disposition required, including retained Starlette 1.3.1.",
+  },
+  {
+    code: "dependency-closure",
+    detail: "Full isolated Python 3.13.18/MCP 2.2.0 artifact closure is unqualified.",
+  },
+  {
+    code: "language-server",
+    detail:
+      "Explicit backend/runtime/artifact acquisition and offline query proof required before launch; no first-query download.",
+  },
+  {
+    code: "native-qualification",
+    detail:
+      "Initial session, symbols/references/diagnostics, untrusted TypeScript and outside-root/symlink refusal remain unqualified.",
+  },
 ];
 
 export function serenaPreparation(repoRoot) {
@@ -43,23 +66,52 @@ export function serenaPreparation(repoRoot) {
       "single_project: true",
       "",
     ].join("\n"),
-    configuration: "agent_interface: tools\ngui_log_window: false\nweb_dashboard: false\nweb_dashboard_open_on_launch: false\ntrusted_project_path_patterns: []\n",
+    configuration:
+      "agent_interface: tools\ngui_log_window: false\nweb_dashboard: false\nweb_dashboard_open_on_launch: false\ntrusted_project_path_patterns: []\n",
     projectConfiguration: "read_only: true\n",
     environment: { SERENA_USAGE_REPORTING: "false" },
     // Inspection only. No command in this preparation executes these arguments.
-    launchArguments: ["start-mcp-server", "--transport", "stdio", "--agent-interface", "tools", "--project", repoRoot, "--context", "<qualified-context-file>", "--mode", "no-memories", "--enable-web-dashboard=false", "--open-web-dashboard=false", "--enable-gui-log-window=false"],
+    launchArguments: [
+      "start-mcp-server",
+      "--transport",
+      "stdio",
+      "--agent-interface",
+      "tools",
+      "--project",
+      repoRoot,
+      "--context",
+      "<qualified-context-file>",
+      "--mode",
+      "no-memories",
+      "--enable-web-dashboard=false",
+      "--open-web-dashboard=false",
+      "--enable-gui-log-window=false",
+    ],
     languageServerAcquisition: {
       automatic: false,
       command: ["download-ls-dependencies", "<explicit-qualified-backend>"],
       standardTypeScript: { typescript: "5.9.3", languageServer: "5.1.3", status: "unqualified" },
     },
-    session: "Use the session from initial instructions; pass session on affected 2.1 tools. activate_project is intentionally absent in single-project mode.",
-    platforms: Object.fromEntries(["linux-x64", "linux-arm64", "darwin-x64", "darwin-arm64", "win32-x64", "win32-arm64", "wsl2-x64"].map((cell) => [cell, { status: "blocked", native: "unverified" }])),
+    session:
+      "Use the session from initial instructions; pass session on affected 2.1 tools. activate_project is intentionally absent in single-project mode.",
+    platforms: Object.fromEntries(
+      [
+        "linux-x64",
+        "linux-arm64",
+        "darwin-x64",
+        "darwin-arm64",
+        "win32-x64",
+        "win32-arm64",
+        "wsl2-x64",
+      ].map((cell) => [cell, { status: "blocked", native: "unverified" }]),
+    ),
   };
 }
 
 export function refuseSerenaActivation() {
-  throw new Error(`Serena activation blocked: ${serenaBlockers.map(({ code }) => code).join(", ")}. Use setup-codex --tool serena --dry-run for preparation; existing installations are untouched.`);
+  throw new Error(
+    `Serena activation blocked: ${serenaBlockers.map(({ code }) => code).join(", ")}. Use setup-codex --tool serena --dry-run for preparation; existing installations are untouched.`,
+  );
 }
 
 // Deliberately conservative: no TOML rewriting, and ambiguous ownership refuses.
@@ -70,7 +122,9 @@ function keyParts(text) {
     const match = /^("(?:[^"\\]|\\.)*"|'[^']*'|[A-Za-z0-9_-]+)/.exec(rest);
     if (!match) throw new Error("ambiguous Codex key ownership");
     const key = match[0];
-    parts.push(key.startsWith('"') ? JSON.parse(key) : key.startsWith("'") ? key.slice(1, -1) : key);
+    parts.push(
+      key.startsWith('"') ? JSON.parse(key) : key.startsWith("'") ? key.slice(1, -1) : key,
+    );
     rest = rest.slice(key.length).trimStart();
     if (!rest) break;
     if (!rest.startsWith(".")) throw new Error("ambiguous Codex key ownership");
@@ -86,7 +140,8 @@ export function serenaProjection(repoRoot, scriptPath, existing) {
   let table = [];
   for (const line of existing.split(/\r?\n/)) {
     if (/^\s*(?:#.*)?$/.test(line)) continue;
-    if (line.includes('"""') || line.includes("'''")) throw new Error("ambiguous multiline Codex ownership");
+    if (line.includes('"""') || line.includes("'''"))
+      throw new Error("ambiguous multiline Codex ownership");
     const header = /^\s*\[(.*)\]\s*(?:#.*)?$/.exec(line);
     let keys;
     if (header) {

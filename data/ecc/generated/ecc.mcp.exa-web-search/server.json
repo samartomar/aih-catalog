@@ -1,0 +1,29 @@
+{
+  "description": "Web search, research, and data ingestion via Exa API — prefer task-scoped use for broader research after GitHub search and primary docs",
+  "name": "exa-web-search",
+  "packages": [
+    {
+      "environmentVariables": [
+        {
+          "description": "EXA_API_KEY",
+          "isRequired": true,
+          "isSecret": true,
+          "name": "EXA_API_KEY"
+        }
+      ],
+      "identifier": "exa-mcp-server",
+      "registryType": "npm",
+      "runtimeArguments": [
+        {
+          "type": "positional",
+          "value": "-y"
+        }
+      ],
+      "runtimeHint": "npx",
+      "transport": {
+        "type": "stdio"
+      },
+      "version": "3.4.2"
+    }
+  ]
+}

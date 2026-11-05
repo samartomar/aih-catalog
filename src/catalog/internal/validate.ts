@@ -1,0 +1,680 @@
+/**
+ * Record-shape checks for content documents and tool profiles. Without source files these
+ * check shape and recompute the digests that depend only on the record.
+ */
+import { formats, kinds, type Problem } from "../contracts.js";
+import { aiSetupProblems, MCP_SETTINGS, mcpSettingProblems } from "./ai-setup.js";
+import { BUNDLE_LAYOUT, isIncludePattern, matchesInclude } from "./bundle.js";
+import { isRecord, isText, Problems, type Record_, TEXT_LIMITS } from "./check.js";
+import { behaviourSha256, contentSha256, kindFieldNames } from "./identity.js";
+import { BLOCK_MARKER, skillFilesOutside } from "./kinds.js";
+import {
+  FRAMEWORK_ID,
+  ID_SEGMENT,
+  INPUT_NAME,
+  INSTALL_NAME,
+  type Item,
+  NAMESPACED_NAME,
+  NPM_PACKAGE,
+  OBJECT_ID,
+  SCAN_KEY,
+  SHA256,
+} from "./model.js";
+import { isSafeRelativePath } from "./paths.js";
+import { isRepositoryAddress } from "./repository.js";
+import { serverProblem } from "./server.js";
+import { EXACT_VERSION } from "./source-link.js";
+
+const isString = (value: unknown, max: number = TEXT_LIMITS.document): value is string =>
+  isText(value, max);
+
+const SOURCE_KINDS = ["git", "npm", "local", "authored"];
+const ITEM_FIELDS = [
+  "id",
+  "kind",
+  "name",
+  "description",
+  "files",
+  "contentSha256",
+  "behaviourSha256",
+  "scanKey",
+  "userOnly",
+  "arguments",
+  "scope",
+  "language",
+  "requirements",
+  "dependencies",
+  "references",
+  "bundle",
+  "pathReferences",
+  "supersedes",
+  "fetch",
+  "editions",
+  "cli",
+  ...new Set(kinds.flatMap((kind) => kindFieldNames(kind))),
+];
+
+function checkScope(scope: unknown, path: string, problems: Problems): void {
+  if (scope === "always" || scope === "on-request") return;
+  if (isRecord(scope) && Object.keys(scope).length === 1) {
+    if (scope.byDescription === true) return;
+    if (
+      Array.isArray(scope.paths) &&
+      scope.paths.length > 0 &&
+      scope.paths.every((glob) => isString(glob, 1024))
+    )
+      return;
+  }
+  problems.add(path, "scope must be always, on-request, { paths } or { byDescription: true }");
+}
+
+function checkIdList(value: unknown, path: string, problems: Problems): void {
+  if (value === undefined) return;
+  if (!Array.isArray(value) || !value.every((entry) => isString(entry, 512)))
+    problems.add(path, "must be a list of ids");
+}
+
+/** Shape problems of a content document; empty when the record is well formed. */
+/** Control characters and line or paragraph separators: never in a one-line name. */
+const UNPRINTABLE = /[\p{Cc}\p{Zl}\p{Zp}]/u;
+
+export function contentProblems(value: unknown): Problem[] {
+  const problems = new Problems();
+  if (!isRecord(value)) return [{ path: "", message: "content must be an object" }];
+  problems.keys(
+    value,
+    "",
+    ["schema", "framework", "sources", "items", "bundles", "plugins"],
+    ["schema", "framework", "sources", "items"],
+  );
+  if (value.schema !== formats.content)
+    problems.add("/schema", `schema must be ${formats.content}`);
+  const framework = value.framework;
+  let frameworkId = "";
+  if (!isRecord(framework)) problems.add("/framework", "framework must be an object");
+  else {
+    problems.keys(framework, "/framework", ["id", "name"], ["id", "name"]);
+    if (!isString(framework.id, 128) || !FRAMEWORK_ID.test(framework.id))
+      problems.add("/framework/id", "invalid framework id");
+    else frameworkId = framework.id;
+    if (!isString(framework.name, 200))
+      problems.add("/framework/name", "name must be 1–200 characters");
+    // The name is written into shared Markdown: one printable line.
+    else if (UNPRINTABLE.test(framework.name) || framework.name.includes(BLOCK_MARKER))
+      problems.add("/framework/name", "name is one printable line");
+  }
+  const sourceIds = new Set<string>();
+  if (!Array.isArray(value.sources)) problems.add("/sources", "sources must be a list");
+  else
+    value.sources.forEach((source, index) => {
+      const path = `/sources/${index}`;
+      if (!isRecord(source)) {
+        problems.add(path, "a source must be an object");
+        return;
+      }
+      problems.keys(
+        source,
+        path,
+        [
+          "id",
+          "kind",
+          "repository",
+          "commit",
+          "package",
+          "version",
+          "subpath",
+          "notices",
+          "noticesFor",
+        ],
+        ["id", "kind", "notices"],
+      );
+      if (!isString(source.id, 128) || !FRAMEWORK_ID.test(source.id))
+        problems.add(`${path}/id`, "invalid source id");
+      else if (sourceIds.has(source.id)) problems.add(`${path}/id`, "duplicate source id");
+      else sourceIds.add(source.id);
+      if (!SOURCE_KINDS.includes(source.kind as string))
+        problems.add(`${path}/kind`, "unknown source kind");
+      for (const key of ["repository", "commit", "package", "version"])
+        if (source[key] !== undefined && !isString(source[key], 2048))
+          problems.add(`${path}/${key}`, "must be a string");
+      if (source.subpath !== undefined && !isSafeRelativePath(source.subpath))
+        problems.add(`${path}/subpath`, "unsafe subpath");
+      // Pinned identity: a Git source records its commit id, an npm source its exact version.
+      const absent = (keys: readonly string[]) => {
+        for (const key of keys)
+          if (source[key] !== undefined)
+            problems.add(`${path}/${key}`, `a ${String(source.kind)} source has no ${key}`);
+      };
+      if (source.kind === "git") {
+        if (!isRepositoryAddress(source.repository))
+          problems.add(`${path}/repository`, "a git source needs its https repository address");
+        if (typeof source.commit !== "string" || !OBJECT_ID.test(source.commit))
+          problems.add(`${path}/commit`, "a git source needs an exact commit id");
+        absent(["package", "version"]);
+      } else if (source.kind === "npm") {
+        if (typeof source.package !== "string" || !NPM_PACKAGE.test(source.package))
+          problems.add(`${path}/package`, "an npm source needs its package name");
+        if (typeof source.version !== "string" || !EXACT_VERSION.test(source.version))
+          problems.add(`${path}/version`, "an npm source needs an exact version");
+        absent(["repository", "commit", "subpath"]);
+      } else if (source.kind === "local")
+        absent(["repository", "commit", "package", "version", "subpath"]);
+      checkIdList(source.noticesFor, `${path}/noticesFor`, problems);
+      if (!Array.isArray(source.notices)) problems.add(`${path}/notices`, "notices must be a list");
+      else
+        source.notices.forEach((notice, at) => {
+          const noticePath = `${path}/notices/${at}`;
+          if (!isRecord(notice)) {
+            problems.add(noticePath, "a notice must be an object");
+            return;
+          }
+          problems.keys(
+            notice,
+            noticePath,
+            ["sourcePath", "sha256", "covers"],
+            ["sourcePath", "sha256", "covers"],
+          );
+          if (!isSafeRelativePath(notice.sourcePath))
+            problems.add(`${noticePath}/sourcePath`, "unsafe path");
+          if (typeof notice.sha256 !== "string" || !SHA256.test(notice.sha256))
+            problems.add(`${noticePath}/sha256`, "invalid sha256");
+          if (notice.covers !== "/" && !isSafeRelativePath(notice.covers))
+            problems.add(`${noticePath}/covers`, "covers must be / or a folder");
+        });
+    });
+  const bundles = new Map<string, unknown[]>();
+  if (value.bundles !== undefined) checkBundles(value.bundles, sourceIds, bundles, problems);
+  if (value.plugins !== undefined) checkPlugins(value.plugins, sourceIds, problems);
+  const itemIds = new Set<string>();
+  if (!Array.isArray(value.items)) problems.add("/items", "items must be a list");
+  else
+    value.items.forEach((item, index) => {
+      const path = `/items/${index}`;
+      if (!isRecord(item)) {
+        problems.add(path, "an item must be an object");
+        return;
+      }
+      problems.keys(item, path, ITEM_FIELDS, [
+        "id",
+        "kind",
+        "name",
+        "description",
+        "files",
+        "contentSha256",
+        "behaviourSha256",
+      ]);
+      if (!kinds.includes(item.kind as never)) problems.add(`${path}/kind`, "unknown kind");
+      const id = item.id;
+      const prefix = `${frameworkId}.${String(item.kind)}.`;
+      if (
+        !isString(id, 512) ||
+        !id.startsWith(prefix) ||
+        !id
+          .slice(prefix.length)
+          .split(".")
+          .every((segment) => ID_SEGMENT.test(segment))
+      ) {
+        problems.add(`${path}/id`, "id must be <framework>.<kind>.<path>");
+      } else if (itemIds.has(id)) problems.add(`${path}/id`, "duplicate item id");
+      else itemIds.add(id);
+      if (!isString(item.name, 64) || !INSTALL_NAME.test(item.name)) {
+        problems.add(
+          `${path}/name`,
+          "name must be at most 64 characters of a-z0-9- with single inner hyphens",
+        );
+      }
+      if (!isString(item.description, 1024))
+        problems.add(`${path}/description`, "description must be 1–1024 characters");
+      // An AI setup records artifacts; it lists files only for settings it writes.
+      let filesOk =
+        Array.isArray(item.files) && (item.files.length > 0 || item.kind === "ai-setup");
+      if (!filesOk) problems.add(`${path}/files`, "an item needs at least one file");
+      else
+        (item.files as unknown[]).forEach((file, at) => {
+          const filePath = `${path}/files/${at}`;
+          if (!isRecord(file)) {
+            filesOk = false;
+            problems.add(filePath, "a file must be an object");
+            return;
+          }
+          const before = problems.list.length;
+          problems.keys(
+            file,
+            filePath,
+            [
+              "sourceId",
+              "sourcePath",
+              "sha256",
+              "bytes",
+              "executable",
+              "role",
+              "cli",
+              "derivedFrom",
+            ],
+            ["sourceId", "sourcePath", "sha256", "bytes", "executable", "role"],
+          );
+          if (!sourceIds.has(file.sourceId as string))
+            problems.add(`${filePath}/sourceId`, "names no source");
+          if (!isSafeRelativePath(file.sourcePath))
+            problems.add(`${filePath}/sourcePath`, "unsafe path");
+          if (typeof file.sha256 !== "string" || !SHA256.test(file.sha256))
+            problems.add(`${filePath}/sha256`, "invalid sha256");
+          if (!Number.isSafeInteger(file.bytes) || (file.bytes as number) < 0)
+            problems.add(`${filePath}/bytes`, "invalid byte count");
+          if (typeof file.executable !== "boolean")
+            problems.add(`${filePath}/executable`, "must be a boolean");
+          if (file.role !== "content" && file.role !== "behaviour")
+            problems.add(`${filePath}/role`, "role must be content or behaviour");
+          if (file.cli !== undefined && !isString(file.cli, 64))
+            problems.add(`${filePath}/cli`, "must be a CLI id");
+          if (
+            file.derivedFrom !== undefined &&
+            !(
+              isRecord(file.derivedFrom) &&
+              isSafeRelativePath(file.derivedFrom.sourcePath) &&
+              typeof file.derivedFrom.pointer === "string"
+            )
+          ) {
+            problems.add(`${filePath}/derivedFrom`, "derivedFrom needs sourcePath and pointer");
+          }
+          if (problems.list.length > before) filesOk = false;
+        });
+      if (
+        item.scanKey !== undefined &&
+        !(typeof item.scanKey === "string" && SCAN_KEY.test(item.scanKey))
+      ) {
+        problems.add(`${path}/scanKey`, "invalid scan key");
+      }
+      if (item.kind === "skill") {
+        if (typeof item.userOnly !== "boolean")
+          problems.add(`${path}/userOnly`, "a skill records userOnly");
+        if (typeof item.arguments !== "boolean")
+          problems.add(`${path}/arguments`, "a skill records arguments");
+      } else {
+        if (item.userOnly !== undefined)
+          problems.add(`${path}/userOnly`, "only skills are user-only");
+        if (item.arguments !== undefined)
+          problems.add(`${path}/arguments`, "only skills record arguments");
+      }
+      if (item.kind === "rule") checkScope(item.scope, `${path}/scope`, problems);
+      else if (item.scope !== undefined) problems.add(`${path}/scope`, "only rules have a scope");
+      checkKindFields(item, path, problems);
+      if (item.kind === "skill" && Array.isArray(item.files)) {
+        const outside = skillFilesOutside(item.files.filter(isRecord) as never);
+        if (outside !== undefined)
+          problems.add(`${path}/files`, `${outside} sits outside the skill's SKILL.md folder`);
+      }
+      if (item.requirements !== undefined)
+        checkRequirements(item.requirements, `${path}/requirements`, problems, item.kind);
+      if (item.editions !== undefined)
+        checkEditions(item.editions, `${path}/editions`, sourceIds, problems);
+      if (item.references !== undefined)
+        checkNamespacedReferences(item.references, `${path}/references`, problems);
+      for (const key of ["dependencies", "supersedes"])
+        checkIdList(item[key], `${path}/${key}`, problems);
+      if (item.fetch !== undefined && item.fetch !== "upstream")
+        problems.add(`${path}/fetch`, "fetch must be upstream");
+      if (
+        item.language !== undefined &&
+        !(isString(item.language, 64) && ID_SEGMENT.test(item.language))
+      ) {
+        problems.add(`${path}/language`, "invalid language");
+      }
+      if (item.bundle !== undefined && !bundles.has(item.bundle as string))
+        problems.add(`${path}/bundle`, "names no bundle");
+      if (item.pathReferences !== undefined)
+        checkPathReferences(item.pathReferences, `${path}/pathReferences`, problems);
+      if (filesOk) {
+        const record = item as unknown as Item;
+        if (item.contentSha256 !== contentSha256(record.files))
+          problems.add(`${path}/contentSha256`, "does not match the files");
+        const bundleFiles =
+          item.bundle === undefined ? null : (bundles.get(item.bundle as string) ?? null);
+        if (item.behaviourSha256 !== behaviourSha256(record, bundleFiles)) {
+          problems.add(`${path}/behaviourSha256`, "does not match the item");
+        }
+      }
+    });
+  return problems.list;
+}
+
+/** Recorded plugin folders: one per source folder, every file under it, sorted, with a scan key. */
+function checkPlugins(value: unknown, sourceIds: ReadonlySet<string>, problems: Problems): void {
+  if (!Array.isArray(value)) {
+    problems.add("/plugins", "plugins must be a list");
+    return;
+  }
+  const seen = new Set<string>();
+  value.forEach((plugin, index) => {
+    const path = `/plugins/${index}`;
+    if (!isRecord(plugin)) {
+      problems.add(path, "a plugin folder must be an object");
+      return;
+    }
+    problems.keys(
+      plugin,
+      path,
+      ["sourceId", "path", "include", "plugin", "files", "scanKey", "folderScanKey"],
+      ["sourceId", "path", "files", "scanKey"],
+    );
+    const include = plugin.include;
+    if (
+      include !== undefined &&
+      !(
+        Array.isArray(include) &&
+        include.length > 0 &&
+        include.every(isIncludePattern) &&
+        include.every((entry, at) => at === 0 || (include[at - 1] as string) < entry)
+      )
+    )
+      problems.add(`${path}/include`, "include is a sorted list of distinct path patterns");
+    if (!sourceIds.has(plugin.sourceId as string))
+      problems.add(`${path}/sourceId`, "names no source");
+    const folder = plugin.path;
+    if (folder !== "/" && !isSafeRelativePath(folder))
+      problems.add(`${path}/path`, "path must be / or a folder");
+    if (
+      plugin.plugin !== undefined &&
+      !(
+        typeof plugin.plugin === "string" &&
+        plugin.plugin.length <= 64 &&
+        INSTALL_NAME.test(plugin.plugin)
+      )
+    )
+      problems.add(`${path}/plugin`, "a kebab-case plugin name");
+    const key = `${String(plugin.sourceId)}\0${String(folder)}\0${String(plugin.plugin ?? "")}`;
+    if (seen.has(key)) problems.add(path, "the plugin folder is recorded twice");
+    seen.add(key);
+    if (typeof plugin.scanKey !== "string" || !SCAN_KEY.test(plugin.scanKey))
+      problems.add(`${path}/scanKey`, "invalid scan key");
+    // The whole folder's key belongs to an allowlisted record only: without `include` the
+    // record already is the whole folder.
+    if (
+      plugin.folderScanKey !== undefined &&
+      !(
+        include !== undefined &&
+        typeof plugin.folderScanKey === "string" &&
+        SCAN_KEY.test(plugin.folderScanKey)
+      )
+    )
+      problems.add(`${path}/folderScanKey`, "the whole folder's scan key of an allowlisted record");
+    if (include !== undefined && plugin.folderScanKey === undefined)
+      problems.add(`${path}/folderScanKey`, "an allowlisted record keys its whole folder too");
+    const files = plugin.files;
+    if (!Array.isArray(files) || files.length === 0) {
+      problems.add(`${path}/files`, "a plugin folder lists its files");
+      return;
+    }
+    let previous = "";
+    files.forEach((file, at) => {
+      const filePath = `${path}/files/${at}`;
+      if (!isRecord(file)) {
+        problems.add(filePath, "a plugin file must be an object");
+        return;
+      }
+      problems.keys(
+        file,
+        filePath,
+        ["sourcePath", "sha256", "bytes", "executable"],
+        ["sourcePath", "sha256", "bytes", "executable"],
+      );
+      const sourcePath = file.sourcePath;
+      if (
+        !isSafeRelativePath(sourcePath) ||
+        (folder !== "/" && !String(sourcePath).startsWith(`${String(folder)}/`))
+      )
+        problems.add(`${filePath}/sourcePath`, "must be a safe path inside the plugin folder");
+      else if (
+        Array.isArray(include) &&
+        !include.some((pattern) => matchesInclude(String(pattern), sourcePath as string))
+      )
+        problems.add(`${filePath}/sourcePath`, "matches no include pattern");
+      else if (sourcePath <= previous)
+        problems.add(`${filePath}/sourcePath`, "files are sorted and unique");
+      else previous = sourcePath;
+      if (typeof file.sha256 !== "string" || !SHA256.test(file.sha256))
+        problems.add(`${filePath}/sha256`, "invalid sha256");
+      if (!Number.isSafeInteger(file.bytes) || (file.bytes as number) < 0)
+        problems.add(`${filePath}/bytes`, "a byte count");
+      if (typeof file.executable !== "boolean") problems.add(`${filePath}/executable`, "a boolean");
+    });
+  });
+}
+
+/** Runtime bundles: an id, its source, a skill layout, sorted root files and a scan key. */
+function checkBundles(
+  value: unknown,
+  sourceIds: ReadonlySet<string>,
+  bundles: Map<string, unknown[]>,
+  problems: Problems,
+): void {
+  if (!Array.isArray(value)) {
+    problems.add("/bundles", "bundles must be a list");
+    return;
+  }
+  value.forEach((bundle, index) => {
+    const path = `/bundles/${index}`;
+    if (!isRecord(bundle)) {
+      problems.add(path, "a bundle must be an object");
+      return;
+    }
+    problems.keys(
+      bundle,
+      path,
+      ["id", "sourceId", "layout", "files", "scanKey"],
+      ["id", "sourceId", "layout", "files", "scanKey"],
+    );
+    const id = bundle.id;
+    if (!isString(id, 512) || !id.split(".").every((segment) => ID_SEGMENT.test(segment)))
+      problems.add(`${path}/id`, "invalid bundle id");
+    else if (bundles.has(id)) problems.add(`${path}/id`, "duplicate bundle id");
+    if (!sourceIds.has(bundle.sourceId as string))
+      problems.add(`${path}/sourceId`, "names no source");
+    if (typeof bundle.layout !== "string" || !BUNDLE_LAYOUT.test(bundle.layout))
+      problems.add(`${path}/layout`, "layout is a folder path ending in <name>/");
+    if (typeof bundle.scanKey !== "string" || !SCAN_KEY.test(bundle.scanKey))
+      problems.add(`${path}/scanKey`, "invalid scan key");
+    const files = bundle.files;
+    if (!Array.isArray(files) || files.length === 0) {
+      problems.add(`${path}/files`, "a bundle lists its root files");
+      return;
+    }
+    if (typeof id === "string") bundles.set(id, files);
+    let previous = "";
+    files.forEach((file, at) => {
+      const filePath = `${path}/files/${at}`;
+      if (!isRecord(file)) {
+        problems.add(filePath, "a bundle file must be an object");
+        return;
+      }
+      problems.keys(
+        file,
+        filePath,
+        ["sourcePath", "sha256", "bytes", "executable"],
+        ["sourcePath", "sha256", "bytes", "executable"],
+      );
+      const sourcePath = file.sourcePath;
+      if (!isSafeRelativePath(sourcePath)) problems.add(`${filePath}/sourcePath`, "unsafe path");
+      else if (sourcePath <= previous)
+        problems.add(`${filePath}/sourcePath`, "files are sorted and unique");
+      else previous = sourcePath;
+      if (typeof file.sha256 !== "string" || !SHA256.test(file.sha256))
+        problems.add(`${filePath}/sha256`, "invalid sha256");
+      if (!Number.isSafeInteger(file.bytes) || (file.bytes as number) < 0)
+        problems.add(`${filePath}/bytes`, "a byte count");
+      if (typeof file.executable !== "boolean") problems.add(`${filePath}/executable`, "a boolean");
+    });
+  });
+}
+
+function checkNamespacedReferences(value: unknown, path: string, problems: Problems): void {
+  const seen = new Set<string>();
+  const ok =
+    Array.isArray(value) &&
+    value.length > 0 &&
+    value.every((entry) => {
+      if (
+        !isRecord(entry) ||
+        Object.keys(entry).sort().join() !== "name,sourcePath" ||
+        typeof entry.name !== "string" ||
+        !NAMESPACED_NAME.test(entry.name) ||
+        !isSafeRelativePath(entry.sourcePath)
+      )
+        return false;
+      const key = `${entry.name}\0${String(entry.sourcePath)}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  if (!ok) problems.add(path, "references lists distinct { name, sourcePath } entries");
+}
+
+function checkPathReferences(value: unknown, path: string, problems: Problems): void {
+  if (
+    !Array.isArray(value) ||
+    value.length === 0 ||
+    !value.every(
+      (entry) =>
+        isRecord(entry) &&
+        ["path,sourcePath", "cli,path,sourcePath"].includes(Object.keys(entry).sort().join()) &&
+        (entry.cli === undefined ||
+          (typeof entry.cli === "string" && FRAMEWORK_ID.test(entry.cli))) &&
+        isSafeRelativePath(entry.sourcePath) &&
+        isSafeRelativePath(entry.path),
+    )
+  )
+    problems.add(path, "pathReferences lists { cli?, sourcePath, path } entries");
+}
+
+/** The kind fields this implementation builds: present on their own kind, absent elsewhere. */
+function checkKindFields(item: Record_, path: string, problems: Problems): void {
+  const own = (kind: string, field: string) => {
+    if (item.kind !== kind && item[field] !== undefined)
+      problems.add(`${path}/${field}`, `only ${kind} items have ${field}`);
+    return item.kind === kind;
+  };
+  if (own("agent", "agent")) {
+    const agent = item.agent;
+    const ok =
+      isRecord(agent) &&
+      Object.keys(agent).every((key) =>
+        ["prompt", "tools", "model", "color", "background"].includes(key),
+      ) &&
+      isSafeRelativePath(agent.prompt) &&
+      (agent.tools === undefined ||
+        (Array.isArray(agent.tools) && agent.tools.every((tool) => isString(tool, 128)))) &&
+      (agent.model === undefined || isString(agent.model, 128)) &&
+      (agent.color === undefined || isString(agent.color, 128)) &&
+      (agent.background === undefined || typeof agent.background === "boolean");
+    if (!ok)
+      problems.add(
+        `${path}/agent`,
+        "an agent records { prompt, tools?, model?, color?, background? }",
+      );
+  }
+  if (own("mcp", "server")) {
+    const server = item.server;
+    if (!isRecord(server) || !isString(server.name, 256) || !isString(server.description, 1024))
+      problems.add(`${path}/server`, "an MCP item records its server name and description");
+    else {
+      const problem = serverProblem(server);
+      if (problem) problems.add(`${path}/server${problem.path}`, problem.message);
+    }
+  }
+  for (const field of ["event", "matcher", "handler"]) own("hook", field);
+  if (item.kind === "hook") {
+    if (!isString(item.event, 64) || !/^[a-z]+(?:-[a-z]+)*$/.test(item.event))
+      problems.add(`${path}/event`, "a hook records its neutral event");
+    if (!isRecord(item.handler) || !isString(item.handler.type, 64))
+      problems.add(`${path}/handler`, "a hook records its handler type");
+  }
+  if (own("document", "purpose") && !isString(item.purpose, 256))
+    problems.add(`${path}/purpose`, "a document records its purpose");
+  if (own("ai-setup", "aiSetup"))
+    for (const problem of aiSetupProblems(
+      item.aiSetup,
+      `${path}/aiSetup`,
+      Array.isArray(item.files)
+        ? item.files.map((file) => (isRecord(file) ? String(file.sourcePath) : ""))
+        : [],
+      typeof item.name === "string" ? item.name : undefined,
+    ))
+      problems.add(problem.path, problem.message);
+  const settings = MCP_SETTINGS.filter((key) => own("mcp", key) && item[key] !== undefined);
+  if (settings.length > 0)
+    for (const problem of mcpSettingProblems(item, path))
+      problems.add(problem.path, problem.message);
+}
+
+/** Kinds whose files the model reads as instructions: a secret is never placed in them. */
+const MODEL_READ: ReadonlySet<unknown> = new Set(["skill", "rule", "agent", "document"]);
+
+function checkRequirements(value: unknown, path: string, problems: Problems, kind?: unknown): void {
+  if (
+    !isRecord(value) ||
+    !isRecord(value.inputs) ||
+    !Object.keys(value).every((key) => key === "inputs" || key === "tools")
+  ) {
+    problems.add(path, "requirements are { inputs, tools? }");
+    return;
+  }
+  for (const [name, input] of Object.entries(value.inputs)) {
+    const at = `${path}/inputs/${name}`;
+    const ok =
+      INPUT_NAME.test(name) &&
+      isRecord(input) &&
+      Object.keys(input).every((key) =>
+        ["description", "isRequired", "isSecret", "default", "placeholder"].includes(key),
+      ) &&
+      isString(input.description, 1024) &&
+      typeof input.isRequired === "boolean" &&
+      typeof input.isSecret === "boolean" &&
+      (input.default === undefined || typeof input.default === "string") &&
+      (input.placeholder === undefined ||
+        (isRecord(input.placeholder) &&
+          Object.keys(input.placeholder).sort().join() === "marker,sourcePath" &&
+          isSafeRelativePath(input.placeholder.sourcePath) &&
+          isString(input.placeholder.marker, 128)));
+    if (!ok)
+      problems.add(at, "an input is { description, isRequired, isSecret, default?, placeholder? }");
+    else if (input.isSecret === true && input.default !== undefined)
+      problems.add(`${at}/default`, "a secret input never carries a value");
+    else if (input.isSecret === true && input.placeholder !== undefined && MODEL_READ.has(kind))
+      problems.add(`${at}/placeholder`, "a secret is never written into a file the model reads");
+  }
+}
+
+function checkEditions(
+  value: unknown,
+  path: string,
+  sourceIds: Set<string>,
+  problems: Problems,
+): void {
+  if (!isRecord(value)) {
+    problems.add(path, "editions map client ids to { files, scanKey }");
+    return;
+  }
+  for (const [cli, edition] of Object.entries(value)) {
+    const at = `${path}/${cli}`;
+    const ok =
+      FRAMEWORK_ID.test(cli) &&
+      isRecord(edition) &&
+      Object.keys(edition).sort().join() === "files,scanKey" &&
+      typeof edition.scanKey === "string" &&
+      SCAN_KEY.test(edition.scanKey) &&
+      Array.isArray(edition.files) &&
+      edition.files.length > 0 &&
+      edition.files.every(
+        (file) =>
+          isRecord(file) &&
+          sourceIds.has(file.sourceId as string) &&
+          isSafeRelativePath(file.sourcePath) &&
+          typeof file.sha256 === "string" &&
+          SHA256.test(file.sha256) &&
+          Number.isSafeInteger(file.bytes) &&
+          typeof file.executable === "boolean" &&
+          (file.role === "content" || file.role === "behaviour"),
+      );
+    if (!ok) problems.add(at, "an edition is { files, scanKey } with recorded files");
+  }
+}

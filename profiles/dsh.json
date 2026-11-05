@@ -1,0 +1,67 @@
+{
+  "arguments": "chat-text",
+  "checkedWith": [
+    {
+      "app": "dsh",
+      "date": "2026-11-02",
+      "version": "0.2.1-rc.5"
+    }
+  ],
+  "disableBuiltIn": "not-documented",
+  "id": "dsh",
+  "inputReferences": {
+    "file": "unknown",
+    "mcp-argv": "unknown",
+    "mcp-env": "unknown",
+    "mcp-header": "unknown"
+  },
+  "links": {
+    "skill": "not-documented"
+  },
+  "name": "DeepSeek Harness",
+  "places": {
+    "rule": {
+      "project": {
+        "always": {
+          "file": "AGENTS.md",
+          "merge": "markdown"
+        }
+      }
+    },
+    "skill": {
+      "project": ".agents/skills/<name>/",
+      "user": ".agents/skills/<name>/"
+    }
+  },
+  "provides": {
+    "agent": [
+      "cordis",
+      "minimal",
+      "ptc",
+      "standard"
+    ],
+    "command": [
+      "compact",
+      "feedback",
+      "goal",
+      "plan"
+    ]
+  },
+  "ruleScopes": {
+    "always": {
+      "frontmatter": {}
+    }
+  },
+  "schema": "urn:aihq:catalog:tool-profile:0.1.0",
+  "unsupported": {
+    "agent": "dsh agents are presets inside a dsh profile, not files",
+    "hook": "dsh hooks are Cordis plugins, not files",
+    "mcp": "dsh MCP servers are entries inside a dsh profile, not a configuration file"
+  },
+  "userOnly": {
+    "frontmatter": {
+      "disable-model-invocation": true
+    }
+  },
+  "version": 2
+}

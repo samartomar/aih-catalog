@@ -1,0 +1,241 @@
+{
+  "combinationQualifications": [
+    {
+      "cell": "linux-x64",
+      "recipe": "code-intelligence-trio",
+      "sha256": "52f0477c225926305df078526d332b23d0c5fa01438c31834cc3ff2a8ffbe9ed",
+      "status": "qualified"
+    }
+  ],
+  "items": {
+    "cbm": [
+      "cbm.ai-setup.codebase-memory-mcp",
+      "cbm.mcp.codebase-memory-mcp"
+    ],
+    "crg": [
+      "crg.ai-setup.code-review-graph",
+      "crg.mcp.code-review-graph",
+      "crg.skill.build-graph",
+      "crg.skill.debug-issue",
+      "crg.skill.explore-codebase",
+      "crg.skill.refactor-safely",
+      "crg.skill.review-changes",
+      "crg.skill.review-delta",
+      "crg.skill.review-pr"
+    ],
+    "serena": [
+      "serena.ai-setup.serena",
+      "serena.mcp.serena"
+    ]
+  },
+  "notPorted": {
+    "cbm graph-ui/, Claude marketplace file": "the graph UI is switched off (--ui=false); the marketplace file installs through the upstream installer",
+    "crg code-review-graph-vscode/": "a VS Code extension, not an AI client item",
+    "crg hooks/hooks.json": "the session-start and post-edit hooks run the tool on every session or edit; not ported as items (a hook is never pre-ticked and Claude keeps hooks in a shared list-valued settings file)",
+    "serena contexts, modes and Docker image": "the plan starts Serena with its own built-in contexts per client; no Catalog context file is written"
+  },
+  "notes": {
+    "cbm.mcp.codebase-memory-mcp": "the upstream server.json at the v0.12.1 tag still names version 0.12.0 and its npm and PyPI wrappers; a managed plan starts the acquired 0.12.1 executable and never runs a wrapper",
+    "native qualification scope": "The 2026-11-05 linux-x64 run tested direct MCP sessions on a configured Python fixture, with Serena's ide context and separately prepared Python language server. It did not install a Catalog plan or load a named client. Source-built wheels are caller-supplied. The canonical public run facts are validation/native/0d38c22cf7e89a5768d6bc2527288e116c1f73ef34dad428d34f3484ac0f83b4.json."
+  },
+  "pins": {
+    "cbm": {
+      "commit": "a7158ac2f48ca646b4527341b76f930f2aeff87e",
+      "repository": "https://github.com/DeusData/codebase-memory-mcp",
+      "tag": "v0.12.1"
+    },
+    "crg": {
+      "commit": "343ab7cea29d47a3e805381e09f8243a43d43d88",
+      "repository": "https://github.com/tirth8205/code-review-graph",
+      "tag": "v2.3.9"
+    },
+    "serena": {
+      "commit": "5e4f5cd173c7ff3eed37ee3f1de6c266b937c5dc",
+      "repository": "https://github.com/oraios/serena",
+      "tag": "v2.1.0"
+    }
+  },
+  "qualifications": [
+    {
+      "aiSetup": "cbm.ai-setup.codebase-memory-mcp",
+      "cell": "darwin-arm64",
+      "sha256": "4be378ce56af26aca9ec8b0116ec5b0747ba235b994e65ab83eba7aa61bddfa6",
+      "status": "unknown",
+      "version": "0.12.1"
+    },
+    {
+      "aiSetup": "cbm.ai-setup.codebase-memory-mcp",
+      "cell": "darwin-x64",
+      "sha256": "020a74e221dd95ddfa2a86501eec25f504dedfdae53007a23ea1c5e63bc5d36b",
+      "status": "unknown",
+      "version": "0.12.1"
+    },
+    {
+      "aiSetup": "cbm.ai-setup.codebase-memory-mcp",
+      "cell": "linux-arm64",
+      "sha256": "f5f4b86dd768af8904a98b7e7a9233f26dbc3b313604ff66f34dd3cf30f1a4d5",
+      "status": "unknown",
+      "version": "0.12.1"
+    },
+    {
+      "aiSetup": "cbm.ai-setup.codebase-memory-mcp",
+      "cell": "linux-x64",
+      "sha256": "94e0caacd4ca3b1a9eda854c79ad485806140d614cd54058f82e4d18782f3916",
+      "status": "qualified",
+      "version": "0.12.1"
+    },
+    {
+      "aiSetup": "cbm.ai-setup.codebase-memory-mcp",
+      "cell": "linux-x64",
+      "sha256": "ff0ba8789308aa2aa2602c0d4d6e61c568724a40e345d590ae58b31598a91701",
+      "status": "qualified",
+      "version": "0.12.1"
+    },
+    {
+      "aiSetup": "cbm.ai-setup.codebase-memory-mcp",
+      "cell": "windows-arm64",
+      "sha256": "1c1bafc9857674e890b0a78d879eeb69e22c4237268563b0e790efde35090abf",
+      "status": "unknown",
+      "version": "0.12.1"
+    },
+    {
+      "aiSetup": "cbm.ai-setup.codebase-memory-mcp",
+      "cell": "windows-x64",
+      "sha256": "9e1fa0113c55143e98a11347bf2481f6954ffe38008fbed2a295fee70ebdcfdd",
+      "status": "unknown",
+      "version": "0.12.1"
+    },
+    {
+      "aiSetup": "crg.ai-setup.code-review-graph",
+      "cell": "linux-x64",
+      "sha256": "3231792df571912e5edc5584d6ea1c991bed4b6b09637346169d994dfd40d970",
+      "status": "blocked",
+      "version": "2.3.9"
+    },
+    {
+      "aiSetup": "crg.ai-setup.code-review-graph",
+      "cell": "linux-x64",
+      "sha256": "62ffd2ad66a947a446c008a7dd6c74cc8d49b83427822be6e6ffd0ccad61fe4b",
+      "status": "qualified",
+      "version": "2.3.9"
+    },
+    {
+      "aiSetup": "crg.ai-setup.code-review-graph",
+      "cell": "linux-x64",
+      "sha256": "7e4a2e5cbea1ccc3b0a399739a1f9a3e81d87fca37e22ce036ece13ab148e3ac",
+      "status": "blocked",
+      "version": "2.3.9"
+    },
+    {
+      "aiSetup": "serena.ai-setup.serena",
+      "cell": "linux-x64",
+      "sha256": "415cb167697c87defaa67d48cf51fed6a4b3852df391b12185291f4342ab959c",
+      "status": "qualified",
+      "version": "2.1.0"
+    },
+    {
+      "aiSetup": "serena.ai-setup.serena",
+      "cell": "linux-x64",
+      "sha256": "8e9113b6ba319e27f7b05651a35b3b91d4b1a1963a3fb29746b37735643d4b81",
+      "status": "blocked",
+      "version": "2.1.0"
+    }
+  ],
+  "recipes": [
+    {
+      "aiSetup": {
+        "cbm.ai-setup.codebase-memory-mcp": {
+          "disabledTools": [
+            "compare_graphs",
+            "delete_project",
+            "detect_changes",
+            "get_file_outline",
+            "ingest_traces",
+            "search_code"
+          ],
+          "enabledTools": [
+            "check_index_coverage",
+            "get_architecture",
+            "get_code_snippet",
+            "get_graph_schema",
+            "index_repository",
+            "index_status",
+            "list_projects",
+            "manage_adr",
+            "query_graph",
+            "search_graph",
+            "trace_path"
+          ]
+        },
+        "crg.ai-setup.code-review-graph": {
+          "enabledTools": [
+            "build_or_update_graph_tool",
+            "detect_changes_tool",
+            "get_impact_radius_tool",
+            "get_minimal_context_tool",
+            "get_review_context_tool",
+            "query_graph_tool"
+          ]
+        },
+        "serena.ai-setup.serena": {
+          "enabledTools": [
+            "activate_project",
+            "find_declaration",
+            "find_implementations",
+            "find_referencing_symbols",
+            "find_symbol",
+            "get_diagnostics_for_file",
+            "get_symbols_overview",
+            "initial_instructions",
+            "insert_after_symbol",
+            "insert_before_symbol",
+            "rename_symbol",
+            "replace_symbol_body",
+            "restart_language_server",
+            "safe_delete_symbol"
+          ]
+        }
+      },
+      "content": {
+        "cbm": {
+          "commit": "a7158ac2f48ca646b4527341b76f930f2aeff87e",
+          "repository": "https://github.com/DeusData/codebase-memory-mcp"
+        },
+        "crg": {
+          "commit": "343ab7cea29d47a3e805381e09f8243a43d43d88",
+          "repository": "https://github.com/tirth8205/code-review-graph"
+        },
+        "serena": {
+          "commit": "5e4f5cd173c7ff3eed37ee3f1de6c266b937c5dc",
+          "repository": "https://github.com/oraios/serena"
+        }
+      },
+      "frameworks": [
+        "cbm",
+        "crg",
+        "serena"
+      ],
+      "id": "code-intelligence-trio",
+      "kind": "combination",
+      "members": [
+        {
+          "item": "cbm.ai-setup.codebase-memory-mcp",
+          "preTicked": true
+        },
+        {
+          "item": "crg.ai-setup.code-review-graph",
+          "preTicked": true
+        },
+        {
+          "item": "serena.ai-setup.serena",
+          "preTicked": true
+        }
+      ],
+      "qualifications": {
+        "linux-x64": "52f0477c225926305df078526d332b23d0c5fa01438c31834cc3ff2a8ffbe9ed"
+      },
+      "routes": {},
+      "schema": "urn:aihq:catalog:recipe:0.1.0"
+    }
+  ]
+}

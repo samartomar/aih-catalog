@@ -1,0 +1,211 @@
+{
+  "agentFile": {
+    "format": "claude-md",
+    "model": "keep",
+    "tools": "keep"
+  },
+  "arguments": "chat-text",
+  "checkedWith": [
+    {
+      "app": "cursor-agent",
+      "date": "2026-11-02",
+      "version": "2026.10.22"
+    },
+    {
+      "app": "cursor",
+      "date": "2026-11-02",
+      "version": "3.27.12"
+    }
+  ],
+  "configFiles": {
+    "project": [
+      ".cursor/cli.json",
+      ".cursor/hooks.json"
+    ],
+    "user": [
+      ".cursor/cli-config.json",
+      ".cursor/hooks.json",
+      ".cursor/mcp.json"
+    ]
+  },
+  "disableBuiltIn": "not-documented",
+  "hookEvents": {
+    "pre-tool-use": "preToolUse",
+    "session-start": "sessionStart"
+  },
+  "id": "cursor",
+  "inputReferences": {
+    "file": "unknown",
+    "mcp-argv": {
+      "syntax": "${env:<name>}"
+    },
+    "mcp-env": {
+      "syntax": "${env:<name>}"
+    },
+    "mcp-header": {
+      "syntax": "${env:<name>}"
+    }
+  },
+  "links": {
+    "skill": "not-documented"
+  },
+  "mcpFile": {
+    "remote": {
+      "streamable-http": {
+        "headers": "headers",
+        "url": "url"
+      }
+    },
+    "stdio": {
+      "args": "args",
+      "command": "command",
+      "env": "env"
+    }
+  },
+  "name": "Cursor (CLI and IDE)",
+  "places": {
+    "agent": {
+      "project": ".claude/agents/<name>.md"
+    },
+    "mcp": {
+      "project": {
+        "file": ".cursor/mcp.json",
+        "format": "json",
+        "key": "/mcpServers/<name>"
+      }
+    },
+    "rule": {
+      "project": {
+        "always": ".cursor/rules/<name>.mdc",
+        "paths": ".cursor/rules/<name>.mdc"
+      }
+    },
+    "skill": {
+      "project": {
+        "otherwise": ".agents/skills/<name>/",
+        "reuse": [
+          ".agents/skills/<name>/",
+          ".claude/skills/<name>/"
+        ]
+      },
+      "user": ".cursor/skills/<name>/"
+    }
+  },
+  "plugins": {
+    "pin": "none",
+    "verify": "none"
+  },
+  "provides": {
+    "agent": [
+      "browser",
+      "explore"
+    ],
+    "command": [
+      "about",
+      "add-dir",
+      "apply-worktree",
+      "ask",
+      "auto-review",
+      "bedrock",
+      "best-of-n",
+      "btw",
+      "changes",
+      "clear",
+      "command",
+      "commit",
+      "config",
+      "context",
+      "copy",
+      "copy-conversation-id",
+      "copy-request-id",
+      "cursor",
+      "debug",
+      "delete-worktree",
+      "exit",
+      "fast",
+      "feedback",
+      "fork",
+      "full-conversation",
+      "goal",
+      "help",
+      "jobs",
+      "line-numbers",
+      "load-workspace",
+      "logout",
+      "logs",
+      "max-mode",
+      "mcp",
+      "model",
+      "multi-model-review",
+      "open",
+      "plan",
+      "plugin",
+      "quit",
+      "rename",
+      "resume",
+      "rewind",
+      "rule",
+      "run-everything",
+      "sandbox",
+      "save-workspace",
+      "setup-terminal",
+      "shell",
+      "show-thinking",
+      "simplify",
+      "skills",
+      "status-indicators",
+      "summarize",
+      "sync-theme",
+      "team",
+      "update",
+      "usage",
+      "vim",
+      "worktree"
+    ],
+    "skill": [
+      "autopilot",
+      "canvas",
+      "create-hook",
+      "create-rule",
+      "create-skill",
+      "create-subagent",
+      "goal",
+      "loop",
+      "migrate-to-skills",
+      "new-repo",
+      "origin",
+      "rename-chat",
+      "review",
+      "review-bugbot",
+      "review-security",
+      "sdk",
+      "share",
+      "shell",
+      "split-to-prs",
+      "statusline",
+      "update-cli-config",
+      "update-cursor-settings"
+    ]
+  },
+  "ruleScopes": {
+    "always": {
+      "frontmatter": {
+        "alwaysApply": true
+      }
+    },
+    "paths": {
+      "form": "comma",
+      "frontmatter": {
+        "alwaysApply": false
+      },
+      "globs": "globs"
+    }
+  },
+  "schema": "urn:aihq:catalog:tool-profile:0.1.0",
+  "userOnly": {
+    "frontmatter": {
+      "disable-model-invocation": true
+    }
+  },
+  "version": 5
+}

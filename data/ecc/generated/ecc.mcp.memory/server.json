@@ -1,0 +1,21 @@
+{
+  "description": "Persistent memory across sessions",
+  "name": "memory",
+  "packages": [
+    {
+      "identifier": "@modelcontextprotocol/server-memory",
+      "registryType": "npm",
+      "runtimeArguments": [
+        {
+          "type": "positional",
+          "value": "-y"
+        }
+      ],
+      "runtimeHint": "npx",
+      "transport": {
+        "type": "stdio"
+      },
+      "version": "2.0.0"
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "description": "Live documentation lookup — use with /docs command and documentation-lookup skill (resolve-library-id, query-docs).",
+  "name": "context7",
+  "packages": [
+    {
+      "identifier": "@upstash/context7-mcp",
+      "registryType": "npm",
+      "runtimeArguments": [
+        {
+          "type": "positional",
+          "value": "-y"
+        }
+      ],
+      "runtimeHint": "npx",
+      "transport": {
+        "type": "stdio"
+      },
+      "version": "4.4.4"
+    }
+  ]
+}
