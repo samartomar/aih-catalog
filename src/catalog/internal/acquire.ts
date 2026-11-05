@@ -683,6 +683,8 @@ function registryProblem(registry: unknown): string | null {
 }
 
 const NPM_CONFIG_BYTES = 1024 * 1024;
+/** npm settings that replace its trusted certificates or route it through a proxy. */
+const TLS_SETTINGS = new Set(["cafile", "ca", "proxy", "https-proxy", "http-proxy", "noproxy"]);
 
 /**
  * The caller's npm config file as an absolute path, after checking every registry it names
@@ -706,14 +708,20 @@ function npmConfigFile(path: unknown): string | { readonly problem: string } {
     if (line === "" || line.startsWith("#") || line.startsWith(";")) continue;
     const equals = line.indexOf("=");
     if (equals === -1) continue;
-    const key = line.slice(0, equals).trim();
+    // Keys and values as npm's ini reader takes them: quotes removed, `${NAME}` expanded from
+    // the environment, a trailing `[]` marking a list.
+    const expand = (text: string) =>
+      text
+        .trim()
+        .replace(/^"(.*)"$|^'(.*)'$/, "$1$2")
+        .replace(/\$\{([^}]+)\}/g, (_, name: string) => process.env[name] ?? "");
+    const key = expand(line.slice(0, equals)).replace(/\[\]$/, "");
+    const value = expand(line.slice(equals + 1));
+    // The caller chose the file, but it never weakens or redirects TLS.
+    const setting = key.toLowerCase().replaceAll("_", "-");
+    if (TLS_SETTINGS.has(setting) || (setting === "strict-ssl" && value.toLowerCase() === "false"))
+      return { problem: `npmConfig sets ${setting}, which would weaken or redirect TLS` };
     if (key !== "registry" && !/^@[^:]+:registry$/.test(key)) continue;
-    // npm expands `${NAME}` from the environment; the expanded registry is what it reads.
-    const value = line
-      .slice(equals + 1)
-      .trim()
-      .replace(/^"(.*)"$|^'(.*)'$/, "$1$2")
-      .replace(/\$\{([^}]+)\}/g, (_, name: string) => process.env[name] ?? "");
     const problem = registryProblem(value);
     if (problem !== null)
       return { problem: `npmConfig names a registry that is refused: ${problem}` };

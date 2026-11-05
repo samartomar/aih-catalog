@@ -603,6 +603,17 @@ describe("fetching a pinned npm source", () => {
       config("registry=http://registry.example.test/\n"),
       config("@fixture:registry=http://registry.example.test/\n"),
       config("@fixture:registry = https://user:secret-pass@registry.example.test/\n"),
+      // npm's ini reader takes quoted keys as the same key.
+      config('"@fixture:registry"=http://registry.example.test/\n'),
+      config("'registry' = http://registry.example.test/\n"),
+      // Settings that weaken or redirect TLS are refused.
+      config("strict-ssl=false\n"),
+      config("strict_ssl = false\n"),
+      config("cafile=/tmp/ca.pem\n"),
+      config("ca[]=-----BEGIN CERTIFICATE-----\n"),
+      config("proxy=http://proxy.example.test/\n"),
+      config("https-proxy=http://proxy.example.test/\n"),
+      config("noproxy=*\n"),
     ]) {
       const fetched = await fetchSource(
         { kind: "npm", package: PACKAGE, version: "1.0.0" },
