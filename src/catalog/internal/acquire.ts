@@ -654,6 +654,11 @@ export interface NpmOptions extends Bounds {
   readonly registry?: string;
   /** The sha512 integrity the tarball must have, when the caller already knows it. */
   readonly integrity?: string;
+  /**
+   * An npm config file the caller chose, such as one holding a private registry's token. It
+   * is npm's only user config; no other user, global, project or environment config is read.
+   */
+  readonly npmConfig?: string;
 }
 
 type NpmResult = AcquireResult<NpmSource> & { readonly integrity?: string };
@@ -677,6 +682,45 @@ function registryProblem(registry: unknown): string | null {
   return "the registry must be an https URL (plain http only on a loopback address)";
 }
 
+const NPM_CONFIG_BYTES = 1024 * 1024;
+
+/**
+ * The caller's npm config file as an absolute path, after checking every registry it names
+ * against the same rule as `registry`. Its contents are never repeated.
+ */
+function npmConfigFile(path: unknown): string | { readonly problem: string } {
+  if (typeof path !== "string" || path.length === 0 || path.includes("\0"))
+    return { problem: "npmConfig must be the path of an npm config file" };
+  const absolute = resolve(path);
+  let text: string;
+  try {
+    const stats = statSync(absolute);
+    if (!stats.isFile()) return { problem: "npmConfig is not a regular file" };
+    if (stats.size > NPM_CONFIG_BYTES) return { problem: "npmConfig is larger than 1 MiB" };
+    text = readFileSync(absolute, "utf8");
+  } catch {
+    return { problem: "npmConfig cannot be read" };
+  }
+  for (const raw of text.split(/\r?\n/)) {
+    const line = raw.trim();
+    if (line === "" || line.startsWith("#") || line.startsWith(";")) continue;
+    const equals = line.indexOf("=");
+    if (equals === -1) continue;
+    const key = line.slice(0, equals).trim();
+    if (key !== "registry" && !/^@[^:]+:registry$/.test(key)) continue;
+    // npm expands `${NAME}` from the environment; the expanded registry is what it reads.
+    const value = line
+      .slice(equals + 1)
+      .trim()
+      .replace(/^"(.*)"$|^'(.*)'$/, "$1$2")
+      .replace(/\$\{([^}]+)\}/g, (_, name: string) => process.env[name] ?? "");
+    const problem = registryProblem(value);
+    if (problem !== null)
+      return { problem: `npmConfig names a registry that is refused: ${problem}` };
+  }
+  return absolute;
+}
+
 const invalid = (path: string, message: string): Invalid => ({
   status: "invalid",
   problems: [{ path, message }],
@@ -684,8 +728,9 @@ const invalid = (path: string, message: string): Invalid => ({
 
 /**
  * Resolves an npm spec to one exact version and downloads its published tarball with
- * `npm pack --ignore-scripts`, which runs no package code. npm reads no user, global, project
- * or environment configuration: only the given registry (the public registry by default). The
+ * `npm pack --ignore-scripts`, which runs no package code. npm reads no global, project or
+ * environment configuration, and no user configuration but the `npmConfig` file the caller
+ * names; the registry is the given one (the public registry by default). The
  * tarball is checked against the integrity npm verified and any integrity the caller expects,
  * unpacked in memory and held to the source limits.
  */
@@ -715,8 +760,14 @@ export async function acquireNpm(candidate: NpmCandidate, options: NpmOptions): 
   if (problem !== null) return invalid("registry", problem);
   if (expected !== undefined && (typeof expected !== "string" || !INTEGRITY.test(expected)))
     return invalid("integrity", "the expected integrity must be a sha512 integrity");
+  let npmConfig: string | undefined;
+  if (options?.npmConfig !== undefined) {
+    const file = npmConfigFile(options.npmConfig);
+    if (typeof file !== "string") return invalid("npmConfig", file.problem);
+    npmConfig = file;
+  }
   return inWorkFolder(options?.outDir, "npm-", (work) =>
-    fetchNpm(candidate, name, work, registry, expected, options),
+    fetchNpm(candidate, name, work, registry, expected, npmConfig, options),
   );
 }
 
@@ -726,17 +777,19 @@ async function fetchNpm(
   work: string,
   registry: string,
   expected: string | undefined,
+  npmConfig: string | undefined,
   bounds: Bounds,
 ): Promise<NpmResult> {
   const spec = `${name}@${candidate.version ?? candidate.range ?? "latest"}`;
   // No npm setting comes from the environment; npm is configured only by its arguments.
   const env: NodeJS.ProcessEnv = {};
   for (const [key, value] of Object.entries(process.env)) if (!/^npm_/i.test(key)) env[key] = value;
-  // Two empty files: npm refuses one file loaded as both its user and its global config.
-  const userConfig = join(work, "aihq-user.npmrc");
+  // Two files: npm refuses one file loaded as both its user and its global config. The user
+  // config is the caller's chosen file, else empty; the global config is always empty.
+  const userConfig = npmConfig ?? join(work, "aihq-user.npmrc");
   const globalConfig = join(work, "aihq-global.npmrc");
   try {
-    writeFileSync(userConfig, "");
+    if (npmConfig === undefined) writeFileSync(userConfig, "");
     writeFileSync(globalConfig, "");
   } catch {
     return refused("unreadable", "the outDir cannot be written");

@@ -41,7 +41,7 @@ The package exports exactly five entry points. Nothing else can be imported.
 | Entry point | Runs in | Gives |
 | --- | --- | --- |
 | `@aihq/catalog/source` | browser or Node | `parseSourceLink(text)`, `findItems(files, { framework })` |
-| `@aihq/catalog/node` | Node | `readLocalSource(path)`, `fetchSource(candidate, { outDir, fromUser?, registry?, integrity? })`, `readContentFile(path)` |
+| `@aihq/catalog/node` | Node | `readLocalSource(path)`, `fetchSource(candidate, { outDir, fromUser?, registry?, npmConfig?, integrity? })`, `readContentFile(path)` |
 | `@aihq/catalog/producer` | Node | `buildContent(source, files, items, { framework })`, `checkContent(content, files?, { scannedKeys? })` |
 | `@aihq/catalog/reader` | browser or Node | `readContent`, `readToolProfile`, `readRecipe`, `readQualification`, `listItems`, `getItem`, `derive`, `availability`, `planInstall`, `planRecipe`, `renderStep` |
 | `@aihq/catalog/contracts` | browser or Node | format identities, `schemas`, `fixtures`, `toolProfiles`, `kinds`, `limits`, refusal codes |
@@ -97,9 +97,11 @@ exact commit or version and reads it with Git hooks, checkout and lifecycle scri
 (on Windows, npm's own script runs with node). Git runs without credential helpers,
 password prompts or interactive SSH; a repository address carrying a password, or a user
 other than on SSH, is refused. npm reads only the given registry (https, or plain http on a
-loopback address; the public registry by default) and no user, global, project or
-environment configuration, so a private registry that needs credentials is not reached; pass
-`integrity` to require a known tarball. A local folder, local Git path or `file:` URL is
+loopback address; the public registry by default) and no global, project or environment
+configuration. To use your own private registry, pass `npmConfig`: the path of an npm config
+file you chose, holding its token. It is the only user configuration npm reads, every
+registry it names must follow the same https rule, and its contents never appear in results
+or refusals. Pass `integrity` to require a known tarball. A local folder, local Git path or `file:` URL is
 read only with `fromUser: true`, for a source the user typed. Each fetch works in a new
 folder inside `outDir`, removed afterwards, and is stopped after 10 minutes or once that
 folder holds four times `sourceBytes`; `timeoutMs` and `diskBytes` may only lower these.

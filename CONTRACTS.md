@@ -39,7 +39,9 @@ no source is `unrecognised` with a reason; text over the published limit is `ref
 candidate, or a Git candidate on this machine, is read only when the caller marks it as typed
 by the user (`fromUser`). Local, Git and npm sources share one Git metadata rule: a `.git`
 path segment in any case is skipped in a local folder and refused in a Git tree or npm
-tarball.
+tarball. An npm fetch reads no ambient npm configuration; a private registry is reached only
+through an npm config file the caller names (`npmConfig`), whose registries must be https or
+loopback http.
 
 ### Content
 

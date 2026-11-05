@@ -91,17 +91,21 @@ afterEach(async () => {
 
 /**
  * A disposable local npm registry serving each package's versions as given tarballs, with
- * the given `latest` tag. Returns its URL and every path requested.
+ * the given `latest` tag. Returns its URL and every path requested. With `token`, every
+ * request must carry it as a bearer token, or it is answered 401.
  */
 export async function registry(
   packages: Readonly<
     Record<string, { readonly latest: string; readonly versions: Readonly<Record<string, Buffer>> }>
   >,
+  options: { readonly token?: string } = {},
 ): Promise<{ readonly url: string; readonly requests: readonly string[] }> {
   const requests: string[] = [];
   const server = createServer((request, response) => {
     const path = decodeURIComponent(new URL(request.url ?? "/", "http://x").pathname);
     requests.push(path);
+    if (options.token !== undefined && request.headers.authorization !== `Bearer ${options.token}`)
+      return response.writeHead(401, { "content-type": "application/json" }).end("{}");
     const tarballMatch = /^\/(.+)\/-\/[^/]+-(\d[^/]*)\.tgz$/.exec(path);
     if (tarballMatch) {
       const bytes = packages[tarballMatch[1] as string]?.versions[tarballMatch[2] as string];

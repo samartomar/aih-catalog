@@ -263,6 +263,12 @@ export interface FetchSourceOptions extends Bounds {
   /** For npm: the sha512 integrity the tarball must have. */
   readonly integrity?: string;
   /**
+   * For npm: the path of an npm config file the caller chose, such as one holding a private
+   * registry's token. Without it npm reads no user config; global, project and environment
+   * config are never read. Every registry it names must pass the same rule as `registry`.
+   */
+  readonly npmConfig?: string;
+  /**
    * True when the candidate comes from text the user typed or pasted. Only then is a folder or
    * Git repository on this machine (a path or `file:` URL) read.
    */

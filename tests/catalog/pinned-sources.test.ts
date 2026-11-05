@@ -557,6 +557,64 @@ describe("fetching a pinned npm source", () => {
     expect(fetched).toMatchObject({ status: "ok" });
   });
 
+  it("reaches a private registry only through the npm config file the caller names", async () => {
+    const token = "private-registry-token-1234";
+    const served = await registry(
+      { [PACKAGE]: { latest: "1.0.0", versions: { "1.0.0": tarball([packageJson]) } } },
+      { token },
+    );
+    const host = served.url.replace(/^http:/, "");
+    const npmConfig = join(folder({}, "own"), "own.npmrc");
+    writeFileSync(npmConfig, `${host}:_authToken=${token}\n`);
+    // The same token in ambient configuration is never read.
+    process.env.npm_config_userconfig = npmConfig;
+    process.env[`npm_config_${host}:_authToken`] = token;
+    const fetch = (options: object) =>
+      fetchSource(
+        { kind: "npm", package: PACKAGE, version: "1.0.0" },
+        { outDir: outDir(), registry: served.url, ...options },
+      );
+
+    const without = await fetch({});
+    expect(without).toMatchObject({ status: "refused", code: "fetch-failed" });
+    expect(JSON.stringify(without)).not.toContain(token);
+    const withConfig = await fetch({ npmConfig });
+    expect(withConfig).toMatchObject({ status: "ok", source: { version: "1.0.0" } });
+    expect(JSON.stringify(withConfig)).not.toContain(token);
+    const wrong = join(folder({}, "wrong"), "wrong.npmrc");
+    writeFileSync(wrong, `${host}:_authToken=not-the-token\n`);
+    expect(await fetch({ npmConfig: wrong })).toMatchObject({ status: "refused" });
+  });
+
+  it("refuses an npm config file that is missing or names a registry outside the https rule", async () => {
+    const root = folder({}, "own");
+    const config = (text: string) => {
+      const path = join(root, `${Math.random().toString(36).slice(2)}.npmrc`);
+      writeFileSync(path, text);
+      return path;
+    };
+    for (const npmConfig of [
+      join(root, "absent.npmrc"),
+      root,
+      config("registry=http://registry.example.test/\n"),
+      config("@fixture:registry=http://registry.example.test/\n"),
+      config("@fixture:registry = https://user:secret-pass@registry.example.test/\n"),
+    ]) {
+      const fetched = await fetchSource(
+        { kind: "npm", package: PACKAGE, version: "1.0.0" },
+        { outDir: outDir(), npmConfig },
+      );
+      expect(fetched, npmConfig).toMatchObject({
+        status: "invalid",
+        problems: [{ path: "npmConfig" }],
+      });
+      expect(JSON.stringify(fetched)).not.toContain("secret-pass");
+      expect(JSON.stringify(fetched).replace(/[\\/]+/g, "/")).not.toContain(
+        root.replace(/[\\/]+/g, "/"),
+      );
+    }
+  });
+
   it("checks the tarball against an integrity the caller expects", async () => {
     const bytes = tarball([packageJson]);
     const served = await registry({ [PACKAGE]: { latest: "1.0.0", versions: { "1.0.0": bytes } } });
