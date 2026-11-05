@@ -491,6 +491,16 @@ describe("MCP environment", () => {
     "PAGER",
     "EDITOR",
     "VISUAL",
+    "HOMEDRIVE",
+    "HOMEPATH",
+    "PROGRAMDATA",
+    "ALLUSERSPROFILE",
+    "KIMI_CODE_HOME",
+    "OPENCODE_CONFIG",
+    "OPENCODE_CONFIG_DIR",
+    "OPENCODE_CONFIG_CONTENT",
+    "COPILOT_HOME",
+    "CURSOR_CONFIG_DIR",
   ];
 
   it("refuses env that changes how the server's runtime loads code", async () => {
