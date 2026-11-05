@@ -35,7 +35,11 @@ in canonical form. Plans are results, not a stored format.
 `recognised` result carries one candidate: `{ kind: "local", path }`, `{ kind: "git",
 repository, ref?, subpath? }` or `{ kind: "npm", package, version? | range? }`. Text that names
 no source is `unrecognised` with a reason; text over the published limit is `refused`.
-`fetchSource` turns a candidate into a source at an exact commit or version.
+`fetchSource` turns a candidate into a source at an exact commit or version. A local
+candidate, or a Git candidate on this machine, is read only when the caller marks it as typed
+by the user (`fromUser`). Local, Git and npm sources share one Git metadata rule: a `.git`
+path segment in any case is skipped in a local folder and refused in a Git tree or npm
+tarball.
 
 ### Content
 

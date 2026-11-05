@@ -41,7 +41,7 @@ The package exports exactly five entry points. Nothing else can be imported.
 | Entry point | Runs in | Gives |
 | --- | --- | --- |
 | `@aihq/catalog/source` | browser or Node | `parseSourceLink(text)`, `findItems(files, { framework })` |
-| `@aihq/catalog/node` | Node | `readLocalSource(path)`, `fetchSource(candidate, { outDir })`, `readContentFile(path)` |
+| `@aihq/catalog/node` | Node | `readLocalSource(path)`, `fetchSource(candidate, { outDir, fromUser?, registry?, integrity? })`, `readContentFile(path)` |
 | `@aihq/catalog/producer` | Node | `buildContent(source, files, items, { framework })`, `checkContent(content, files?, { scannedKeys? })` |
 | `@aihq/catalog/reader` | browser or Node | `readContent`, `readToolProfile`, `readRecipe`, `readQualification`, `listItems`, `getItem`, `derive`, `availability`, `planInstall`, `planRecipe`, `renderStep` |
 | `@aihq/catalog/contracts` | browser or Node | format identities, `schemas`, `fixtures`, `toolProfiles`, `kinds`, `limits`, refusal codes |
@@ -92,6 +92,18 @@ Sources other than a local folder start from text a user pastes: `parseSourceLin
 folder path, a Git URL (with an optional branch, tag or subfolder), an npm specifier or a
 known installer command, without fetching or running it. `fetchSource` then pins it to an
 exact commit or version and reads it with Git hooks, checkout and lifecycle scripts disabled.
+
+`fetchSource` runs `git` and `npm` from absolute `PATH` entries and never through a shell
+(on Windows, npm's own script runs with node). Git runs without credential helpers,
+password prompts or interactive SSH; a repository address carrying a password, or a user
+other than on SSH, is refused. npm reads only the given registry (https, or plain http on a
+loopback address; the public registry by default) and no user, global, project or
+environment configuration, so a private registry that needs credentials is not reached; pass
+`integrity` to require a known tarball. A local folder, local Git path or `file:` URL is
+read only with `fromUser: true`, for a source the user typed. Each fetch works in a new
+folder inside `outDir`, removed afterwards, and is stopped after 10 minutes or once that
+folder holds four times `sourceBytes`; `timeoutMs` and `diskBytes` may only lower these.
+Refusals do not repeat local paths, the `outDir` or Git and npm output.
 
 ## Recipes and maintained content
 
