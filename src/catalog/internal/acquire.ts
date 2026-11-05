@@ -304,7 +304,6 @@ async function inWorkFolder<T>(
   }
 }
 
-const firstLine = (text: string): string => text.trim().split("\n")[0]?.slice(0, 200) ?? "";
 const sha256 = (bytes: Uint8Array): string => createHash("sha256").update(bytes).digest("hex");
 
 /** A fresh working folder inside `outDir`, created when absent. */
@@ -314,10 +313,10 @@ function workFolder(outDir: unknown, prefix: string): string | Refused {
   try {
     mkdirSync(outDir, { recursive: true });
     if (!statSync(outDir).isDirectory())
-      return refused("not-a-directory", `the outDir ${quote(outDir)} is not a folder`);
+      return refused("not-a-directory", "the outDir is not a folder");
     return mkdtempSync(join(outDir, prefix));
   } catch {
-    return refused("unreadable", `the outDir ${quote(outDir)} cannot be written`);
+    return refused("unreadable", "the outDir cannot be written");
   }
 }
 
@@ -325,7 +324,8 @@ function workFolder(outDir: unknown, prefix: string): string | Refused {
 
 /**
  * Every Git call: no hooks, no fsmonitor, no replacement objects, no submodule recursion, no
- * HTTP redirects, and only the https, ssh and file transports (never `ext::` or plain git).
+ * HTTP redirects, no credentials, and only the https, ssh and file transports (never `ext::`
+ * or plain git).
  */
 const GIT_OPTIONS = [
   "--no-replace-objects",
@@ -345,6 +345,14 @@ const GIT_OPTIONS = [
   "protocol.ssh.allow=always",
   "-c",
   "protocol.file.allow=always",
+  // Credentials are never asked for, read from a helper or prompted for, and SSH never asks
+  // to trust a new host key.
+  "-c",
+  "credential.helper=",
+  "-c",
+  "core.askPass=",
+  "-c",
+  "core.sshCommand=ssh -o BatchMode=yes -o StrictHostKeyChecking=yes",
 ] as const;
 
 /**
@@ -353,9 +361,11 @@ const GIT_OPTIONS = [
  */
 function gitEnvironment(emptyConfig: string): NodeJS.ProcessEnv {
   const env: NodeJS.ProcessEnv = {};
-  for (const [key, value] of Object.entries(process.env)) if (!/^GIT_/i.test(key)) env[key] = value;
+  for (const [key, value] of Object.entries(process.env))
+    if (!/^(?:GIT_|SSH_ASKPASS)/i.test(key)) env[key] = value;
   return {
     ...env,
+    SSH_ASKPASS_REQUIRE: "never",
     GIT_CONFIG_NOSYSTEM: "1",
     GIT_CONFIG_GLOBAL: emptyConfig,
     GIT_TERMINAL_PROMPT: "0",
@@ -373,6 +383,8 @@ function gitCandidateProblem(candidate: GitCandidate): string | null {
   if (repository.startsWith("-") || /[\0\n\r]/.test(repository))
     return "the repository is not usable as a Git address";
   if (/^[A-Za-z][A-Za-z0-9+.-]*::/.test(repository)) return "Git remote helpers are never used";
+  if (carriesCredentials(repository))
+    return "a repository address carrying credentials is not used";
   if (ref !== undefined) {
     if (
       typeof ref !== "string" ||
@@ -390,9 +402,33 @@ function gitCandidateProblem(candidate: GitCandidate): string | null {
 
 /** A local repository path as an absolute path, so Git never reads it as an option. */
 function repositoryArgument(repository: string): string {
-  if (/^[A-Za-z][A-Za-z0-9+.-]*:\/\//.test(repository)) return repository;
-  if (/^[A-Za-z0-9._-]+@[A-Za-z0-9.-]+:/.test(repository)) return repository;
+  if (URL_ADDRESS.test(repository) || SCP_ADDRESS.test(repository)) return repository;
   return isAbsolute(repository) ? repository : resolve(repository);
+}
+
+const URL_ADDRESS = /^([A-Za-z][A-Za-z0-9+.-]*):\/\/([^/]*)/;
+const SCP_ADDRESS = /^[A-Za-z0-9._-]+@[A-Za-z0-9.-]+:/;
+
+/**
+ * True when a URL address names a user or password. Only an SSH address may name a user (as
+ * in `ssh://git@host/...`), and never a password; `user@host:path` names only a user.
+ */
+function carriesCredentials(repository: string): boolean {
+  const match = URL_ADDRESS.exec(repository);
+  if (match === null) return false;
+  const [, scheme, authority] = match as unknown as [string, string, string];
+  const at = authority.lastIndexOf("@");
+  if (at === -1) return false;
+  return scheme.toLowerCase() !== "ssh" || authority.slice(0, at).includes(":");
+}
+
+/** How a refusal names a repository: a remote address as given, never a local path. */
+function repositoryName(repository: string): string {
+  const match = URL_ADDRESS.exec(repository);
+  if (match !== null && match[1]?.toLowerCase() !== "file") return quote(repository);
+  return match === null && SCP_ADDRESS.test(repository)
+    ? quote(repository)
+    : "the local repository";
 }
 
 /**
@@ -457,13 +493,12 @@ async function fetchGit(
   ]);
   const fetchStopped = stoppedRefusal(fetched, "git");
   if (fetchStopped !== null) return fetchStopped;
-  if (typeof fetched !== "object" || fetched.code !== 0) {
-    const detail = typeof fetched === "object" ? `: ${firstLine(fetched.stderr)}` : "";
+  // Git's own message can name local paths, so it is not repeated.
+  if (typeof fetched !== "object" || fetched.code !== 0)
     return refused(
       "fetch-failed",
-      `${quote(wanted)} could not be fetched from ${quote(candidate.repository)}${detail}`,
+      `${quote(wanted)} could not be fetched from ${repositoryName(candidate.repository)}`,
     );
-  }
   const head = await git(["rev-parse", "--verify", "--end-of-options", "FETCH_HEAD^{commit}"]);
   const headStopped = stoppedRefusal(head, "git");
   if (headStopped !== null) return headStopped;
@@ -657,10 +692,9 @@ async function fetchNpm(
   );
   const packStopped = stoppedRefusal(packed, "npm");
   if (packStopped !== null) return packStopped;
-  if (typeof packed !== "object" || packed.code !== 0) {
-    const detail = typeof packed === "object" ? `: ${firstLine(packed.stderr)}` : "";
-    return refused("fetch-failed", `${quote(spec)} could not be fetched${detail}`);
-  }
+  // npm's own message can name local paths, so it is not repeated.
+  if (typeof packed !== "object" || packed.code !== 0)
+    return refused("fetch-failed", `${quote(spec)} could not be fetched`);
   let report: { name?: unknown; version?: unknown; filename?: unknown; integrity?: unknown };
   try {
     const parsedReport = JSON.parse(packed.stdout.toString("utf8")) as unknown;

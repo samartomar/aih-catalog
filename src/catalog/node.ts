@@ -77,11 +77,10 @@ export function readLocalSource(path: string): ReadLocalSourceResult {
   try {
     rootStats = lstatSync(path);
   } catch {
-    return refused("not-found", `the local path ${quote(path)} does not exist`);
+    return refused("not-found", "the local path does not exist");
   }
-  if (rootStats.isSymbolicLink()) return refused("link", `the local path ${quote(path)} is a link`);
-  if (!rootStats.isDirectory())
-    return refused("not-a-directory", `the local path ${quote(path)} is not a folder`);
+  if (rootStats.isSymbolicLink()) return refused("link", "the local path is a link");
+  if (!rootStats.isDirectory()) return refused("not-a-directory", "the local path is not a folder");
 
   const files: SourceFile[] = [];
   const skipped: { path: string; reason: "vcs-metadata" }[] = [];
@@ -159,22 +158,21 @@ export function readContentFile(path: string): ReadContentResult | Refused {
   try {
     stats = lstatSync(path);
   } catch {
-    return refused("not-found", `the content file ${quote(String(path))} does not exist`);
+    return refused("not-found", "the content file does not exist");
   }
-  if (stats.isSymbolicLink()) return refused("link", `the content file ${quote(path)} is a link`);
-  if (!stats.isFile())
-    return refused("not-a-file", `the content file ${quote(path)} is not a regular file`);
+  if (stats.isSymbolicLink()) return refused("link", "the content file is a link");
+  if (!stats.isFile()) return refused("not-a-file", "the content file is not a regular file");
   if (stats.size > limits.contentFileBytes)
     return limitRefusal("contentFileBytes", "the content file");
   let bytes: Buffer | "changed" | "too-large";
   try {
     bytes = readRegular(path, limits.contentFileBytes);
   } catch {
-    return refused("unreadable", `the content file ${quote(path)} cannot be read`);
+    return refused("unreadable", "the content file cannot be read");
   }
   if (bytes === "too-large") return limitRefusal("contentFileBytes", "the content file");
   if (bytes === "changed")
-    return refused("source-mismatch", `the content file ${quote(path)} changed while it was read`);
+    return refused("source-mismatch", "the content file changed while it was read");
   return readContent(new Uint8Array(bytes.buffer, bytes.byteOffset, bytes.byteLength));
 }
 
