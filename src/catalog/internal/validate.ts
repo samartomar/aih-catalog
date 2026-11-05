@@ -300,7 +300,7 @@ export function contentProblems(value: unknown): Problem[] {
       else if (item.scope !== undefined) problems.add(`${path}/scope`, "only rules have a scope");
       checkKindFields(item, path, problems);
       if (item.requirements !== undefined)
-        checkRequirements(item.requirements, `${path}/requirements`, problems);
+        checkRequirements(item.requirements, `${path}/requirements`, problems, item.kind);
       if (item.editions !== undefined)
         checkEditions(item.editions, `${path}/editions`, sourceIds, problems);
       if (item.references !== undefined)
@@ -601,7 +601,10 @@ function checkKindFields(item: Record_, path: string, problems: Problems): void 
       problems.add(problem.path, problem.message);
 }
 
-function checkRequirements(value: unknown, path: string, problems: Problems): void {
+/** Kinds whose files the model reads as instructions: a secret is never placed in them. */
+const MODEL_READ: ReadonlySet<unknown> = new Set(["skill", "rule", "agent", "document"]);
+
+function checkRequirements(value: unknown, path: string, problems: Problems, kind?: unknown): void {
   if (
     !isRecord(value) ||
     !isRecord(value.inputs) ||
@@ -631,6 +634,8 @@ function checkRequirements(value: unknown, path: string, problems: Problems): vo
       problems.add(at, "an input is { description, isRequired, isSecret, default?, placeholder? }");
     else if (input.isSecret === true && input.default !== undefined)
       problems.add(`${at}/default`, "a secret input never carries a value");
+    else if (input.isSecret === true && input.placeholder !== undefined && MODEL_READ.has(kind))
+      problems.add(`${at}/placeholder`, "a secret is never written into a file the model reads");
   }
 }
 

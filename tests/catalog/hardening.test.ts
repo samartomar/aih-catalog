@@ -739,3 +739,40 @@ describe("text Catalog writes into shared Markdown", () => {
     expect(text).toContain("- Tick \\`inject\\` \\*me\\*: its skills in");
   });
 });
+
+describe("secrets in files the model reads", () => {
+  it("refuses a secret input placed into a skill, rule or agent file", async () => {
+    const files = {
+      "skills/setup/SKILL.md": "---\nname: setup\ndescription: Set up.\n---\nUse {{TOKEN}}.\n",
+      "rules/always.md": "# Always\n\nUse {{TOKEN}}.\n",
+      "agents/helper.md": "---\nname: helper\ndescription: Helps.\n---\nUse {{TOKEN}}.\n",
+    };
+    for (const [sourcePath] of Object.entries(files)) {
+      const read = readLocalSource(
+        folder({ [sourcePath]: files[sourcePath as keyof typeof files] }),
+      );
+      if (read.status !== "ok") throw new Error(JSON.stringify(read));
+      const found = findItems(read.files, { framework: FRAMEWORK });
+      if (found.status !== "ok") throw new Error(JSON.stringify(found));
+      const secret = (isSecret: boolean) => ({
+        inputs: {
+          TOKEN: {
+            description: "Token",
+            isRequired: true,
+            isSecret,
+            placeholder: { sourcePath, marker: "{{TOKEN}}" },
+          },
+        },
+      });
+      const build = (isSecret: boolean) =>
+        buildContent(
+          read.source,
+          read.files,
+          found.items.map((item) => ({ ...item, requirements: secret(isSecret) })),
+          { framework: FRAMEWORK },
+        );
+      expect(await build(true), sourcePath).toMatchObject({ status: "invalid" });
+      expect((await build(false)).status, sourcePath).toBe("ok");
+    }
+  });
+});
