@@ -74,10 +74,10 @@
     "@aihq/scan": "file:vendor/aihq-scan-0.0.0-dev.1.tgz",
     "@biomejs/biome": "2.5.1",
     "@types/node": "26.1.1",
-    "@vitest/coverage-v8": "4.1.11",
+    "@vitest/coverage-v8": "4.1.12",
     "ajv": "8.20.0",
     "typescript": "7.0.2",
-    "vitest": "4.1.11"
+    "vitest": "4.1.12"
   },
   "files": [
     "dist/catalog",
