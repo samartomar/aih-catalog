@@ -48,8 +48,8 @@ reconciles the three section reports with the committed data and lists the known
   journeys and the consumer regressions against the exact packed tarball in a disposable
   outside consumer, importing only the public exports;
   [the recorded results](../validation/packed-consumer.json) name the tarball's sha256 and
-  source commit. One expected result is still open there: the tool trio plans no Serena
-  context files. Journey 12's complete first-time installation proof remains pending.
+  source commit. Serena's per-client launch selects context files already packaged in its
+  qualified upstream wheel. Journey 12's complete first-time installation proof remains pending.
 - **Native use.** Planned layouts are not yet checked in the real clients, and plugin presence
   checks stay `none` until a reliable check exists.
 - **Qualifications.** codebase-memory-mcp, code-review-graph and Serena, and their combination,

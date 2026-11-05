@@ -1334,16 +1334,62 @@ const qualifications = qualificationFiles.map((name) => {
       assert.equal(fixturePlan.status, "ok", JSON.stringify(fixturePlan.unavailable));
     },
   );
-  await j.open(
-    "Serena's context files are in the plan",
-    "the Serena AI setup declares no settings files: it launches with Serena's built-in contexts per client (claude-code, codex, copilot-cli, antigravity, else ide); no Catalog context file has been authored, so authored context files (or accepting the built-in contexts) are needed",
+  await j.check(
+    "Serena selects its packaged upstream context and tools interface for each supported client",
     () => {
-      const serena = tools[2].items.find((item) => item.kind === "ai-setup");
-      const settingsFiles = serena.aiSetup.settings?.files ?? [];
-      assert.ok(
-        settingsFiles.length > 0,
-        "Serena's AI setup declares no context files: it starts with its built-in contexts per client",
-      );
+      const contexts = {
+        antigravity: "antigravity",
+        "claude-code": "claude-code",
+        codex: "codex",
+        copilot: "copilot-cli",
+        cursor: "ide",
+        kimi: "ide",
+        kiro: "ide",
+        opencode: "ide",
+      };
+      for (const [cli, context] of Object.entries(contexts)) {
+        const clientPlan = planned(
+          planRecipe(
+            trio,
+            tools,
+            P(cli),
+            {},
+            {
+              scope: "project",
+              source: recipeSource,
+              cell: "linux-x64",
+              qualifications: qualifications.map((entry) => entry.qualification),
+            },
+          ),
+        );
+        const server = clientPlan.plan.find(
+          (step) => step.op === "merge" && step.item === "serena.mcp.serena",
+        );
+        assert.equal(clientPlan.status, "ok", cli);
+        assert.ok(server, `${cli}: Serena MCP configuration is present`);
+        const stdio = profiles[cli].mcpFile.stdio;
+        const args = stdio.argv ? server.entry[stdio.argv].slice(1) : server.entry[stdio.args];
+        assert.deepEqual(
+          args,
+          [
+            "start-mcp-server",
+            "--project-from-cwd",
+            "--context",
+            context,
+            "--agent-interface",
+            "tools",
+            "--enable-web-dashboard",
+            "false",
+            "--open-web-dashboard",
+            "false",
+            "--enable-gui-log-window",
+            "false",
+            "--tool-timeout",
+            "240",
+          ],
+          cli,
+        );
+      }
     },
   );
   j.digest("trio-linux-x64", plan);
