@@ -10,6 +10,7 @@ records what replaced the earlier release model and what is still open.
 ## Source and safety boundaries
 
 Never run an installed aih-supported against this checkout.
+That name is the retired CLI, not an executable supplied by current Catalog.
 Use direct repository checks and disposable fixture/packed-consumer roots.
 Validate boundary input and fail closed on ambiguity. Keep credentials, private
 reproductions, machine paths and generated tool state out of committed files.
@@ -27,6 +28,11 @@ review, with Extensions for complementary checks. Use /ask-matt for that flow an
 AGENTS.md is the maintained instruction entry point. The ai-coding directory
 holds technical references; it does not select another engineering workflow or
 require helper installation.
+
+For maintainer assignments, keep the coordinating session in its supplied
+workspace and target this Git root explicitly for commands and edits. Load these
+product rules from that session. Public contributors can use this repository
+independently; private startup routing stays outside public files.
 
 ## Issue and delivery routing
 
@@ -52,18 +58,11 @@ Carry existing authorization within its scope. Tests or instructions alone do no
 authorize tracker writes, pushes, merges, signing or publication. Semver/category
 labels do not establish triage readiness. Resolve current labels before edits.
 
-## Agent skills
+## Workflow references
 
-Use the installed Matt Pocock engineering skills and aih-extensions within this repository's existing rules. Keep the skills in their managed user installation.
+Use the managed Matt Pocock skills and Extensions within this repository's rules.
+Keep upstream skills in their managed installation, unchanged by repository cleanup.
 
-### Issue tracker
-
-GitHub Issues on `samartomar/aih-catalog`. See `docs/agents/issue-tracker.md`.
-
-### Triage labels
-
-Preserve accepted label mappings and existing categories. See `docs/agents/triage-labels.md`.
-
-### Domain docs
-
-One product vocabulary with the existing decision authority. See `docs/agents/domain.md`.
+- [Issue routing](docs/agents/issue-tracker.md): owning delivery issue and intake.
+- [Triage](docs/agents/triage-labels.md): existing label roles and mappings.
+- [Domain documentation](docs/agents/domain.md): vocabulary and decision homes.

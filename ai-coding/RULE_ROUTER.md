@@ -2,7 +2,7 @@
 
 [AGENTS.md](../AGENTS.md) owns agent workflow and issue routing.
 For source, tests, CI or release work, read [the transition](../docs/TRANSITION.md).
-`project.md` records status and `rules/git-ci-discipline.md` records active
+`project.md` links maintained references and `rules/git-ci-discipline.md` records
 CI/publication constraints. [CONTRACTS.md](../CONTRACTS.md) describes the formats.
 
 Never run an installed aih-supported against this checkout.

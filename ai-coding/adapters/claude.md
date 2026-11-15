@@ -1,5 +1,6 @@
 # Claude adapter
 
-Use a Claude Code version with native `AGENTS.md` support and verify it loaded
-this repository's `AGENTS.md`. There is no separate mirrored instruction file.
-Never run an installed aih-supported against this checkout.
+Load this repository's [AGENTS.md](../../AGENTS.md) explicitly for the assigned
+source root. Verify the file was read instead of assuming a client version's
+automatic discovery. Private startup instructions stay in the user-level entry
+point; there is no repository `CLAUDE.md` mirror.
