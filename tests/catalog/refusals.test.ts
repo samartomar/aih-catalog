@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { mkdirSync, writeFileSync } from "node:fs";
+import { linkSync, mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { fixtures, limits } from "../../src/catalog/contracts.js";
@@ -25,7 +25,7 @@ describe("bad paths", () => {
     const root = folder({
       "skills/tidy/SKILL.md": SKILL,
       "target/x.md": "x\n",
-      linked: { link: "target" },
+      linked: { link: "target", type: "dir" },
     });
     expect(readLocalSource(join(root, "absent"))).toMatchObject({
       status: "refused",
@@ -272,7 +272,7 @@ describe("explicit leftovers and unimplemented kinds", () => {
       "hooks/hooks.json": "{}\n",
       ".mcp.json": "{}\n",
       "rules/Bad Name.md": "x\n",
-      outside: { link: "/etc" },
+      outside: { link: folder({ "secret.md": "do not read\n" }, "elsewhere"), type: "dir" },
       ".git/HEAD": "ref: refs/heads/main\n",
     });
     if (process.platform !== "win32") execFileSync("mkfifo", [join(root, "pipe")]);
@@ -305,8 +305,13 @@ describe("explicit leftovers and unimplemented kinds", () => {
     const secret = folder({ "secret.md": "do not read\n" }, "elsewhere");
     const root = folder({
       "skills/tidy/SKILL.md": SKILL,
-      "skills/tidy/notes.md": { link: join(secret, "secret.md") },
+      ...(process.platform === "win32"
+        ? {}
+        : { "skills/tidy/notes.md": { link: join(secret, "secret.md") } }),
     });
+    // Hard links need no Windows symlink privilege and must also never expose outside bytes.
+    if (process.platform === "win32")
+      linkSync(join(secret, "secret.md"), join(root, "skills/tidy/notes.md"));
     const read = readLocalSource(root);
     if (read.status !== "ok") throw new Error(JSON.stringify(read));
     expect(read.files.find((file) => file.path === "skills/tidy/notes.md")).toEqual({
@@ -331,7 +336,7 @@ describe("explicit leftovers and unimplemented kinds", () => {
     });
     expect(
       built.content.items.find((item) => item.id === deploy)?.files.map((file) => file.executable),
-    ).toEqual([false, true]);
+    ).toEqual([false, process.platform !== "win32"]);
     const kiro = profile("kiro");
     const result = planInstall([deploy, python], [built.content], [kiro, profile("claude-code")], {
       scope: "project",

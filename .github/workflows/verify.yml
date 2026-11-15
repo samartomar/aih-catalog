@@ -11,8 +11,11 @@ permissions:
 
 jobs:
   verify:
-    name: Catalog integrity
-    runs-on: ubuntu-latest
+    name: Catalog integrity (${{ matrix.os }})
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -23,6 +26,10 @@ jobs:
         with:
           node-version: "26.12.1"
           cache: npm
+      - name: Make Git's shell available after Windows system tools
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: '"PATH=$env:PATH;$env:ProgramFiles\Git\usr\bin" >> $env:GITHUB_ENV'
       - run: npm ci --ignore-scripts
       - name: Build, embedded profiles, typecheck, lint, tests (including the packed file list) and action pins
         run: npm run verify

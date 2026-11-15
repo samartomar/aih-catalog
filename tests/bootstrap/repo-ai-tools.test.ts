@@ -117,7 +117,11 @@ describe("aih-supported repository AI bootstrap", () => {
       }
       execFileSync("git", ["init", "-q", fixture]);
       execFileSync("git", ["-C", fixture, "add", "--all"]);
-      symlinkSync(join(fixture, ".."), join(fixture, "outside"), "dir");
+      symlinkSync(
+        join(fixture, ".."),
+        join(fixture, "outside"),
+        process.platform === "win32" ? "junction" : "dir",
+      );
       const before = preserved.map((path) => readFileSync(join(fixture, path), "utf8"));
       for (const args of [
         ["setup-codex", "--tool", "serena"],

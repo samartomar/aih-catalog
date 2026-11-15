@@ -37,7 +37,7 @@ afterEach(() => {
 export type TreeEntry =
   | string
   | { readonly text: string; readonly executable?: boolean }
-  | { readonly link: string };
+  | { readonly link: string; readonly type?: "dir" | "file" };
 
 /** A disposable folder holding exactly `tree`; removed after each test. */
 export function folder(tree: Readonly<Record<string, TreeEntry>>, name = "my-skills"): string {
@@ -49,7 +49,12 @@ export function folder(tree: Readonly<Record<string, TreeEntry>>, name = "my-ski
     const target = join(root, path);
     mkdirSync(dirname(target), { recursive: true });
     if (typeof entry === "string") writeFileSync(target, entry);
-    else if ("link" in entry) symlinkSync(entry.link, target);
+    else if ("link" in entry)
+      symlinkSync(
+        resolve(dirname(target), entry.link),
+        target,
+        entry.type === "dir" && process.platform === "win32" ? "junction" : entry.type,
+      );
     else {
       writeFileSync(target, entry.text);
       chmodSync(target, entry.executable ? 0o755 : 0o644);
@@ -147,13 +152,24 @@ export function gitRepository(...trees: Readonly<Record<string, TreeEntry>>[]): 
       const target = join(path, file);
       mkdirSync(dirname(target), { recursive: true });
       if (typeof entry === "string") writeFileSync(target, entry);
-      else if ("link" in entry) symlinkSync(entry.link, target);
+      // Git links are blob data, so constructing one needs no OS symlink privilege.
+      else if ("link" in entry) writeFileSync(target, entry.link);
       else {
         writeFileSync(target, entry.text);
         chmodSync(target, entry.executable ? 0o755 : 0o644);
       }
     }
     git(path, "add", "--all");
+    for (const [file, entry] of Object.entries(tree)) {
+      if (typeof entry === "object" && "link" in entry) {
+        const blob = git(path, "hash-object", "-w", "--no-filters", join(path, file));
+        git(path, "update-index", "--cacheinfo", `120000,${blob},${file}`);
+      } else {
+        // Windows cannot represent POSIX executable bits in the working tree.
+        const executable = typeof entry === "object" && entry.executable;
+        git(path, "update-index", executable ? "--chmod=+x" : "--chmod=-x", "--", file);
+      }
+    }
     git(path, "commit", "--quiet", "--allow-empty", "-m", `commit ${index + 1}`);
     commits.push(git(path, "rev-parse", "HEAD"));
   }

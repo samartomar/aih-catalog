@@ -136,7 +136,10 @@ const same = (left, right) => assert.equal(JSON.stringify(left), JSON.stringify(
     assert.deepEqual([...new Set(plan.plan.map((step) => step.op))].sort(), ["write"]);
     for (const step of plan.plan) assert.equal(step.root, "project");
     assert.equal(paths.filter((path) => path.startsWith(".aihq/notices/")).length, 1);
-    assert.equal(stepAt(plan, ".claude/skills/revise/scripts/check.sh").executable, true);
+    assert.equal(
+      stepAt(plan, ".claude/skills/revise/scripts/check.sh").executable,
+      process.platform !== "win32",
+    );
     ownership(plan);
   });
   await j.check("the same input gives the same plan, byte for byte", () => {
@@ -1481,8 +1484,18 @@ function qualifiedFixtures(frozen, trio) {
     "Scans: scan keys equal Scan's and Git's; cut-outs; exact MCP versions; unscanned keys",
     "fixture",
   );
-  const root = writeTree(join(work, "scan-kit"), SCAN_FOLDER);
-  const read = readLocalSource(root);
+  // This fixture declares Git modes; a Windows local folder cannot retain its execute bit.
+  const read = {
+    files: Object.entries(SCAN_FOLDER).map(([path, entry]) => {
+      const bytes = encoder.encode(typeof entry === "string" ? entry : entry.text);
+      return {
+        path,
+        mode: typeof entry === "object" && entry.executable ? "100755" : "100644",
+        sha256: sha(bytes),
+        bytes,
+      };
+    }),
+  };
   const fileOf = (path) => read.files.find((file) => file.path === path);
   const record = (path) => ({
     sourceId: "kit",
@@ -1517,6 +1530,10 @@ function qualifiedFixtures(frozen, trio) {
     () => {
       assert.equal(built.status, "ok", JSON.stringify(built).slice(0, 500));
       const audit = built.content.items[0];
+      assert.equal(
+        audit.files.find((file) => file.sourcePath === "skills/audit/run.sh").executable,
+        true,
+      );
       assert.equal(audit.scanKey, prepared.trees.item);
       assert.equal(audit.editions["claude-code"].scanKey, prepared.trees.edition);
       assert.equal(built.content.bundles[0].scanKey, prepared.trees.bundle);

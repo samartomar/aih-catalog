@@ -1,6 +1,6 @@
 import { execFileSync } from "node:child_process";
 import { readdirSync, readFileSync, statSync } from "node:fs";
-import { join, relative, resolve } from "node:path";
+import { join, relative, resolve, sep } from "node:path";
 import { describe, expect, it } from "vitest";
 import { readLocalSource } from "../../src/catalog/node.js";
 import { checkContent } from "../../src/catalog/producer.js";
@@ -130,7 +130,7 @@ describe("the remaining-port fixture", () => {
       const root = join(FIXTURE, name);
       const present = readdirSync(root, { recursive: true, withFileTypes: true })
         .filter((entry) => entry.isFile())
-        .map((entry) => relative(root, join(entry.parentPath, entry.name)))
+        .map((entry) => relative(root, join(entry.parentPath, entry.name)).split(sep).join("/"))
         .sort();
       expect(present).toEqual(upstream.entries.map((entry) => entry.path));
       for (const entry of upstream.entries) {
@@ -139,7 +139,13 @@ describe("the remaining-port fixture", () => {
           encoding: "utf8",
         }).trim();
         expect(blob, entry.path).toBe(entry.blob);
-        expect((statSync(path).mode & 0o111) !== 0, entry.path).toBe(entry.mode === "100755");
+        const tracked = execFileSync("git", ["ls-files", "--stage", "--", path], {
+          cwd: repositoryRoot,
+          encoding: "utf8",
+        });
+        expect(tracked.split(" ")[0], entry.path).toBe(entry.mode);
+        if (process.platform !== "win32")
+          expect((statSync(path).mode & 0o111) !== 0, entry.path).toBe(entry.mode === "100755");
       }
     }
     expect(UPSTREAM.pstack?.subpath).toBe("pstack");

@@ -1,7 +1,7 @@
 import { execFileSync } from "node:child_process";
 import { randomBytes } from "node:crypto";
 import { existsSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { gzipSync } from "node:zlib";
 import { afterEach, describe, expect, it } from "vitest";
@@ -328,7 +328,12 @@ describe("fetching a local candidate", () => {
     const link = parseSourceLink(pathToFileURL(root).href);
     if (link.status !== "recognised") throw new Error(JSON.stringify(link));
     const fetched = await fetchSource(link.candidate, { outDir: outDir(), fromUser: true });
-    expect(fetched).toEqual(readLocalSource(root));
+    if (fetched.status !== "ok" || fetched.source.kind !== "local")
+      throw new Error(JSON.stringify(fetched));
+    expect(resolve(fetched.source.path)).toBe(resolve(root));
+    expect({ ...fetched, source: { ...fetched.source, path: root } }).toEqual(
+      readLocalSource(root),
+    );
     const { built } = await contentFrom(fetched, "mine");
     expect(built.content.sources).toEqual([{ id: "mine", kind: "local", notices: [] }]);
   });
