@@ -110,6 +110,11 @@ try {
       chmodSync(target, typeof entry === "object" && entry.executable ? 0o755 : 0o644);
     }
     git("add", "--all");
+    for (const [path, from] of Object.entries(layout)) {
+      const entry = SCAN_FOLDER[from];
+      const executable = typeof entry === "object" && entry.executable;
+      git("update-index", executable ? "--chmod=+x" : "--chmod=-x", "--", path);
+    }
     trees[name] = `git-sha1:${git("write-tree")}`;
   }
 } finally {
