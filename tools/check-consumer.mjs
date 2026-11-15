@@ -30,6 +30,7 @@ import {
   mkdtempSync,
   readFileSync,
   rmSync,
+  statSync,
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
@@ -204,7 +205,16 @@ try {
     },
     scan: { package: "@aihq/scan@0.0.0-dev.1", sha256: sha256(scanBytes) },
     runtime: { node: process.versions.node, npm: run(process.execPath, [npm, "--version"]).trim() },
-    inputs: prepared.identity,
+    inputs: {
+      ...prepared.identity,
+      // Local reads preserve filesystem metadata, which can differ across machines.
+      localFixtures: {
+        ownFolder: {
+          scriptExecutable:
+            (statSync(join(out, "my-skills/skills/revise/scripts/check.sh")).mode & 0o100) !== 0,
+        },
+      },
+    },
     network: args.has("--network"),
     basis: {
       fixture: "synthetic files written by the journey, or pinned upstream fixture bytes",
