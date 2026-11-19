@@ -108,9 +108,33 @@ listed in `unsupported` with its reason. A section the client lacks is left out,
 then reports the pair as `unavailable` (`not-described`), never invented. Any change to a
 profile's rendered output increases its `version`.
 
-Where the reader takes a client, it takes that client's tool profile. `listItems(content, { kind?, cli? })`
+Where the reader takes a client, it takes that client's tool profile. `listItems(content, { kind?, cli?, context? })`
 keeps the contract's option name `cli`, and its value is a tool profile as `readToolProfile`
 returns it, not a client id.
+
+`availability(item, profile, context?)` checks the same one-item selection as `planInstall`.
+Only a complete (`ok`) plan is available. `how` is `edition` or `rendered` on success and
+`none` otherwise. A planner `unavailable` entry supplies its reason; an incomplete plan
+without one (for example a missing dependency, clash or unresolved path) gives `incomplete`.
+A missing AI setup platform gives `platform-required`; an invalid platform gives `invalid`.
+Other invalid input gives `invalid`, and a refusal preserves its code as the reason.
+
+The optional `AvailabilityContext` holds `contents` and any `PlanOptions` fields; `scope`
+defaults to `project` and `data` to `null`. Its content is authoritative: `item.id` selects
+the planned item and its edition metadata from those documents. Missing ids give
+`unknown-item`. Supply the complete content list, including the item's own framework.
+AI setups can then use the caller's `cell` and `qualifications`, with the planner's usual
+`no-qualification` and `not-qualified` outcomes.
+
+Without explicit context, items from `readContent`, `listItems` and `getItem` retain their
+containing document by object identity. This association does not survive copying or
+serialization. The first association is retained when a wrapper reuses those same item
+objects; use explicit context to check a different document. A standalone item falls back
+to a document containing only its own files;
+missing bundles or sources can therefore give `invalid`, and an unresolved dependency or
+path gives `incomplete`. Supply context when those surrounding facts are needed.
+Client-filtered lists use the containing content by default and accept the same explicit
+`context`. Each item is checked as its own selection; siblings are not implicitly selected.
 
 ### Recipe
 

@@ -9,6 +9,7 @@ import { isRecord, isText, Problems, type Record_, TEXT_LIMITS } from "./check.j
 import { behaviourSha256, contentSha256, kindFieldNames } from "./identity.js";
 import { BLOCK_MARKER, skillFilesOutside } from "./kinds.js";
 import {
+  type Content,
   FRAMEWORK_ID,
   ID_SEGMENT,
   INPUT_NAME,
@@ -78,7 +79,16 @@ function checkIdList(value: unknown, path: string, problems: Problems): void {
 /** Control characters and line or paragraph separators: never in a one-line name. */
 const UNPRINTABLE = /[\p{Cc}\p{Zl}\p{Zp}]/u;
 
+const admittedContents = new WeakSet<Content>();
+
+/** Only the reader calls this, after all content checks and recursive freezing succeed. */
+export function rememberValidatedContent(content: Content): void {
+  admittedContents.add(content);
+}
+
 export function contentProblems(value: unknown): Problem[] {
+  if (typeof value === "object" && value !== null && admittedContents.has(value as Content))
+    return [];
   const problems = new Problems();
   if (!isRecord(value)) return [{ path: "", message: "content must be an object" }];
   problems.keys(

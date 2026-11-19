@@ -53,6 +53,13 @@ Functions that take outside input never throw on bad input. They return a result
 `availability` work on content already read and return plain values. The same input always
 gives the same plan, byte for byte.
 
+`availability(item, profile)` checks whether selecting that item gives a complete plan at
+project scope. Items returned by `readContent`, `listItems` or `getItem` keep their framework
+context, including bundles and siblings. For a copied item, another scope or AI setup inputs,
+pass `availability(item, profile, { contents: [content], scope: "user", cell, qualifications })`.
+`listItems(content, { cli: profile, context: { contents: [content], cell, qualifications } })`
+uses the same check for each item; without `context` it uses the containing document.
+
 [CONTRACTS.md](CONTRACTS.md) describes the formats, plan steps and checks.
 
 ## Plan an installation from your own folder
