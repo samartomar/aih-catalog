@@ -31,6 +31,37 @@ function itemIn(content: Content, id: string): Item {
 }
 
 describe("item availability in its framework", () => {
+  it.each([
+    ["scope", { scope: undefined }],
+    ["data", { data: undefined }],
+    ["scope and data", { scope: undefined, data: undefined }],
+  ] as const)("applies defaults to explicitly undefined %s", (_name, options) => {
+    const egm = content("egm");
+    const item = itemIn(egm, "egm.agent.bootstrap_orchestrator");
+    const claude = profile("claude-code");
+    const context = { contents: [egm], ...options };
+    expect(availability(item, claude, context)).toEqual({ available: true, how: "rendered" });
+    expect(
+      listItems(egm, { kind: "agent", cli: claude, context }).map((item) => item.id),
+    ).toContain(item.id);
+  });
+
+  it.each([
+    { scope: null },
+    { scope: "invalid" },
+    { data: false },
+    { data: {} },
+  ])("still rejects invalid explicit context options %j", (options) => {
+    const egm = content("egm");
+    const item = itemIn(egm, "egm.agent.bootstrap_orchestrator");
+    expect(
+      availability(item, profile("claude-code"), {
+        contents: [egm],
+        ...options,
+      } as never),
+    ).toEqual({ available: false, how: "none", reason: "invalid" });
+  });
+
   it("checks a wrapper's own context without rebinding its shared reader items", () => {
     const egm = content("egm");
     const item = itemIn(egm, "egm.agent.bootstrap_orchestrator");

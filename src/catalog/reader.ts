@@ -301,11 +301,15 @@ export function availability(
   profile: ToolProfile,
   context?: AvailabilityContext,
 ): Availability {
-  const { contents = [itemContents.get(item) ?? syntheticContent(item)], ...options } =
-    context ?? {};
+  const {
+    contents = [itemContents.get(item) ?? syntheticContent(item)],
+    scope = "project",
+    data = null,
+    ...options
+  } = context ?? {};
   const result = plan([item.id], contents, [profile], {
-    scope: "project",
-    data: null,
+    scope,
+    data,
     ...options,
   });
   if (result.status !== "ok" && result.status !== "incomplete") {
