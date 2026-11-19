@@ -28,6 +28,7 @@ import {
   type BundleRootRender,
   type DuplicatesRender,
   type MarketplaceRender,
+  type PlanOptions,
   type PlanRender,
   type PlanStep,
   planInstall as plan,
@@ -52,7 +53,7 @@ import {
 } from "./internal/render.js";
 import { marketplaceBytes, planRecipe as recipePlan } from "./internal/routes.js";
 import { sha256Hex } from "./internal/sha256.js";
-import { contentProblems } from "./internal/validate.js";
+import { contentProblems, rememberValidatedContent } from "./internal/validate.js";
 
 export type {
   AiSetup,
@@ -178,7 +179,11 @@ function readDocument(
  */
 export function readContent(bytes: Uint8Array): ReadContentResult {
   const result = readDocument(bytes, formats.content, "contentFileBytes", contentProblems);
-  return result.status === "ok" ? { status: "ok", content: result.value as Content } : result;
+  if (result.status !== "ok") return result;
+  const content = result.value as Content;
+  rememberValidatedContent(content);
+  rememberContent(content);
+  return { status: "ok", content };
 }
 
 /** Reads a tool profile document (pure data), strict JSON in any spelling, like content. */
@@ -273,22 +278,60 @@ export type Availability = {
   readonly reason?: string;
 };
 
-/** Whether an item can be placed for a profile at project scope, and how (edition or render). */
-export function availability(item: Item, profile: ToolProfile): Availability {
-  const result = plan([item.id], [syntheticContent(item)], [profile], {
+/** The full content and planner options for checking one selected item. */
+export interface AvailabilityContext extends Partial<PlanOptions> {
+  readonly contents: readonly Content[];
+}
+
+// Items returned through the reader retain their full framework context without changing
+// their public shape. Keep references, not outcomes: callers can also supply mutable content.
+const itemContents = new WeakMap<Item, Content>();
+function rememberContent(content: Content): void {
+  for (const item of content.items) if (!itemContents.has(item)) itemContents.set(item, content);
+}
+
+/**
+ * Whether selecting one item produces a complete plan, and how (edition or render).
+ * Uses its reader-known content, or an explicit context; defaults to project scope/data null.
+ * A standalone item without known context falls back to its own files only.
+ * The item's id selects the authoritative item from that content, including its editions.
+ */
+export function availability(
+  item: Item,
+  profile: ToolProfile,
+  context?: AvailabilityContext,
+): Availability {
+  const { contents = [itemContents.get(item) ?? syntheticContent(item)], ...options } =
+    context ?? {};
+  const result = plan([item.id], contents, [profile], {
     scope: "project",
     data: null,
+    ...options,
   });
   if (result.status !== "ok" && result.status !== "incomplete") {
     return {
       available: false,
       how: "none",
-      reason: result.status === "refused" ? result.code : "invalid",
+      reason:
+        result.status === "refused"
+          ? result.code
+          : result.status === "invalid" &&
+              context?.cell === undefined &&
+              result.problems.length > 0 &&
+              result.problems.every((problem) => problem.path === "options/cell")
+            ? "platform-required"
+            : "invalid",
     };
   }
   const blocked = result.unavailable[0];
   if (blocked) return { available: false, how: "none", reason: blocked.reason };
-  return { available: true, how: ownValue(item.editions, profile.id) ? "edition" : "rendered" };
+  if (result.status === "incomplete")
+    return { available: false, how: "none", reason: "incomplete" };
+  const selected = contents
+    .flatMap((content) => content.items)
+    .find((candidate) => candidate.id === item.id);
+  if (selected === undefined) return { available: false, how: "none", reason: "unknown-item" };
+  return { available: true, how: ownValue(selected.editions, profile.id) ? "edition" : "rendered" };
 }
 
 /** A one-item content around `item`, so availability reuses the planner's placement rules. */
@@ -314,12 +357,16 @@ export function listItems(
      * it takes that client's tool profile (as `readToolProfile` returns it), not a client id.
      */
     readonly cli?: ToolProfile;
+    /** Full content and planner options; defaults to this document at project scope. */
+    readonly context?: AvailabilityContext;
   } = {},
 ): Item[] {
+  rememberContent(content);
+  const context = options.context ?? { contents: [content] };
   return content.items.filter(
     (item) =>
       (options.kind === undefined || item.kind === options.kind) &&
-      (options.cli === undefined || availability(item, options.cli).available),
+      (options.cli === undefined || availability(item, options.cli, context).available),
   );
 }
 
@@ -328,6 +375,7 @@ export function getItem(
   id: string,
 ): { readonly status: "ok"; readonly item: Item } | Refused {
   const item = content.items.find((candidate) => candidate.id === id);
+  if (item && !itemContents.has(item)) itemContents.set(item, content);
   return item
     ? { status: "ok", item }
     : refused("unknown-item", `the item ${quote(String(id))} is not in this content`);

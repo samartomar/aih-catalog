@@ -1926,6 +1926,121 @@ function commonFolder(paths, kind) {
 const regression = (id, title, basis) => journey(id, title, basis);
 {
   const r = regression(
+    "contextual-availability",
+    "Reader item placement uses framework content and complete planner outcomes",
+    "candidate-data",
+  );
+  await r.check("bundle context survives ordinary lookup and client-filtered lists", () => {
+    const egm = content("egm");
+    const claude = profiles["claude-code"];
+    const found = reader.getItem(egm, "egm.agent.bootstrap_orchestrator");
+    assert.equal(found.status, "ok");
+    assert.equal(
+      planInstall([found.item.id], [egm], [claude], {
+        scope: "project",
+        data,
+      }).status,
+      "ok",
+    );
+    assert.deepEqual(reader.availability(found.item, claude), {
+      available: true,
+      how: "rendered",
+    });
+    assert.ok(
+      reader
+        .listItems(egm, { kind: "agent", cli: claude })
+        .some((item) => item.id === found.item.id),
+    );
+    const copied = { ...found.item, editions: content("pstack").items[0].editions };
+    assert.deepEqual(reader.availability(copied, claude, { contents: [egm] }), {
+      available: true,
+      how: "rendered",
+    });
+    const wrapper = { ...egm, bundles: [] };
+    assert.equal(reader.getItem(wrapper, found.item.id).status, "ok");
+    assert.deepEqual(reader.listItems(wrapper, { cli: claude }), []);
+    assert.deepEqual(reader.availability(found.item, claude), {
+      available: true,
+      how: "rendered",
+    });
+  });
+  await r.check("unresolved sibling paths and unsupported clients stay unavailable", () => {
+    const pstack = content("pstack");
+    const found = reader.getItem(pstack, "pstack.agent.poteto-agent");
+    assert.equal(found.status, "ok");
+    const plan = planned(
+      planInstall([found.item.id], [pstack], P("claude-code"), {
+        scope: "project",
+        data,
+      }),
+    );
+    assert.equal(plan.status, "incomplete");
+    assert.deepEqual(plan.unavailable, []);
+    assert.deepEqual(reader.availability(found.item, profiles["claude-code"]), {
+      available: false,
+      how: "none",
+      reason: "incomplete",
+    });
+    assert.ok(
+      !reader
+        .listItems(pstack, { cli: profiles["claude-code"] })
+        .some((item) => item.id === found.item.id),
+    );
+    assert.deepEqual(reader.availability(found.item, profiles.dsh), {
+      available: false,
+      how: "none",
+      reason: "unsupported-kind",
+    });
+  });
+  await r.check("AI setup availability accepts the platform and qualification context", () => {
+    const cbm = content("cbm");
+    const item = cbm.items.find((item) => item.kind === "ai-setup");
+    const codex = profiles.codex;
+    assert.deepEqual(reader.availability(item, codex), {
+      available: false,
+      how: "none",
+      reason: "platform-required",
+    });
+    const placementContext = {
+      contents: [cbm],
+      cell: "linux-x64",
+      qualifications: qualifications.map((entry) => entry.qualification),
+    };
+    assert.deepEqual(reader.availability(item, codex, placementContext), {
+      available: true,
+      how: "rendered",
+    });
+    assert.deepEqual(
+      reader
+        .listItems(cbm, {
+          kind: "ai-setup",
+          cli: codex,
+          context: placementContext,
+        })
+        .map((item) => item.id),
+      [item.id],
+    );
+    assert.deepEqual(
+      reader.availability(item, codex, { ...placementContext, qualifications: [] }),
+      {
+        available: false,
+        how: "none",
+        reason: "no-qualification",
+      },
+    );
+    assert.deepEqual(
+      reader.availability(item, codex, { ...placementContext, cell: "windows-x64" }),
+      {
+        available: false,
+        how: "none",
+        reason: "not-qualified",
+      },
+    );
+  });
+  regressions.push(r.finish());
+}
+{
+  const r = regression(
     "resolver-warning",
     "Resolver-unavailable warning versus an explicitly selected unsupported agent",
     "candidate-data",
