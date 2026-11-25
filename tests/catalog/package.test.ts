@@ -22,7 +22,7 @@ const root = resolve(import.meta.dirname, "../..");
 const manifest = JSON.parse(readFileSync(join(root, "package.json"), "utf8"));
 const ENTRY_POINTS = ["contracts", "node", "producer", "reader", "source"];
 const SCAN_TARBALL = "vendor/aihq-scan-0.0.0-dev.1.tgz";
-const SCAN_SHA256 = "4f1368c9b89d4055d71f6dc788d0838300f80e39603273cfd663ce1d7ff508c0";
+const SCAN_SHA256 = "55e207311d8939b17ed9d7e852b18904e8e2043075dab1e453f1f533405a3348";
 
 /** The local npm CLI next to this Node; never npx. */
 function npmCli(): string {

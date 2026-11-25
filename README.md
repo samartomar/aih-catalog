@@ -137,7 +137,7 @@ Catalog item one disposition and lists the known limits.
 Catalog needs Node `>=26.12.1 <27`. Its one runtime dependency besides `yaml` is
 `@aihq/scan@0.0.0-dev.1`, which is not on the npm registry yet. Until it is, install the Scan
 tarball kept in this repository (`vendor/aihq-scan-0.0.0-dev.1.tgz`, sha256
-`4f1368c9b89d4055d71f6dc788d0838300f80e39603273cfd663ce1d7ff508c0`) together with a Catalog
+`55e207311d8939b17ed9d7e852b18904e8e2043075dab1e453f1f533405a3348`) together with a Catalog
 tarball you built:
 
 ```sh
