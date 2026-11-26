@@ -11,11 +11,11 @@ notices, component archive and historical Parcel scripts remain unchanged in
 Catalog's separate upstream items. This adaptation contains newly authored code;
 it does not unpack or install the upstream component ecosystem.
 
-Use an explicitly selected Node 26.12.1 (compatible range >=26.12.1 <27).
+Use an explicitly selected Node 26.13.1 (compatible range >=26.12.1 <27).
 Run `node artifact.mjs init <new-project>` from this skill's directory. It copies
 only files, refuses an existing destination and never installs or starts tools.
 
-Acquire **pnpm 12.15.0** into a project/task-local directory through an approved
+Acquire **pnpm 12.23.0** into a project/task-local directory through an approved
 exact artifact route. The package's platform-specific native executable is part
 of its closure; verify its registry integrity too. Do not run a global installer
 or enable Corepack globally. Invoke that exact local executable for:
@@ -29,8 +29,8 @@ Here `pnpm` denotes the exact locally acquired executable, not an arbitrary PATH
 command. The project declares its identity in packageManager and engines. Keep
 cache/runtime/store paths task-local, including XDG_RUNTIME_DIR on sandboxed Linux.
 No create-vite/scaffold fetch or dependency lifecycle script is required.
-The locks bind Vite 8.3.5, React/react-dom 19.3.1, TypeScript 7.0.2,
-@vitejs/plugin-react 6.1.2 and Tailwind/@tailwindcss/vite 4.3.3 with peers.
+The locks bind Vite 8.3.8, React/react-dom 19.3.1, TypeScript 7.0.2,
+@vitejs/plugin-react 6.3.0, Tailwind/@tailwindcss/vite 4.3.5 and @types/react 19.3.1.
 
 Edit `src/main.tsx` and `src/style.css`. Tailwind 4 uses `@import "tailwindcss"`
 and explicit local source discovery; do not restore the old Tailwind 3 config.

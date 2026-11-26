@@ -23,4 +23,4 @@ if (args[2] === '--components') {
   copyFileSync(resolve(target, 'components.pnpm-lock.yaml'), resolve(target, 'pnpm-lock.yaml'));
 }
 for (const file of ['components.package.json', 'components.pnpm-lock.yaml']) unlinkSync(resolve(target, file));
-console.log('Created locked project. Acquire pnpm 12.15.0 locally, then install --frozen-lockfile --ignore-scripts and run build.');
+console.log('Created locked project. Acquire pnpm 12.23.0 locally, then install --frozen-lockfile --ignore-scripts and run build.');
