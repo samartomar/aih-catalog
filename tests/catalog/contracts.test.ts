@@ -38,6 +38,48 @@ const PLUGIN_JSON = utf8(
 );
 
 const ajv = new Ajv2020({ allErrors: true, strictTypes: false });
+
+it("carries Chrome guidance as two pinned skills with an opt-in items recipe", () => {
+  const path = "data/modern-web-guidance/content.json";
+  expect(readContent(readFileSync(join(root, path))).status).toBe("ok");
+  const { sources, items } = json(path);
+  expect(sources[0]).toMatchObject({
+    repository: "https://github.com/GoogleChrome/modern-web-guidance",
+    commit: "2b4aa13a72dd47cd135b06ce5abfccd92e19b24f",
+    notices: [{ sourcePath: "LICENSE" }],
+  });
+  const identities = {
+    "chrome-extensions": {
+      key: "git-sha1:70ae21f9bbccb4d97c2748dffcc227f9ed07c6cf",
+      files: 24,
+      reference: "references/extensions/permissions.md",
+    },
+    "modern-web-guidance": {
+      key: "git-sha1:94cd548883b7cd735ee0d2bdd723c68a212a0933",
+      files: 212,
+      reference: "guides/css/css-layout.md",
+    },
+  };
+  expect(items.map((item: { name: string }) => item.name)).toEqual(Object.keys(identities));
+  for (const item of items) {
+    const name = item.name as keyof typeof identities;
+    const { key, files, reference } = identities[name];
+    expect(item).toMatchObject({ kind: "skill", scanKey: key });
+    expect(item.files).toHaveLength(files);
+    const paths = item.files.map((file: { sourcePath: string }) => file.sourcePath);
+    expect(paths.every((sourcePath: string) => sourcePath.startsWith(`skills/${name}/`))).toBe(
+      true,
+    );
+    expect(paths).toContain(`skills/${name}/${reference}`);
+  }
+  expect(json("port-report/remaining.json").recipes["modern-web-guidance-base"]).toMatchObject({
+    routes: {},
+    members: [],
+    options: [
+      { items: items.map((item: { id: string }) => ({ item: item.id, preTicked: false })) },
+    ],
+  });
+});
 const validators = Object.fromEntries(
   NAMES.map((name) => [name, ajv.compile(schemas[name] as object)]),
 ) as Record<Name, ReturnType<typeof ajv.compile>>;
