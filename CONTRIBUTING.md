@@ -95,7 +95,7 @@ checkout), and `-- --check` compares instead of writing:
 | Command | Writes |
 | --- | --- |
 | `npm run port:maintained` | `data/{ecc,superpowers,extensions,project-basics}`, `port-report/maintained.json` |
-| `npm run port:remaining` | `data/{anthropic,web-artifacts,guide,pstack,gstack,egm}`, `port-report/remaining.json` |
+| `npm run port:remaining` | `data/{anthropic,web-artifacts,guide,modern-web-guidance,pstack,gstack,egm}`, `port-report/remaining.json` |
 | `npm run port:ai-setup` | `data/{crg,cbm,serena}`, `data/qualifications/`, `port-report/ai-setup.json` |
 | `npm run port:report` | `port-report/report.json`, from the three section reports and the data (offline) |
 

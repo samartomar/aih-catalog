@@ -22,6 +22,14 @@
       "kind": "skill"
     },
     {
+      "item": "modern-web-guidance.skill.chrome-extensions",
+      "kind": "skill"
+    },
+    {
+      "item": "modern-web-guidance.skill.modern-web-guidance",
+      "kind": "skill"
+    },
+    {
       "item": "pstack.agent.comment-sicko",
       "kind": "agent"
     },
@@ -602,22 +610,23 @@
       }
     },
     "measured": "urn:aihq:catalog:release:1.7.0",
-    "relation": "none of these families' items is in the measured 777-item baseline (ECC, Superpowers, Extensions and project-basics, all disposed in port-report/maintained.json). Their earlier items live in older release documents, disposed below; pstack, gstack and EGM are new families with no earlier items"
+    "relation": "none of these families' items is in the measured 777-item baseline (ECC, Superpowers, Extensions and project-basics, all disposed in port-report/maintained.json). Their earlier items live in older release documents, disposed below; Modern Web Guidance, pstack, gstack and EGM are new families with no earlier items"
   },
   "contentItems": {
     "anthropic": 18,
     "egm": 18,
     "gstack": 61,
     "guide": 2,
+    "modern-web-guidance": 2,
     "pstack": 61,
     "web-artifacts": 1
   },
   "counts": {
-    "contentItems": 161,
+    "contentItems": 163,
     "dropped": 22,
     "earlierItems": 96,
     "mapped": 69,
-    "newItems": 145,
+    "newItems": 147,
     "notice": 3,
     "split": 2,
     "upstreamOnly": 1
@@ -2782,6 +2791,7 @@
     "anthropic",
     "web-artifacts",
     "guide",
+    "modern-web-guidance",
     "pstack",
     "gstack",
     "egm"
@@ -2811,6 +2821,22 @@
         "guide/compass.svg"
       ],
       "reason": "the guide's build inputs and its generation record; the generated agent files and the manual are the items"
+    },
+    {
+      "family": "modern-web-guidance",
+      "paths": [
+        ".agents/",
+        ".claude-plugin/",
+        ".codex-plugin/",
+        ".cursor-plugin/",
+        ".grok-plugin/",
+        "gemini-extension.json",
+        "kimi.plugin.json",
+        "package.json",
+        "plugin.json",
+        "policies/"
+      ],
+      "reason": "host plugin configuration, launcher metadata and policies are outside the two skill folders offered for optional discovery"
     },
     {
       "family": "pstack",
@@ -2903,6 +2929,10 @@
       "items": 0,
       "references": 0
     },
+    "modern-web-guidance": {
+      "items": 0,
+      "references": 0
+    },
     "pstack": {
       "items": 26,
       "references": 119
@@ -2928,6 +2958,10 @@
     "guide": {
       "commit": "c89adaad320d679c905e7122b908c1bc9c8c1904",
       "repository": "https://github.com/samartomar/aih-extensions"
+    },
+    "modern-web-guidance": {
+      "commit": "2b4aa13a72dd47cd135b06ce5abfccd92e19b24f",
+      "repository": "https://github.com/GoogleChrome/modern-web-guidance"
     },
     "pstack": {
       "commit": "b1fbf4b60ac6813b4583ccc356850dafcf492665",
@@ -3641,6 +3675,33 @@
           "items": [
             {
               "item": "guide.document.manual",
+              "preTicked": false
+            }
+          ],
+          "pick": "several"
+        }
+      ],
+      "routes": {}
+    },
+    "modern-web-guidance-base": {
+      "content": {
+        "commit": "2b4aa13a72dd47cd135b06ce5abfccd92e19b24f",
+        "repository": "https://github.com/GoogleChrome/modern-web-guidance"
+      },
+      "framework": "modern-web-guidance",
+      "id": "modern-web-guidance-base",
+      "kind": "base",
+      "members": [],
+      "options": [
+        {
+          "id": "optional",
+          "items": [
+            {
+              "item": "modern-web-guidance.skill.chrome-extensions",
+              "preTicked": false
+            },
+            {
+              "item": "modern-web-guidance.skill.modern-web-guidance",
               "preTicked": false
             }
           ],
