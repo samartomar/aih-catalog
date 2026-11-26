@@ -1,6 +1,6 @@
 # Catalog Scan coverage
 
-**630 of 1,069 Catalog versions have a published scan. 439 await one.**
+**961 of 1,069 Catalog versions have a published scan. 108 await one.**
 
 This snapshot covers 960 items across 14 families, including client editions, runtime bundles and plugin folders. See the [sources and refresh instructions](#sources-and-refresh).
 
@@ -14,20 +14,20 @@ Items and editions that share the same files, paths and modes count as one versi
 
 | Family | Items | Versions | Published | Pending | AI setups with qualifications |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| **All families** | 960 | 1,069 | 630 | 439 | 3 |
+| **All families** | 960 | 1,069 | 961 | 108 | 3 |
 | [Anthropic skills](#family-anthropic) | 18 | 24 | 14 | 10 | 0 |
 | [codebase-memory-mcp](#family-cbm) | 2 | 1 | 1 | 0 | 1 |
 | [code-review-graph](#family-crg) | 9 | 8 | 8 | 0 | 1 |
-| [ECC](#family-ecc) | 698 | 775 | 517 | 258 | 0 |
-| [Elephant-Goldfish Model](#family-egm) | 18 | 21 | 8 | 13 | 0 |
-| [AIH Extensions](#family-extensions) | 66 | 67 | 37 | 30 | 0 |
-| [gstack](#family-gstack) | 61 | 61 | 0 | 61 | 0 |
+| [ECC](#family-ecc) | 698 | 775 | 736 | 39 | 0 |
+| [Elephant-Goldfish Model](#family-egm) | 18 | 21 | 18 | 3 | 0 |
+| [AIH Extensions](#family-extensions) | 66 | 67 | 59 | 8 | 0 |
+| [gstack](#family-gstack) | 61 | 61 | 25 | 36 | 0 |
 | [AIH Guide](#family-guide) | 2 | 4 | 4 | 0 | 0 |
 | [Google Chrome Modern Web Guidance](#family-modern-web-guidance) | 2 | 2 | 0 | 2 | 0 |
 | [Project basics](#family-project-basics) | 3 | 3 | 3 | 0 | 0 |
-| [pstack](#family-pstack) | 61 | 83 | 29 | 54 | 0 |
+| [pstack](#family-pstack) | 61 | 83 | 80 | 3 | 0 |
 | [Serena](#family-serena) | 2 | 1 | 1 | 0 | 1 |
-| [Superpowers](#family-superpowers) | 17 | 18 | 8 | 10 | 0 |
+| [Superpowers](#family-superpowers) | 17 | 18 | 12 | 6 | 0 |
 | [Web artifacts](#family-web-artifacts) | 1 | 1 | 0 | 1 | 0 |
 
 ## Look up an item or edition
@@ -101,10 +101,10 @@ Choose a family and search for the item's name. Each date links to the release f
 | Name | Type | Published scans |
 | --- | --- | --- |
 | a11y-architect | Agent | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| agent-evaluator | Agent | No published scan yet |
+| agent-evaluator | Agent | AI · DO NOT INSTALL · Complete ([Nov 26, 2026][release-3]) |
 | architect | Agent | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | architect | Kiro edition | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| bengali-reviewer | Agent | No published scan yet |
+| bengali-reviewer | Agent | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | build-error-resolver | Agent | AI · CAUTION · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | build-error-resolver | Kiro edition | AI · CAUTION · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | chief-of-staff | Agent | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
@@ -115,7 +115,7 @@ Choose a family and search for the item's name. Each date links to the release f
 | code-reviewer | Kiro edition | AI · CAUTION · Complete ([Nov 4, 2026][release-1]) |
 | code-simplifier | Agent | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | comment-analyzer | Agent | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| commit-reviewer | Agent | No published scan yet |
+| commit-reviewer | Agent | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | conversation-analyzer | Agent | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | cpp-build-resolver | Agent | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | cpp-build-resolver | Kiro edition | AI · CAUTION · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
@@ -131,22 +131,22 @@ Choose a family and search for the item's name. Each date links to the release f
 | doc-updater | Agent | AI · CAUTION · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | doc-updater | Kiro edition | AI · CAUTION · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | docs-lookup | Agent | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| e2e-runner | Agent | No published scan yet |
-| e2e-runner | Kiro edition | No published scan yet |
+| e2e-runner | Agent | AI · CAUTION · Complete ([Nov 26, 2026][release-3]) |
+| e2e-runner | Kiro edition | AI · CAUTION · Complete ([Nov 26, 2026][release-3]) |
 | fastapi-reviewer | Agent | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | flutter-reviewer | Agent | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | fsharp-reviewer | Agent | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | fsharp-reviewer | Kiro edition | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| gan-evaluator | Agent | No published scan yet |
+| gan-evaluator | Agent | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | gan-generator | Agent | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | gan-planner | Agent | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| gdscript-reviewer | Agent | No published scan yet |
+| gdscript-reviewer | Agent | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | go-build-resolver | Agent | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | go-build-resolver | Kiro edition | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | go-reviewer | Agent | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | go-reviewer | Kiro edition | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | harmonyos-app-resolver | Agent | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| harness-optimizer | Agent | No published scan yet |
+| harness-optimizer | Agent | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | harness-optimizer | Kiro edition | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | healthcare-reviewer | Agent | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | homelab-architect | Agent | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
@@ -166,9 +166,9 @@ Choose a family and search for the item's name. Each date links to the release f
 | network-architect | Agent | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | network-config-reviewer | Agent | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | network-troubleshooter | Agent | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| opensource-forker | Agent | No published scan yet |
+| opensource-forker | Agent | AI · CAUTION · Complete ([Nov 26, 2026][release-3]) |
 | opensource-packager | Agent | AI · CAUTION · Complete ([Nov 4, 2026][release-1])<br>Static · CAUTION · Complete ([Nov 25, 2026][release-2]) |
-| opensource-sanitizer | Agent | No published scan yet |
+| opensource-sanitizer | Agent | AI · CAUTION · Complete ([Nov 26, 2026][release-3]) |
 | performance-optimizer | Agent | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | performance-optimizer | Kiro edition | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | php-reviewer | Agent | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
@@ -179,14 +179,14 @@ Choose a family and search for the item's name. Each date links to the release f
 | python-reviewer | Kiro edition | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | pytorch-build-resolver | Agent | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | pytorch-build-resolver | Kiro edition | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| rag-pipeline-reviewer | Agent | No published scan yet |
+| rag-pipeline-reviewer | Agent | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | react-build-resolver | Agent | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | react-build-resolver | Kiro edition | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | react-reviewer | Agent | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | react-reviewer | Kiro edition | AI · CAUTION · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | refactor-cleaner | Agent | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | refactor-cleaner | Kiro edition | AI · CAUTION · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| ruby-reviewer | Agent | No published scan yet |
+| ruby-reviewer | Agent | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | rust-build-resolver | Agent | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | rust-build-resolver | Kiro edition | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | rust-reviewer | Agent | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
@@ -202,7 +202,7 @@ Choose a family and search for the item's name. Each date links to the release f
 | tdd-guide | Agent | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | tdd-guide | Kiro edition | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | type-design-analyzer | Agent | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| typescript-reviewer | Agent | No published scan yet |
+| typescript-reviewer | Agent | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | typescript-reviewer | Kiro edition | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | vue-reviewer | Agent | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | auto-format | Hook | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
@@ -217,38 +217,38 @@ Choose a family and search for the item's name. Each date links to the release f
 | extract-patterns | Kiro edition | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | git-push-review | Hook | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | git-push-review | Kiro edition | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| post-dispatcher-async | Hook | No published scan yet |
-| post-dispatcher-async | Claude Code edition | No published scan yet |
-| post-dispatcher-sync | Hook | No published scan yet |
-| post-dispatcher-sync | Claude Code edition | No published scan yet |
-| post-mcp-health-check | Hook | No published scan yet |
-| post-mcp-health-check | Claude Code edition | No published scan yet |
-| post-skill-track | Hook | No published scan yet |
-| post-skill-track | Claude Code edition | No published scan yet |
-| pre-bash-dispatcher | Hook | No published scan yet |
-| pre-bash-dispatcher | Claude Code edition | No published scan yet |
-| pre-compact | Hook | No published scan yet |
-| pre-compact | Claude Code edition | No published scan yet |
-| pre-config-protection | Hook | No published scan yet |
-| pre-config-protection | Claude Code edition | No published scan yet |
-| pre-edit-write-gateguard-fact-force | Hook | No published scan yet |
-| pre-edit-write-gateguard-fact-force | Claude Code edition | No published scan yet |
-| pre-edit-write-suggest-compact | Hook | No published scan yet |
-| pre-edit-write-suggest-compact | Claude Code edition | No published scan yet |
-| pre-governance-capture | Hook | No published scan yet |
-| pre-governance-capture | Claude Code edition | No published scan yet |
-| pre-hookify-runtime | Hook | No published scan yet |
-| pre-hookify-runtime | Claude Code edition | No published scan yet |
-| pre-mcp-health-check | Hook | No published scan yet |
-| pre-mcp-health-check | Claude Code edition | No published scan yet |
-| pre-observe-continuous-learning | Hook | No published scan yet |
-| pre-observe-continuous-learning | Claude Code edition | No published scan yet |
-| pre-powershell-gateguard-fact-force | Hook | No published scan yet |
-| pre-powershell-gateguard-fact-force | Claude Code edition | No published scan yet |
-| pre-write-doc-file-warning | Hook | No published scan yet |
-| pre-write-doc-file-warning | Claude Code edition | No published scan yet |
-| prompt-hookify-runtime | Hook | No published scan yet |
-| prompt-hookify-runtime | Claude Code edition | No published scan yet |
+| post-dispatcher-async | Hook | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| post-dispatcher-async | Claude Code edition | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| post-dispatcher-sync | Hook | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| post-dispatcher-sync | Claude Code edition | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| post-mcp-health-check | Hook | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| post-mcp-health-check | Claude Code edition | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| post-skill-track | Hook | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| post-skill-track | Claude Code edition | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| pre-bash-dispatcher | Hook | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| pre-bash-dispatcher | Claude Code edition | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| pre-compact | Hook | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| pre-compact | Claude Code edition | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| pre-config-protection | Hook | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| pre-config-protection | Claude Code edition | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| pre-edit-write-gateguard-fact-force | Hook | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| pre-edit-write-gateguard-fact-force | Claude Code edition | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| pre-edit-write-suggest-compact | Hook | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| pre-edit-write-suggest-compact | Claude Code edition | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| pre-governance-capture | Hook | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| pre-governance-capture | Claude Code edition | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| pre-hookify-runtime | Hook | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| pre-hookify-runtime | Claude Code edition | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| pre-mcp-health-check | Hook | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| pre-mcp-health-check | Claude Code edition | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| pre-observe-continuous-learning | Hook | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| pre-observe-continuous-learning | Claude Code edition | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| pre-powershell-gateguard-fact-force | Hook | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| pre-powershell-gateguard-fact-force | Claude Code edition | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| pre-write-doc-file-warning | Hook | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| pre-write-doc-file-warning | Claude Code edition | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| prompt-hookify-runtime | Hook | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| prompt-hookify-runtime | Claude Code edition | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | python-lint-on-edit | Hook | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | python-lint-on-edit | Kiro edition | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | quality-gate | Hook | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
@@ -257,38 +257,38 @@ Choose a family and search for the item's name. Each date links to the release f
 | rust-check-on-edit | Kiro edition | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | security-check-on-create | Hook | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | security-check-on-create | Kiro edition | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| session-end-marker | Hook | No published scan yet |
-| session-end-marker | Claude Code edition | No published scan yet |
-| session-start | Hook | No published scan yet |
-| session-start | Claude Code edition | No published scan yet |
-| session-start | Codex edition | No published scan yet |
-| session-start-plan-canvas-sessions | Hook | No published scan yet |
-| session-start-plan-canvas-sessions | Claude Code edition | No published scan yet |
+| session-end-marker | Hook | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| session-end-marker | Claude Code edition | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| session-start | Hook | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| session-start | Claude Code edition | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| session-start | Codex edition | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| session-start-plan-canvas-sessions | Hook | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| session-start-plan-canvas-sessions | Claude Code edition | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | session-summary | Hook | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | session-summary | Kiro edition | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| stop-check-console-log | Hook | No published scan yet |
-| stop-check-console-log | Claude Code edition | No published scan yet |
-| stop-cost-tracker | Hook | No published scan yet |
-| stop-cost-tracker | Claude Code edition | No published scan yet |
-| stop-desktop-notify | Hook | No published scan yet |
-| stop-desktop-notify | Claude Code edition | No published scan yet |
-| stop-evaluate-session | Hook | No published scan yet |
-| stop-evaluate-session | Claude Code edition | No published scan yet |
-| stop-format-typecheck | Hook | No published scan yet |
-| stop-format-typecheck | Claude Code edition | No published scan yet |
-| stop-hookify-runtime | Hook | No published scan yet |
-| stop-hookify-runtime | Claude Code edition | No published scan yet |
-| stop-plan-canvas-pending | Hook | No published scan yet |
-| stop-plan-canvas-pending | Claude Code edition | No published scan yet |
-| stop-session-end | Hook | No published scan yet |
-| stop-session-end | Claude Code edition | No published scan yet |
+| stop-check-console-log | Hook | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| stop-check-console-log | Claude Code edition | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| stop-cost-tracker | Hook | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| stop-cost-tracker | Claude Code edition | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| stop-desktop-notify | Hook | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| stop-desktop-notify | Claude Code edition | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| stop-evaluate-session | Hook | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| stop-evaluate-session | Claude Code edition | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| stop-format-typecheck | Hook | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| stop-format-typecheck | Claude Code edition | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| stop-hookify-runtime | Hook | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| stop-hookify-runtime | Claude Code edition | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| stop-plan-canvas-pending | Hook | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| stop-plan-canvas-pending | Claude Code edition | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| stop-session-end | Hook | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| stop-session-end | Claude Code edition | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | tdd-reminder | Hook | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | tdd-reminder | Kiro edition | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | typecheck-on-edit | Hook | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | typecheck-on-edit | Kiro edition | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| user-prompt-context-gate | Hook | No published scan yet |
-| user-prompt-context-gate | Claude Code edition | No published scan yet |
-| arcmira | MCP server | No published scan yet |
+| user-prompt-context-gate | Hook | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| user-prompt-context-gate | Claude Code edition | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| arcmira | MCP server | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | browser-use | MCP server | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | clickhouse | MCP server | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | cloudflare-docs | MCP server | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
@@ -298,7 +298,7 @@ Choose a family and search for the item's name. Each date links to the release f
 | codescene | MCP server | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | confluence | MCP server | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | context7 | MCP server | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| deja-vu | MCP server | No published scan yet |
+| deja-vu | MCP server | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | devfleet | MCP server | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | exa-web-search | MCP server | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | fal-ai | MCP server | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
@@ -309,7 +309,7 @@ Choose a family and search for the item's name. Each date links to the release f
 | magic | MCP server | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | memory | MCP server | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | memxus | MCP server | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| mnemosyne-os | MCP server | No published scan yet |
+| mnemosyne-os | MCP server | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | omega-memory | MCP server | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | parallel-search | MCP server | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | playwright | MCP server | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
@@ -326,14 +326,14 @@ Choose a family and search for the item's name. Each date links to the release f
 | patterns · arkts | Rule | AI · SAFE · Complete ([Nov 4, 2026][release-1]) |
 | security · arkts | Rule | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | testing · arkts | Rule | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| agents | Rule | No published scan yet |
-| code-review | Rule | No published scan yet |
-| coding-style · common | Rule | No published scan yet |
+| agents | Rule | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| code-review | Rule | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| coding-style · common | Rule | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | development-workflow · common | Rule | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | git-workflow · common | Rule | AI · CAUTION · Complete ([Nov 4, 2026][release-1])<br>Static · CAUTION · Complete ([Nov 25, 2026][release-2]) |
-| hooks · common | Rule | No published scan yet |
+| hooks · common | Rule | AI · CAUTION · Complete ([Nov 26, 2026][release-3]) |
 | patterns · common | Rule | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| performance · common | Rule | No published scan yet |
+| performance · common | Rule | AI · CAUTION · Complete ([Nov 26, 2026][release-3]) |
 | security · common | Rule | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | testing · common | Rule | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | coding-style · cpp | Rule | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
@@ -345,7 +345,7 @@ Choose a family and search for the item's name. Each date links to the release f
 | hooks · csharp | Rule | AI · CAUTION · Complete ([Nov 4, 2026][release-1])<br>Static · CAUTION · Complete ([Nov 25, 2026][release-2]) |
 | patterns · csharp | Rule | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | security · csharp | Rule | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| testing · csharp | Rule | No published scan yet |
+| testing · csharp | Rule | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | coding-style · dart | Rule | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | hooks · dart | Rule | AI · CAUTION · Complete ([Nov 4, 2026][release-1])<br>Static · CAUTION · Complete ([Nov 25, 2026][release-2]) |
 | patterns · dart | Rule | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
@@ -408,35 +408,35 @@ Choose a family and search for the item's name. Each date links to the release f
 | coding-style · ruby | Rule | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | hooks · ruby | Rule | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | patterns · ruby | Rule | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| security · ruby | Rule | No published scan yet |
+| security · ruby | Rule | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | testing · ruby | Rule | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | coding-style · rust | Rule | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | hooks · rust | Rule | AI · CAUTION · Complete ([Nov 4, 2026][release-1])<br>Static · CAUTION · Complete ([Nov 25, 2026][release-2]) |
 | patterns · rust | Rule | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | security · rust | Rule | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | testing · rust | Rule | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| coding-style · steering | Rule | No published scan yet |
-| coding-style · steering | Kiro edition | No published scan yet |
+| coding-style · steering | Rule | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| coding-style · steering | Kiro edition | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | cpp-patterns | Rule | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | cpp-patterns | Kiro edition | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | dev-mode | Rule | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | dev-mode | Kiro edition | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| development-workflow · steering | Rule | No published scan yet |
-| development-workflow · steering | Kiro edition | No published scan yet |
-| git-workflow · steering | Rule | No published scan yet |
-| git-workflow · steering | Kiro edition | No published scan yet |
+| development-workflow · steering | Rule | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| development-workflow · steering | Kiro edition | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| git-workflow · steering | Rule | AI · CAUTION · Complete ([Nov 26, 2026][release-3]) |
+| git-workflow · steering | Kiro edition | AI · CAUTION · Complete ([Nov 26, 2026][release-3]) |
 | golang-patterns | Rule | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | golang-patterns | Kiro edition | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | java-patterns | Rule | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | java-patterns | Kiro edition | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | kotlin-patterns | Rule | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | kotlin-patterns | Kiro edition | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| lessons-learned | Rule | No published scan yet |
-| lessons-learned | Kiro edition | No published scan yet |
-| patterns · steering | Rule | No published scan yet |
-| patterns · steering | Kiro edition | No published scan yet |
-| performance · steering | Rule | No published scan yet |
-| performance · steering | Kiro edition | No published scan yet |
+| lessons-learned | Rule | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| lessons-learned | Kiro edition | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| patterns · steering | Rule | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| patterns · steering | Kiro edition | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| performance · steering | Rule | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| performance · steering | Kiro edition | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | php-patterns | Rule | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | php-patterns | Kiro edition | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | python-patterns | Rule | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
@@ -449,12 +449,12 @@ Choose a family and search for the item's name. Each date links to the release f
 | ruby-patterns | Kiro edition | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | rust-patterns | Rule | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | rust-patterns | Kiro edition | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| security · steering | Rule | No published scan yet |
-| security · steering | Kiro edition | No published scan yet |
+| security · steering | Rule | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| security · steering | Kiro edition | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | swift-patterns | Rule | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | swift-patterns | Kiro edition | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| testing · steering | Rule | No published scan yet |
-| testing · steering | Kiro edition | No published scan yet |
+| testing · steering | Rule | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| testing · steering | Kiro edition | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | typescript-patterns | Rule | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | typescript-patterns | Kiro edition | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | typescript-security | Rule | AI · SAFE · Complete ([Nov 4, 2026][release-1]) |
@@ -481,17 +481,17 @@ Choose a family and search for the item's name. Each date links to the release f
 | performance · web | Rule | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | security · web | Rule | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | testing · web | Rule | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| accessibility | Skill | No published scan yet |
+| accessibility | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | agent-architecture-audit | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | agent-eval | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| agent-harness-construction | Skill | No published scan yet |
+| agent-harness-construction | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | agent-introspection-debugging | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | agent-payment-x402 | Skill | No published scan yet |
-| agent-runtime-gateway-smoke-test | Skill | No published scan yet |
-| agent-security-hardening | Skill | No published scan yet |
-| agent-self-evaluation | Skill | No published scan yet |
+| agent-runtime-gateway-smoke-test | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| agent-security-hardening | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| agent-self-evaluation | Skill | AI · CAUTION · Complete ([Nov 26, 2026][release-3]) |
 | agent-sort | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| agentic-engineering | Skill | No published scan yet |
+| agentic-engineering | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | agentic-engineering | Kiro edition | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | agentic-os | Skill | AI · DO NOT INSTALL · Complete ([Nov 4, 2026][release-1])<br>Static · CAUTION · Complete ([Nov 25, 2026][release-2]) |
 | ai-first-engineering | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
@@ -501,66 +501,66 @@ Choose a family and search for the item's name. Each date links to the release f
 | api-connector-builder | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | api-design | Skill | No published scan yet |
 | api-design | Kiro edition | AI · CAUTION · Complete ([Nov 4, 2026][release-1]) |
-| architecture-decision-records | Skill | No published scan yet |
+| architecture-decision-records | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | article-writing | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | aside | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| astra-review | Skill | No published scan yet |
-| auto-update | Skill | No published scan yet |
+| astra-review | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| auto-update | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | automation-audit-ops | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | autonomous-agent-harness | Skill | AI · DO NOT INSTALL · Complete ([Nov 4, 2026][release-1])<br>Static · CAUTION · Complete ([Nov 25, 2026][release-2]) |
-| autonomous-loops | Skill | No published scan yet |
+| autonomous-loops | Skill | AI · CAUTION · Complete ([Nov 26, 2026][release-3]) |
 | autonomous-loops | Kiro edition | AI · DO NOT INSTALL · Complete ([Nov 4, 2026][release-1])<br>Static · CAUTION · Complete ([Nov 25, 2026][release-2]) |
 | backend-patterns | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | backend-patterns | Kiro edition | AI · CAUTION · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| benchmark | Skill | No published scan yet |
-| benchmark-methodology | Skill | No published scan yet |
-| benchmark-optimization-loop | Skill | No published scan yet |
-| bengali-nlp | Skill | No published scan yet |
-| blender-motion-state-inspection | Skill | No published scan yet |
-| blueprint | Skill | No published scan yet |
-| brand-discovery | Skill | No published scan yet |
+| benchmark | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| benchmark-methodology | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| benchmark-optimization-loop | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| bengali-nlp | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| blender-motion-state-inspection | Skill | AI · CAUTION · Complete ([Nov 26, 2026][release-3]) |
+| blueprint | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| brand-discovery | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | brand-voice | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| brownfield-retrospective | Skill | No published scan yet |
-| browser-qa | Skill | No published scan yet |
+| brownfield-retrospective | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| browser-qa | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | build-fix | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| bun-runtime | Skill | No published scan yet |
-| canary-watch | Skill | No published scan yet |
+| bun-runtime | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| canary-watch | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | carrier-relationship-management · upstream-only | Skill | No published scan yet |
-| change-impact | Skill | No published scan yet |
+| change-impact | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | checkpoint | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | cisco-ios-patterns | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | ck | Skill | No published scan yet |
 | click-path-audit | Skill | AI · CAUTION · Complete ([Nov 4, 2026][release-1]) |
 | clickhouse-io | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| code-review | Skill | No published scan yet |
+| code-review | Skill | AI · CAUTION · Complete ([Nov 26, 2026][release-3]) |
 | code-tour | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | codebase-onboarding | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | codehealth-mcp | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | coding-standards | Skill | AI · CAUTION · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | coding-standards | Kiro edition | AI · DO NOT INSTALL · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| competitive-platform-analysis | Skill | No published scan yet |
-| competitive-report-structure | Skill | No published scan yet |
+| competitive-platform-analysis | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| competitive-report-structure | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | compose-multiplatform-patterns | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | config-gc | Skill | AI · DO NOT INSTALL · Complete ([Nov 4, 2026][release-1])<br>Static · CAUTION · Complete ([Nov 25, 2026][release-2]) |
 | config-health | Skill | No published scan yet |
-| configure-ecc | Skill | No published scan yet |
+| configure-ecc | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | connections-optimizer | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | content-engine | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | content-hash-cache-pattern | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | content-hash-cache-pattern | Kiro edition | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| context-and-decisions | Skill | No published scan yet |
-| context-budget | Skill | No published scan yet |
+| context-and-decisions | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| context-budget | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | continuous-agent-loop | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| continuous-learning | Skill | No published scan yet |
+| continuous-learning | Skill | AI · DO NOT INSTALL · Complete ([Nov 26, 2026][release-3]) |
 | continuous-learning-v2 | Skill | No published scan yet |
-| contract-first | Skill | No published scan yet |
-| conventional-commit-review | Skill | No published scan yet |
+| contract-first | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| conventional-commit-review | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | cost-aware-llm-pipeline | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| cost-report | Skill | No published scan yet |
-| cost-tracking | Skill | No published scan yet |
+| cost-report | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| cost-tracking | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | council | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | council-multi-model | Skill | AI · CAUTION · Complete ([Nov 4, 2026][release-1]) |
-| counterparty-channel-discipline | Skill | No published scan yet |
+| counterparty-channel-discipline | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | cpp-build | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1]) |
 | cpp-coding-standards | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | cpp-coding-standards | Kiro edition | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
@@ -575,42 +575,42 @@ Choose a family and search for the item's name. Each date links to the release f
 | dart-flutter-patterns | Skill | No published scan yet |
 | dashboard-builder | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | data-scraper-agent | Skill | No published scan yet |
-| data-throughput-accelerator | Skill | No published scan yet |
+| data-throughput-accelerator | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | database-migrations | Skill | No published scan yet |
-| database-migrations | Kiro edition | No published scan yet |
-| deep-research | Skill | No published scan yet |
+| database-migrations | Kiro edition | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| deep-research | Skill | AI · CAUTION · Complete ([Nov 26, 2026][release-3]) |
 | deep-research | Kiro edition | AI · CAUTION · Complete ([Nov 4, 2026][release-1])<br>Static · CAUTION · Complete ([Nov 25, 2026][release-2]) |
-| deepseek-harness-setup | Skill | No published scan yet |
+| deepseek-harness-setup | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | defi-amm-security | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | delivery-gate | Skill | No published scan yet |
 | deployment-patterns | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | deployment-patterns | Kiro edition | AI · CAUTION · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| design-system | Skill | No published scan yet |
+| design-system | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | dev-team | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| devfleet | Skill | No published scan yet |
-| django-celery | Skill | No published scan yet |
+| devfleet | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| django-celery | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | django-patterns | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | django-patterns | Kiro edition | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| django-security | Skill | No published scan yet |
-| django-security | Kiro edition | No published scan yet |
+| django-security | Skill | AI · CAUTION · Complete ([Nov 26, 2026][release-3]) |
+| django-security | Kiro edition | AI · CAUTION · Complete ([Nov 26, 2026][release-3]) |
 | django-tdd | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| django-verification | Skill | No published scan yet |
-| dmux-workflows | Skill | No published scan yet |
-| docker-patterns | Skill | No published scan yet |
+| django-verification | Skill | AI · CAUTION · Complete ([Nov 26, 2026][release-3]) |
+| dmux-workflows | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| docker-patterns | Skill | AI · CAUTION · Complete ([Nov 26, 2026][release-3]) |
 | docker-patterns | Kiro edition | AI · CAUTION · Complete ([Nov 4, 2026][release-1])<br>Static · CAUTION · Complete ([Nov 25, 2026][release-2]) |
-| docs-governance | Skill | No published scan yet |
+| docs-governance | Skill | AI · CAUTION · Complete ([Nov 26, 2026][release-3]) |
 | documentation-lookup | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | dotnet-patterns | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| dynamic-workflow-mode | Skill | No published scan yet |
+| dynamic-workflow-mode | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | e2e-testing | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | e2e-testing | Kiro edition | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| ecc-contribution-review | Skill | No published scan yet |
-| ecc-guide | Skill | No published scan yet |
-| ecc-recipes | Skill | No published scan yet |
-| ecc-tools-cost-audit | Skill | No published scan yet |
+| ecc-contribution-review | Skill | AI · DO NOT INSTALL · Complete ([Nov 26, 2026][release-3]) |
+| ecc-guide | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| ecc-recipes | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| ecc-tools-cost-audit | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | email-ops | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | energy-procurement · upstream-only | Skill | No published scan yet |
-| enterprise-agent-ops | Skill | No published scan yet |
+| enterprise-agent-ops | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | epic-claim | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | epic-decompose | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | epic-publish | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
@@ -619,12 +619,12 @@ Choose a family and search for the item's name. Each date links to the release f
 | epic-unblock | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | epic-validate | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | error-handling | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| esign-field-placement | Skill | No published scan yet |
-| eval-harness | Skill | No published scan yet |
+| esign-field-placement | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| eval-harness | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | evm-token-decimals | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | evolve | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | exa-search | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| fal-ai-media | Skill | No published scan yet |
+| fal-ai-media | Skill | AI · CAUTION · Complete ([Nov 26, 2026][release-3]) |
 | fastapi-patterns | Skill | No published scan yet |
 | fastapi-patterns | Kiro edition | AI · SAFE · Complete ([Nov 4, 2026][release-1]) |
 | fastapi-review | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
@@ -636,7 +636,7 @@ Choose a family and search for the item's name. Each date links to the release f
 | flutter-review | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | flutter-test | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | foundation-models-on-device | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| frontend-a11y | Skill | No published scan yet |
+| frontend-a11y | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | frontend-design-direction | Skill | No published scan yet |
 | frontend-patterns | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1]) |
 | frontend-patterns | Kiro edition | AI · SAFE · Complete ([Nov 4, 2026][release-1]) |
@@ -647,44 +647,44 @@ Choose a family and search for the item's name. Each date links to the release f
 | gan-style-harness | Skill | AI · DO NOT INSTALL · Complete ([Nov 4, 2026][release-1])<br>Static · DO NOT INSTALL · Complete ([Nov 25, 2026][release-2]) |
 | gateguard | Skill | No published scan yet |
 | generating-python-installer | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| git-workflow | Skill | No published scan yet |
+| git-workflow | Skill | AI · DO NOT INSTALL · Complete ([Nov 26, 2026][release-3]) |
 | github-ops | Skill | No published scan yet |
 | go-build | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | go-review | Skill | AI · CAUTION · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | go-test | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| godot-patterns | Skill | No published scan yet |
-| godot-testing | Skill | No published scan yet |
-| golang-patterns | Skill | No published scan yet |
+| godot-patterns | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| godot-testing | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| golang-patterns | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | golang-patterns | Kiro edition | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | golang-testing | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1]) |
 | golang-testing | Kiro edition | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | google-workspace-ops | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | gradle-build | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| growth-log | Skill | No published scan yet |
-| harness-audit | Skill | No published scan yet |
+| growth-log | Skill | AI · CAUTION · Complete ([Nov 26, 2026][release-3]) |
+| harness-audit | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | healthcare-cdss-patterns | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | healthcare-emr-patterns | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | healthcare-eval-harness | Skill | AI · CAUTION · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| healthcare-phi-compliance | Skill | No published scan yet |
+| healthcare-phi-compliance | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | hermes-imports | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | hexagonal-architecture | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | hipaa-compliance | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| homelab-network-readiness | Skill | No published scan yet |
+| homelab-network-readiness | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | homelab-network-setup | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | homelab-pihole-dns | Skill | AI · DO NOT INSTALL · Complete ([Nov 4, 2026][release-1])<br>Static · DO NOT INSTALL · Complete ([Nov 25, 2026][release-2]) |
 | homelab-vlan-segmentation | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | homelab-wireguard-vpn | Skill | AI · DO NOT INSTALL · Complete ([Nov 4, 2026][release-1]) |
-| hookify | Skill | No published scan yet |
+| hookify | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | hookify-configure | Skill | AI · CAUTION · Complete ([Nov 4, 2026][release-1])<br>Static · CAUTION · Complete ([Nov 25, 2026][release-2]) |
-| hookify-help | Skill | No published scan yet |
+| hookify-help | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | hookify-list | Skill | AI · CAUTION · Complete ([Nov 4, 2026][release-1])<br>Static · CAUTION · Complete ([Nov 25, 2026][release-2]) |
-| hookify-rules | Skill | No published scan yet |
-| i18n-sync | Skill | No published scan yet |
-| inherit-legacy-style | Skill | No published scan yet |
+| hookify-rules | Skill | AI · DO NOT INSTALL · Complete ([Nov 26, 2026][release-3]) |
+| i18n-sync | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| inherit-legacy-style | Skill | AI · CAUTION · Complete ([Nov 26, 2026][release-3]) |
 | instinct-export | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | instinct-import | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| instinct-status | Skill | No published scan yet |
-| intent-driven-development | Skill | No published scan yet |
+| instinct-status | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| intent-driven-development | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | inventory-demand-planning · upstream-only | Skill | No published scan yet |
 | investor-materials | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | investor-outreach | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
@@ -712,83 +712,83 @@ Choose a family and search for the item's name. Each date links to the release f
 | kotlin-test | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | kotlin-testing | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | kotlin-testing | Kiro edition | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| kubernetes-patterns | Skill | No published scan yet |
+| kubernetes-patterns | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | laravel-patterns | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | laravel-plugin-discovery | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | laravel-security | Skill | No published scan yet |
 | laravel-tdd | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | laravel-verification | Skill | AI · CAUTION · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| latency-critical-systems | Skill | No published scan yet |
+| latency-critical-systems | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | lead-intelligence | Skill | AI · CAUTION · Complete ([Nov 4, 2026][release-1])<br>Static · CAUTION · Complete ([Nov 25, 2026][release-2]) |
-| leanrea | Skill | No published scan yet |
-| learn | Skill | No published scan yet |
+| leanrea | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| learn | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | learn-eval | Skill | AI · CAUTION · Complete ([Nov 4, 2026][release-1])<br>Static · CAUTION · Complete ([Nov 25, 2026][release-2]) |
 | liquid-glass-design | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| living-docs-governance | Skill | No published scan yet |
+| living-docs-governance | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | llm-trading-agent-security | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | logistics-exception-management · upstream-only | Skill | No published scan yet |
-| loop-design-check | Skill | No published scan yet |
-| loop-start | Skill | No published scan yet |
+| loop-design-check | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| loop-start | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | loop-status | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | mailtrap-email-integration | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1]) |
 | make-interfaces-feel-better | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | manim-video | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| market-research | Skill | No published scan yet |
+| market-research | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | marketing-campaign | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | master-agreement-generator | Skill | No published scan yet |
-| mcp-dependency-review | Skill | No published scan yet |
+| mcp-dependency-review | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | mcp-server-patterns | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | messages-ops | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | ml-adoption-playbook | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | mle-workflow | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | mle-workflow | Kiro edition | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | model-route | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| module-governance | Skill | No published scan yet |
-| module-regression | Skill | No published scan yet |
+| module-governance | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| module-regression | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | motion-advanced | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1]) |
 | motion-foundations | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | motion-patterns | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| multi-backend | Skill | No published scan yet |
-| multi-execute | Skill | No published scan yet |
-| multi-frontend | Skill | No published scan yet |
-| multi-plan | Skill | No published scan yet |
-| multi-workflow | Skill | No published scan yet |
-| mybatis-patterns | Skill | No published scan yet |
+| multi-backend | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| multi-execute | Skill | AI · CAUTION · Complete ([Nov 26, 2026][release-3]) |
+| multi-frontend | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| multi-plan | Skill | AI · DO NOT INSTALL · Complete ([Nov 26, 2026][release-3]) |
+| multi-workflow | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| mybatis-patterns | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | mysql-patterns | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| nanoclaw-repl | Skill | No published scan yet |
-| nasiko-control-plane | Skill | No published scan yet |
+| nanoclaw-repl | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| nasiko-control-plane | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | nestjs-patterns | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | nestjs-patterns | Kiro edition | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | netmiko-ssh-automation | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | network-bgp-diagnostics | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | network-config-validation | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | network-interface-health | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| nextjs-turbopack | Skill | No published scan yet |
+| nextjs-turbopack | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | nextjs-turbopack | Kiro edition | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | nodejs-keccak256 | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | nutrient-document-processing | Skill | AI · CAUTION · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | nuxt4-patterns | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1]) |
-| openclaw-persona-forge | Skill | No published scan yet |
-| opensource-pipeline | Skill | No published scan yet |
-| operator-approval-loop | Skill | No published scan yet |
+| openclaw-persona-forge | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| opensource-pipeline | Skill | AI · CAUTION · Complete ([Nov 26, 2026][release-3]) |
+| operator-approval-loop | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | orch-add-feature | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| orch-build-mvp | Skill | No published scan yet |
+| orch-build-mvp | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | orch-change-feature | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | orch-fix-defect | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| orch-pipeline | Skill | No published scan yet |
+| orch-pipeline | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | orch-refine-code | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| orch-review | Skill | No published scan yet |
-| osint-investigation | Skill | No published scan yet |
-| parallel-execution-optimizer | Skill | No published scan yet |
+| orch-review | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| osint-investigation | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| parallel-execution-optimizer | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | perl-patterns | Skill | AI · CAUTION · Complete ([Nov 4, 2026][release-1]) |
 | perl-security | Skill | No published scan yet |
 | perl-testing | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| plan | Skill | No published scan yet |
+| plan | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | plan-canvas | Skill | No published scan yet |
-| plan-orchestrate | Skill | No published scan yet |
-| plan-prd | Skill | No published scan yet |
+| plan-orchestrate | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| plan-prd | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | plankton-code-quality | Skill | No published scan yet |
-| platform-factory | Skill | No published scan yet |
+| platform-factory | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | pm2 | Skill | AI · DO NOT INSTALL · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | postgres-patterns | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | postgres-patterns | Kiro edition | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
@@ -797,37 +797,37 @@ Choose a family and search for the item's name. Each date links to the release f
 | prediction-market-risk-review | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | prisma-patterns | Skill | AI · CAUTION · Complete ([Nov 4, 2026][release-1])<br>Static · CAUTION · Complete ([Nov 25, 2026][release-2]) |
 | product-capability | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| product-lens | Skill | No published scan yet |
+| product-lens | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | production-audit | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | production-scheduling · upstream-only | Skill | No published scan yet |
 | project-flow-ops | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| project-init | Skill | No published scan yet |
+| project-init | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | projects | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | promote | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| prompt-caching-strategy | Skill | No published scan yet |
-| prompt-optimizer | Skill | No published scan yet |
+| prompt-caching-strategy | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| prompt-optimizer | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | prp-commit | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | prp-implement | Skill | AI · CAUTION · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | prp-plan | Skill | AI · CAUTION · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| prp-pr | Skill | No published scan yet |
+| prp-pr | Skill | AI · CAUTION · Complete ([Nov 26, 2026][release-3]) |
 | prp-prd | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| prune | Skill | No published scan yet |
+| prune | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | python-patterns | Skill | AI · CAUTION · Complete ([Nov 4, 2026][release-1]) |
 | python-patterns | Kiro edition | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | python-review | Skill | AI · CAUTION · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| python-testing | Skill | No published scan yet |
+| python-testing | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | python-testing | Kiro edition | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | pytorch-patterns | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | pytorch-patterns | Kiro edition | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | quality-gate | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | quality-nonconformance · upstream-only | Skill | No published scan yet |
 | quarkus-patterns | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| quarkus-security | Skill | No published scan yet |
+| quarkus-security | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | quarkus-tdd | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1]) |
-| quarkus-verification | Skill | No published scan yet |
-| rails-patterns | Skill | No published scan yet |
-| rails-security | Skill | No published scan yet |
-| ralphinho-rfc-pipeline | Skill | No published scan yet |
+| quarkus-verification | Skill | AI · CAUTION · Complete ([Nov 26, 2026][release-3]) |
+| rails-patterns | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| rails-security | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| ralphinho-rfc-pipeline | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | react-build | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | react-native-patterns | Skill | AI · CAUTION · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | react-patterns | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
@@ -838,17 +838,17 @@ Choose a family and search for the item's name. Each date links to the release f
 | react-testing | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | react-testing | Kiro edition | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | recsys-pipeline-architect | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| recursive-decision-ledger | Skill | No published scan yet |
+| recursive-decision-ledger | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | redis-patterns | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | refactor-clean | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| regex-vs-llm-structured-text | Skill | No published scan yet |
+| regex-vs-llm-structured-text | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | remotion-video-creation | Skill | No published scan yet |
 | repo-scan | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | research-ops | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | resume-session | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | returns-reverse-logistics · upstream-only | Skill | No published scan yet |
-| review-pr | Skill | No published scan yet |
-| roundhouse-x402 | Skill | No published scan yet |
+| review-pr | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| roundhouse-x402 | Skill | AI · DO NOT INSTALL · Complete ([Nov 26, 2026][release-3]) |
 | rules-distill | Skill | AI · CAUTION · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | rust-build | Skill | AI · CAUTION · Complete ([Nov 4, 2026][release-1])<br>Static · CAUTION · Complete ([Nov 25, 2026][release-2]) |
 | rust-patterns | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
@@ -857,42 +857,42 @@ Choose a family and search for the item's name. Each date links to the release f
 | rust-test | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | rust-testing | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | rust-testing | Kiro edition | AI · CAUTION · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| safety-guard | Skill | No published scan yet |
-| santa-loop | Skill | No published scan yet |
-| santa-method | Skill | No published scan yet |
+| safety-guard | Skill | AI · DO NOT INSTALL · Complete ([Nov 26, 2026][release-3]) |
+| santa-loop | Skill | AI · CAUTION · Complete ([Nov 26, 2026][release-3]) |
+| santa-method | Skill | AI · CAUTION · Complete ([Nov 26, 2026][release-3]) |
 | save-session | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| scientific-db-openalex-database | Skill | No published scan yet |
-| scientific-db-pubmed-database | Skill | No published scan yet |
-| scientific-db-uspto-database | Skill | No published scan yet |
-| scientific-pkg-gget | Skill | No published scan yet |
-| scientific-thinking-literature-review | Skill | No published scan yet |
-| scientific-thinking-scholar-evaluation | Skill | No published scan yet |
-| search-first | Skill | No published scan yet |
+| scientific-db-openalex-database | Skill | AI · CAUTION · Complete ([Nov 26, 2026][release-3]) |
+| scientific-db-pubmed-database | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| scientific-db-uspto-database | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| scientific-pkg-gget | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| scientific-thinking-literature-review | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| scientific-thinking-scholar-evaluation | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| search-first | Skill | AI · CAUTION · Complete ([Nov 26, 2026][release-3]) |
 | search-first | Kiro edition | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | security-bounty-hunter | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| security-review | Skill | No published scan yet |
-| security-review | Kiro edition | No published scan yet |
+| security-review | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| security-review | Kiro edition | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | security-scan | Skill | AI · CAUTION · Complete ([Nov 4, 2026][release-1])<br>Static · CAUTION · Complete ([Nov 25, 2026][release-2]) |
 | seo | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | sessions | Skill | No published scan yet |
-| setup-pm | Skill | No published scan yet |
-| short-video-distribution | Skill | No published scan yet |
+| setup-pm | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| short-video-distribution | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | skill-comply | Skill | No published scan yet |
-| skill-create | Skill | No published scan yet |
-| skill-health | Skill | No published scan yet |
-| skill-host-compat | Skill | No published scan yet |
-| skill-scout | Skill | No published scan yet |
+| skill-create | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| skill-health | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| skill-host-compat | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| skill-scout | Skill | AI · CAUTION · Complete ([Nov 26, 2026][release-3]) |
 | skill-stocktake | Skill | No published scan yet |
 | social-graph-ranker | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| social-publisher | Skill | No published scan yet |
+| social-publisher | Skill | AI · DO NOT INSTALL · Complete ([Nov 26, 2026][release-3]) |
 | springboot-patterns | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | springboot-patterns | Kiro edition | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | springboot-security | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | springboot-security | Kiro edition | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | springboot-tdd | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| springboot-verification | Skill | No published scan yet |
+| springboot-verification | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | story-lifecycle | Skill | No published scan yet |
-| strategic-compact | Skill | No published scan yet |
+| strategic-compact | Skill | AI · CAUTION · Complete ([Nov 26, 2026][release-3]) |
 | strategic-compact | Kiro edition | AI · CAUTION · Complete ([Nov 4, 2026][release-1])<br>Static · CAUTION · Complete ([Nov 25, 2026][release-2]) |
 | swift-actor-persistence | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | swift-actor-persistence | Kiro edition | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
@@ -900,44 +900,44 @@ Choose a family and search for the item's name. Each date links to the release f
 | swift-protocol-di-testing | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | swift-protocol-di-testing | Kiro edition | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | swiftui-patterns | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| taste | Skill | No published scan yet |
+| taste | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | taste-application | Skill | No published scan yet |
 | taste-distillation | Skill | No published scan yet |
-| tasteforge-video | Skill | No published scan yet |
+| tasteforge-video | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | tdd-workflow | Skill | No published scan yet |
 | tdd-workflow | Kiro edition | AI · CAUTION · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| team-agent-orchestration | Skill | No published scan yet |
-| team-builder | Skill | No published scan yet |
+| team-agent-orchestration | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| team-builder | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | terminal-opener | Skill | AI · CAUTION · Complete ([Nov 4, 2026][release-1]) |
 | terminal-ops | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| terraform-patterns | Skill | No published scan yet |
-| test-collaboration | Skill | No published scan yet |
+| terraform-patterns | Skill | AI · CAUTION · Complete ([Nov 26, 2026][release-3]) |
+| test-collaboration | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | test-coverage | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| tinystruct-patterns | Skill | No published scan yet |
-| token-budget-advisor | Skill | No published scan yet |
-| token-card | Skill | No published scan yet |
+| tinystruct-patterns | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| token-budget-advisor | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| token-card | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | typescript-patterns | Skill | No published scan yet |
-| ui-canvas | Skill | No published scan yet |
+| ui-canvas | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | ui-demo | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1]) |
 | ui-to-vue | Skill | AI · CAUTION · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | uncloud | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| unified-memory | Skill | No published scan yet |
+| unified-memory | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | unified-notifications-ops | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | update-codemaps | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | update-docs | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| verification-loop | Skill | No published scan yet |
-| verification-loop | Kiro edition | No published scan yet |
-| video-editing | Skill | No published scan yet |
-| videodb | Skill | No published scan yet |
-| visa-doc-translate | Skill | No published scan yet |
+| verification-loop | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| verification-loop | Kiro edition | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| video-editing | Skill | AI · CAUTION · Complete ([Nov 26, 2026][release-3]) |
+| videodb | Skill | AI · DO NOT INSTALL · Complete ([Nov 26, 2026][release-3]) |
+| visa-doc-translate | Skill | AI · CAUTION · Complete ([Nov 26, 2026][release-3]) |
 | vite-patterns | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1]) |
 | vue-patterns | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | vue-review | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| web-perimeter-owasp-2025-audit | Skill | No published scan yet |
+| web-perimeter-owasp-2025-audit | Skill | AI · CAUTION · Complete ([Nov 26, 2026][release-3]) |
 | windows-desktop-e2e | Skill | AI · DO NOT INSTALL · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | workspace-surface-audit | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | x-api | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| yoruba-localization-testing | Skill | No published scan yet |
+| yoruba-localization-testing | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 
 <a name="family-egm"></a>
 
@@ -950,20 +950,20 @@ Choose a family and search for the item's name. Each date links to the release f
 | egm-comprehension | Agent | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | egm-design | Agent | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | egm-implementation-readiness | Agent | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| egm-inventive-catalyst | Agent | No published scan yet |
+| egm-inventive-catalyst | Agent | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | egm-structural | Agent | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| egm-style | Agent | No published scan yet |
-| egm-synthesizer | Agent | No published scan yet |
+| egm-style | Agent | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| egm-synthesizer | Agent | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | egm-zoom-out | Agent | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | egm-bootstrap | Skill | No published scan yet |
-| egm-brainstorm | Skill | No published scan yet |
-| egm-draft | Skill | No published scan yet |
+| egm-brainstorm | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| egm-draft | Skill | AI · CAUTION · Complete ([Nov 26, 2026][release-3]) |
 | egm-drift-report | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| egm-lite | Skill | No published scan yet |
-| egm-resolve | Skill | No published scan yet |
-| egm-review | Skill | No published scan yet |
-| egm-review-loop | Skill | No published scan yet |
-| egm.runtime | Runtime bundle | No published scan yet |
+| egm-lite | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| egm-resolve | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| egm-review | Skill | AI · CAUTION · Complete ([Nov 26, 2026][release-3]) |
+| egm-review-loop | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| egm.runtime | Runtime bundle | AI · DO NOT INSTALL · Complete ([Nov 26, 2026][release-3]) |
 | / | Plugin | No published scan yet |
 | / | Full plugin folder | No published scan yet |
 
@@ -985,41 +985,41 @@ Choose a family and search for the item's name. Each date links to the release f
 | skill-guard | Claude Code edition | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | api-and-interface-design | Skill | No published scan yet |
 | ask-sam | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| browser-testing-with-devtools | Skill | No published scan yet |
-| ci-cd-and-automation | Skill | No published scan yet |
-| code-simplification | Skill | No published scan yet |
+| browser-testing-with-devtools | Skill | AI · DO NOT INSTALL · Complete ([Nov 26, 2026][release-3]) |
+| ci-cd-and-automation | Skill | AI · CAUTION · Complete ([Nov 26, 2026][release-3]) |
+| code-simplification | Skill | AI · CAUTION · Complete ([Nov 26, 2026][release-3]) |
 | constraint-driven-development | Skill | No published scan yet |
-| deprecation-and-migration | Skill | No published scan yet |
-| documentation-and-adrs | Skill | No published scan yet |
+| deprecation-and-migration | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| documentation-and-adrs | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | doubt-driven-development | Skill | No published scan yet |
 | ask-matt | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| code-review | Skill | No published scan yet |
-| codebase-design | Skill | No published scan yet |
+| code-review | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| codebase-design | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | diagnosing-bugs | Skill | AI · CAUTION · Complete ([Nov 4, 2026][release-1])<br>Static · CAUTION · Complete ([Nov 25, 2026][release-2]) |
-| domain-modeling | Skill | No published scan yet |
+| domain-modeling | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | grill-with-docs | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | implement | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| implement-spec | Skill | No published scan yet |
-| improve-codebase-architecture | Skill | No published scan yet |
+| implement-spec | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| improve-codebase-architecture | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | pr | Skill | AI · CAUTION · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | prototype | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| research | Skill | No published scan yet |
+| research | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | retro | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | setup-matt-pocock-skills | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | tdd | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | to-spec | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | to-tickets | Skill | AI · CAUTION · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | triage | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| wayfinder | Skill | No published scan yet |
+| wayfinder | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | wizard | Skill | AI · CAUTION · Complete ([Nov 4, 2026][release-1])<br>Static · CAUTION · Complete ([Nov 25, 2026][release-2]) |
-| frontend-ui-engineering | Skill | No published scan yet |
-| git-workflow-and-versioning | Skill | No published scan yet |
-| idea-refine | Skill | No published scan yet |
-| chief-of-staff | Skill | No published scan yet |
+| frontend-ui-engineering | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| git-workflow-and-versioning | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| idea-refine | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| chief-of-staff | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | claude-handoff | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | loop-me | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | setup-ts-deep-modules | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| software-factory | Skill | No published scan yet |
+| software-factory | Skill | AI · CAUTION · Complete ([Nov 26, 2026][release-3]) |
 | writing-beats | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | writing-fragments | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | writing-shape | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
@@ -1028,9 +1028,9 @@ Choose a family and search for the item's name. Each date links to the release f
 | migrate-to-shoehorn | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | scaffold-exercises | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | observability-and-instrumentation | Skill | No published scan yet |
-| performance-optimization | Skill | No published scan yet |
+| performance-optimization | Skill | AI · CAUTION · Complete ([Nov 26, 2026][release-3]) |
 | grill-me | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| grilling | Skill | No published scan yet |
+| grilling | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | handoff | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | teach | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | to-questionnaire | Skill | AI · CAUTION · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
@@ -1038,10 +1038,10 @@ Choose a family and search for the item's name. Each date links to the release f
 | writing-for-agents | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | security-and-hardening | Skill | No published scan yet |
 | setup-pre-commit | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| ship | Skill | No published scan yet |
+| ship | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | shipping-and-launch | Skill | No published scan yet |
-| source-driven-development | Skill | No published scan yet |
-| webperf | Skill | No published scan yet |
+| source-driven-development | Skill | AI · CAUTION · Complete ([Nov 26, 2026][release-3]) |
+| webperf | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | extensions.references | Runtime bundle | No published scan yet |
 
 <a name="family-gstack"></a>
@@ -1051,65 +1051,65 @@ Choose a family and search for the item's name. Each date links to the release f
 | Name | Type | Published scans |
 | --- | --- | --- |
 | autoplan | Skill | No published scan yet |
-| benchmark | Skill | No published scan yet |
-| benchmark-models | Skill | No published scan yet |
+| benchmark | Skill | AI · CAUTION · Complete ([Nov 26, 2026][release-3]) |
+| benchmark-models | Skill | AI · DO NOT INSTALL · Complete ([Nov 26, 2026][release-3]) |
 | browse | Skill | No published scan yet |
-| build-check | Skill | No published scan yet |
-| canary | Skill | No published scan yet |
-| captain | Skill | No published scan yet |
+| build-check | Skill | AI · CAUTION · Complete ([Nov 26, 2026][release-3]) |
+| canary | Skill | AI · DO NOT INSTALL · Complete ([Nov 26, 2026][release-3]) |
+| captain | Skill | AI · DO NOT INSTALL · Complete ([Nov 26, 2026][release-3]) |
 | careful | Skill | No published scan yet |
 | codex | Skill | No published scan yet |
 | context-restore | Skill | No published scan yet |
-| context-save | Skill | No published scan yet |
+| context-save | Skill | AI · DO NOT INSTALL · Complete ([Nov 26, 2026][release-3]) |
 | design-consultation | Skill | No published scan yet |
 | design-html | Skill | No published scan yet |
 | design-motion | Skill | No published scan yet |
 | design-review | Skill | No published scan yet |
 | design-shotgun | Skill | No published scan yet |
-| deslop-shared-libs | Skill | No published scan yet |
-| devex-review | Skill | No published scan yet |
+| deslop-shared-libs | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| devex-review | Skill | AI · DO NOT INSTALL · Complete ([Nov 26, 2026][release-3]) |
 | diagram | Skill | No published scan yet |
-| document-generate | Skill | No published scan yet |
-| document-release | Skill | No published scan yet |
+| document-generate | Skill | AI · DO NOT INSTALL · Complete ([Nov 26, 2026][release-3]) |
+| document-release | Skill | AI · DO NOT INSTALL · Complete ([Nov 26, 2026][release-3]) |
 | eval-plan | Skill | No published scan yet |
 | freeze | Skill | No published scan yet |
 | gstack-upgrade | Skill | No published scan yet |
 | guard | Skill | No published scan yet |
-| health | Skill | No published scan yet |
-| ios-clean | Skill | No published scan yet |
-| ios-design-review | Skill | No published scan yet |
-| ios-fix | Skill | No published scan yet |
+| health | Skill | AI · DO NOT INSTALL · Complete ([Nov 26, 2026][release-3]) |
+| ios-clean | Skill | AI · DO NOT INSTALL · Complete ([Nov 26, 2026][release-3]) |
+| ios-design-review | Skill | AI · CAUTION · Complete ([Nov 26, 2026][release-3]) |
+| ios-fix | Skill | AI · CAUTION · Complete ([Nov 26, 2026][release-3]) |
 | ios-qa | Skill | No published scan yet |
-| ios-sync | Skill | No published scan yet |
+| ios-sync | Skill | AI · CAUTION · Complete ([Nov 26, 2026][release-3]) |
 | land-and-deploy | Skill | No published scan yet |
 | landing-report | Skill | No published scan yet |
-| learn | Skill | No published scan yet |
+| learn | Skill | AI · DO NOT INSTALL · Complete ([Nov 26, 2026][release-3]) |
 | make-pdf | Skill | No published scan yet |
 | modernize | Skill | No published scan yet |
 | office-hours | Skill | No published scan yet |
-| open-gstack-browser | Skill | No published scan yet |
-| pair-agent | Skill | No published scan yet |
+| open-gstack-browser | Skill | AI · DO NOT INSTALL · Complete ([Nov 26, 2026][release-3]) |
+| pair-agent | Skill | AI · DO NOT INSTALL · Complete ([Nov 26, 2026][release-3]) |
 | plan-ceo-review | Skill | No published scan yet |
 | plan-design-review | Skill | No published scan yet |
 | plan-devex-review | Skill | No published scan yet |
 | plan-eng-review | Skill | No published scan yet |
-| plan-tune | Skill | No published scan yet |
+| plan-tune | Skill | AI · DO NOT INSTALL · Complete ([Nov 26, 2026][release-3]) |
 | qa | Skill | No published scan yet |
-| qa-only | Skill | No published scan yet |
+| qa-only | Skill | AI · DO NOT INSTALL · Complete ([Nov 26, 2026][release-3]) |
 | retro | Skill | No published scan yet |
 | review | Skill | No published scan yet |
 | runaway-stopper | Skill | No published scan yet |
 | scrape | Skill | No published scan yet |
-| setup-browser-cookies | Skill | No published scan yet |
-| setup-deploy | Skill | No published scan yet |
+| setup-browser-cookies | Skill | AI · CAUTION · Complete ([Nov 26, 2026][release-3]) |
+| setup-deploy | Skill | AI · DO NOT INSTALL · Complete ([Nov 26, 2026][release-3]) |
 | setup-gbrain | Skill | No published scan yet |
 | gstack-ship | Skill | No published scan yet |
 | skillify | Skill | No published scan yet |
-| spec | Skill | No published scan yet |
+| spec | Skill | AI · DO NOT INSTALL · Complete ([Nov 26, 2026][release-3]) |
 | sync-gbrain | Skill | No published scan yet |
-| test-audit | Skill | No published scan yet |
+| test-audit | Skill | AI · CAUTION · Complete ([Nov 26, 2026][release-3]) |
 | ubicloud | Skill | No published scan yet |
-| unfreeze | Skill | No published scan yet |
+| unfreeze | Skill | AI · CAUTION · Complete ([Nov 26, 2026][release-3]) |
 | write-skill | Skill | No published scan yet |
 
 <a name="family-guide"></a>
@@ -1148,20 +1148,20 @@ Choose a family and search for the item's name. Each date links to the release f
 
 | Name | Type | Published scans |
 | --- | --- | --- |
-| comment-sicko | Agent | No published scan yet |
-| comment-sicko | Claude Code edition | No published scan yet |
-| poteto-agent | Agent | No published scan yet |
-| poteto-agent | Claude Code edition | No published scan yet |
-| architect | Skill | No published scan yet |
-| architect | Claude Code edition | No published scan yet |
-| arena | Skill | No published scan yet |
-| arena | Claude Code edition | No published scan yet |
-| automate-me | Skill | No published scan yet |
-| automate-me | Claude Code edition | No published scan yet |
-| benchmark-checklist | Skill | No published scan yet |
-| benchmark-checklist | Claude Code edition | No published scan yet |
-| blast-radius | Skill | No published scan yet |
-| blast-radius | Claude Code edition | No published scan yet |
+| comment-sicko | Agent | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| comment-sicko | Claude Code edition | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| poteto-agent | Agent | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| poteto-agent | Claude Code edition | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| architect | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| architect | Claude Code edition | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| arena | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| arena | Claude Code edition | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| automate-me | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| automate-me | Claude Code edition | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| benchmark-checklist | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| benchmark-checklist | Claude Code edition | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| blast-radius | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| blast-radius | Claude Code edition | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | bro | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | bro | Claude Code edition | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | correct | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
@@ -1170,10 +1170,10 @@ Choose a family and search for the item's name. Each date links to the release f
 | create-formal-verification-skill | Claude Code edition | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | create-verification-skill | Skill | AI · CAUTION · Complete ([Nov 4, 2026][release-1]) |
 | create-verification-skill | Claude Code edition | AI · CAUTION · Complete ([Nov 4, 2026][release-1]) |
-| figure-it-out | Skill | No published scan yet |
-| figure-it-out | Claude Code edition | No published scan yet |
-| how | Skill | No published scan yet |
-| how | Claude Code edition | No published scan yet |
+| figure-it-out | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| figure-it-out | Claude Code edition | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| how | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| how | Claude Code edition | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | in-your-own-words | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | in-your-own-words | Claude Code edition | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | interrogate | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
@@ -1188,88 +1188,88 @@ Choose a family and search for the item's name. Each date links to the release f
 | maintain-verification-skill | Claude Code edition | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | make-bot-ui | Skill | AI · DO NOT INSTALL · Complete ([Nov 4, 2026][release-1])<br>Static · DO NOT INSTALL · Complete ([Nov 25, 2026][release-2]) |
 | make-bot-ui | Claude Code edition | AI · DO NOT INSTALL · Complete ([Nov 4, 2026][release-1])<br>Static · DO NOT INSTALL · Complete ([Nov 25, 2026][release-2]) |
-| no-comments | Skill | No published scan yet |
-| no-comments | Claude Code edition | No published scan yet |
-| poteto-help | Skill | No published scan yet |
-| poteto-help | Claude Code edition | No published scan yet |
+| no-comments | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| no-comments | Claude Code edition | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| poteto-help | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| poteto-help | Claude Code edition | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | poteto-mode | Skill | No published scan yet |
 | poteto-mode | Claude Code edition | No published scan yet |
-| principle-attack-the-premise | Skill | No published scan yet |
-| principle-attack-the-premise | Claude Code edition | No published scan yet |
-| principle-boundary-discipline | Skill | No published scan yet |
-| principle-boundary-discipline | Claude Code edition | No published scan yet |
-| principle-build-the-lever | Skill | No published scan yet |
-| principle-build-the-lever | Claude Code edition | No published scan yet |
+| principle-attack-the-premise | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| principle-attack-the-premise | Claude Code edition | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| principle-boundary-discipline | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| principle-boundary-discipline | Claude Code edition | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| principle-build-the-lever | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| principle-build-the-lever | Claude Code edition | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | principle-encode-lessons-in-structure | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | principle-encode-lessons-in-structure | Claude Code edition | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | principle-exhaust-the-design-space | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | principle-exhaust-the-design-space | Claude Code edition | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | principle-experience-first | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | principle-experience-first | Claude Code edition | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| principle-explain-the-number | Skill | No published scan yet |
-| principle-explain-the-number | Claude Code edition | No published scan yet |
-| principle-fix-root-causes | Skill | No published scan yet |
-| principle-fix-root-causes | Claude Code edition | No published scan yet |
-| principle-foundational-thinking | Skill | No published scan yet |
-| principle-foundational-thinking | Claude Code edition | No published scan yet |
+| principle-explain-the-number | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| principle-explain-the-number | Claude Code edition | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| principle-fix-root-causes | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| principle-fix-root-causes | Claude Code edition | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| principle-foundational-thinking | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| principle-foundational-thinking | Claude Code edition | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | principle-guard-the-context-window | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | principle-guard-the-context-window | Claude Code edition | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | principle-laziness-protocol | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | principle-laziness-protocol | Claude Code edition | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| principle-make-operations-idempotent | Skill | No published scan yet |
-| principle-make-operations-idempotent | Claude Code edition | No published scan yet |
+| principle-make-operations-idempotent | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| principle-make-operations-idempotent | Claude Code edition | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | principle-migrate-callers-then-delete-legacy-apis | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | principle-migrate-callers-then-delete-legacy-apis | Claude Code edition | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| principle-minimize-reader-load | Skill | No published scan yet |
-| principle-minimize-reader-load | Claude Code edition | No published scan yet |
-| principle-model-the-domain | Skill | No published scan yet |
-| principle-model-the-domain | Claude Code edition | No published scan yet |
+| principle-minimize-reader-load | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| principle-minimize-reader-load | Claude Code edition | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| principle-model-the-domain | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| principle-model-the-domain | Claude Code edition | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | principle-never-block-on-the-human | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | principle-never-block-on-the-human | Claude Code edition | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | principle-outcome-oriented-execution | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | principle-outcome-oriented-execution | Claude Code edition | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| principle-prove-it-works | Skill | No published scan yet |
-| principle-prove-it-works | Claude Code edition | No published scan yet |
+| principle-prove-it-works | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| principle-prove-it-works | Claude Code edition | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | principle-redesign-from-first-principles | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | principle-redesign-from-first-principles | Claude Code edition | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| principle-separate-before-serializing-shared-state | Skill | No published scan yet |
-| principle-separate-before-serializing-shared-state | Claude Code edition | No published scan yet |
-| principle-sequence-verifiable-units | Skill | No published scan yet |
-| principle-sequence-verifiable-units | Claude Code edition | No published scan yet |
+| principle-separate-before-serializing-shared-state | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| principle-separate-before-serializing-shared-state | Claude Code edition | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| principle-sequence-verifiable-units | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| principle-sequence-verifiable-units | Claude Code edition | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | principle-subtract-before-you-add | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | principle-subtract-before-you-add | Claude Code edition | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| principle-test-behavior-not-implementation | Skill | No published scan yet |
-| principle-test-behavior-not-implementation | Claude Code edition | No published scan yet |
-| principle-type-system-discipline | Skill | No published scan yet |
-| principle-type-system-discipline | Claude Code edition | No published scan yet |
-| recall | Skill | No published scan yet |
-| recall | Claude Code edition | No published scan yet |
-| reflect | Skill | No published scan yet |
-| reflect | Claude Code edition | No published scan yet |
-| reframe | Skill | No published scan yet |
-| reframe | Claude Code edition | No published scan yet |
-| setup-pstack | Skill | No published scan yet |
-| setup-pstack | Claude Code edition | No published scan yet |
-| sharpen | Skill | No published scan yet |
-| sharpen | Claude Code edition | No published scan yet |
-| show-me-your-work | Skill | No published scan yet |
-| show-me-your-work | Claude Code edition | No published scan yet |
+| principle-test-behavior-not-implementation | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| principle-test-behavior-not-implementation | Claude Code edition | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| principle-type-system-discipline | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| principle-type-system-discipline | Claude Code edition | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| recall | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| recall | Claude Code edition | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| reflect | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| reflect | Claude Code edition | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| reframe | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| reframe | Claude Code edition | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| setup-pstack | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| setup-pstack | Claude Code edition | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| sharpen | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| sharpen | Claude Code edition | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| show-me-your-work | Skill | AI · CAUTION · Complete ([Nov 26, 2026][release-3]) |
+| show-me-your-work | Claude Code edition | AI · CAUTION · Complete ([Nov 26, 2026][release-3]) |
 | statechart | Skill | No published scan yet |
 | statechart | Claude Code edition | No published scan yet |
-| swarm | Skill | No published scan yet |
-| swarm | Claude Code edition | No published scan yet |
+| swarm | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| swarm | Claude Code edition | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | tdd | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | tdd | Claude Code edition | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| teach | Skill | No published scan yet |
-| teach | Claude Code edition | No published scan yet |
-| technical-writing | Skill | No published scan yet |
-| technical-writing | Claude Code edition | No published scan yet |
+| teach | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| teach | Claude Code edition | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| technical-writing | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| technical-writing | Claude Code edition | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | typescript-best-practices | Skill | AI · CAUTION · Complete ([Nov 4, 2026][release-1]) |
 | typescript-best-practices | Claude Code edition | AI · CAUTION · Complete ([Nov 4, 2026][release-1]) |
-| unslop | Skill | No published scan yet |
-| unslop | Claude Code edition | No published scan yet |
-| why | Skill | No published scan yet |
-| why | Claude Code edition | No published scan yet |
+| unslop | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| unslop | Claude Code edition | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| why | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| why | Claude Code edition | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 
 <a name="family-serena"></a>
 
@@ -1286,23 +1286,23 @@ Choose a family and search for the item's name. Each date links to the release f
 
 | Name | Type | Published scans |
 | --- | --- | --- |
-| session-start | Hook | No published scan yet |
-| session-start | Claude Code edition | No published scan yet |
+| session-start | Hook | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
+| session-start | Claude Code edition | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | session-bootstrap | Rule | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | brainstorming | Skill | No published scan yet |
-| diagnosing-superpowers | Skill | No published scan yet |
+| diagnosing-superpowers | Skill | AI · CAUTION · Complete ([Nov 26, 2026][release-3]) |
 | dispatching-parallel-agents | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | executing-plans | Skill | No published scan yet |
 | finishing-a-development-branch | Skill | AI · DO NOT INSTALL · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | receiving-code-review | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| requesting-code-review | Skill | No published scan yet |
+| requesting-code-review | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | subagent-driven-development | Skill | No published scan yet |
 | systematic-debugging | Skill | No published scan yet |
 | test-driven-development | Skill | AI · CAUTION · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | using-git-worktrees | Skill | AI · CAUTION · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | using-superpowers | Skill | AI · DO NOT INSTALL · Complete ([Nov 4, 2026][release-1])<br>Static · DO NOT INSTALL · Complete ([Nov 25, 2026][release-2]) |
 | verification-before-completion | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| writing-plans | Skill | No published scan yet |
+| writing-plans | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | writing-skills | Skill | No published scan yet |
 | / | Plugin | No published scan yet |
 
@@ -1319,6 +1319,7 @@ Choose a family and search for the item's name. Each date links to the release f
 - Catalog data revision [`3c1d0dbc5058`](https://github.com/samartomar/aih-catalog/tree/3c1d0dbc50581bee0a682acb1c2183df94f7a2b8/data).
 - [Nov 4, 2026][release-1] (`scan-catalog-results-20261104-e935f39b9f3148a5`). Index SHA-256 `8f26f56299fdcb8ab449f5f045a81e8d445a5bc7cb4a1e5ac7fc1ee23192eb27`.
 - [Nov 25, 2026][release-2] (`scan-catalog-results-20261125-static-r2-4c41927d737cbb61`). Index SHA-256 `3dbccb92bfc9a8d66c4d5162cb612750cf784da5690cc49ff6b2dc2865b3787f`.
+- [Nov 26, 2026][release-3] (`scan-catalog-results-20261126-ai-r1-d49d470d4176a239`). Index SHA-256 `5bb4c3f2370101db3f825942ee6f1aa8c8bd78d83db64e783867fb8780c0bb93`.
 
 The generator checks SHA-256 for each downloaded index, archive and summary. It matches summaries by exact Scan key and shows the newest revision for each scan type. For signature verification and more on what a rating or completeness means, see [Scan's instructions](https://github.com/samartomar/aih-scan#signing-and-verification).
 
@@ -1335,8 +1336,10 @@ To reproduce this snapshot, run the same generator with the exact revision and r
 ```sh
 node tools/catalog-scan-coverage.mjs --catalog 3c1d0dbc50581bee0a682acb1c2183df94f7a2b8 \
   --release scan-catalog-results-20261104-e935f39b9f3148a5 \
-  --release scan-catalog-results-20261125-static-r2-4c41927d737cbb61
+  --release scan-catalog-results-20261125-static-r2-4c41927d737cbb61 \
+  --release scan-catalog-results-20261126-ai-r1-d49d470d4176a239
 ```
 
 [release-1]: https://github.com/samartomar/aih-scan/releases/tag/scan-catalog-results-20261104-e935f39b9f3148a5
 [release-2]: https://github.com/samartomar/aih-scan/releases/tag/scan-catalog-results-20261125-static-r2-4c41927d737cbb61
+[release-3]: https://github.com/samartomar/aih-scan/releases/tag/scan-catalog-results-20261126-ai-r1-d49d470d4176a239
