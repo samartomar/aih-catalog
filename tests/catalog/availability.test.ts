@@ -46,21 +46,19 @@ describe("item availability in its framework", () => {
     ).toContain(item.id);
   });
 
-  it.each([
-    { scope: null },
-    { scope: "invalid" },
-    { data: false },
-    { data: {} },
-  ])("still rejects invalid explicit context options %j", (options) => {
-    const egm = content("egm");
-    const item = itemIn(egm, "egm.agent.bootstrap_orchestrator");
-    expect(
-      availability(item, profile("claude-code"), {
-        contents: [egm],
-        ...options,
-      } as never),
-    ).toEqual({ available: false, how: "none", reason: "invalid" });
-  });
+  it.each([{ scope: null }, { scope: "invalid" }, { data: false }, { data: {} }])(
+    "still rejects invalid explicit context options %j",
+    (options) => {
+      const egm = content("egm");
+      const item = itemIn(egm, "egm.agent.bootstrap_orchestrator");
+      expect(
+        availability(item, profile("claude-code"), {
+          contents: [egm],
+          ...options,
+        } as never),
+      ).toEqual({ available: false, how: "none", reason: "invalid" });
+    },
+  );
 
   it("checks a wrapper's own context without rebinding its shared reader items", () => {
     const egm = content("egm");
@@ -139,29 +137,28 @@ describe("item availability in its framework", () => {
     ).toEqual({ available: true, how: "rendered" });
   });
 
-  it.each([
-    "mutable",
-    "shallow-frozen",
-    "wrapper",
-  ])("revalidates changes within %s content instead of reusing admitted validation", (shape) => {
-    const admitted = content("egm");
-    const mutable =
-      shape === "wrapper"
-        ? { ...admitted, items: structuredClone(admitted.items) }
-        : structuredClone(admitted);
-    if (shape === "shallow-frozen") Object.freeze(mutable);
-    const item = itemIn(mutable, "egm.agent.bootstrap_orchestrator");
-    const claude = profile("claude-code");
-    expect(availability(item, claude, { contents: [mutable] }).available).toBe(true);
-    Object.assign(item, { name: "INVALID NAME" });
-    expect(availability(item, claude, { contents: [mutable] })).toEqual({
-      available: false,
-      how: "none",
-      reason: "invalid",
-    });
-    const original = itemIn(admitted, item.id);
-    expect(availability(original, claude)).toEqual({ available: true, how: "rendered" });
-  });
+  it.each(["mutable", "shallow-frozen", "wrapper"])(
+    "revalidates changes within %s content instead of reusing admitted validation",
+    (shape) => {
+      const admitted = content("egm");
+      const mutable =
+        shape === "wrapper"
+          ? { ...admitted, items: structuredClone(admitted.items) }
+          : structuredClone(admitted);
+      if (shape === "shallow-frozen") Object.freeze(mutable);
+      const item = itemIn(mutable, "egm.agent.bootstrap_orchestrator");
+      const claude = profile("claude-code");
+      expect(availability(item, claude, { contents: [mutable] }).available).toBe(true);
+      Object.assign(item, { name: "INVALID NAME" });
+      expect(availability(item, claude, { contents: [mutable] })).toEqual({
+        available: false,
+        how: "none",
+        reason: "invalid",
+      });
+      const original = itemIn(admitted, item.id);
+      expect(availability(original, claude)).toEqual({ available: true, how: "rendered" });
+    },
+  );
 
   it("rechecks stricter options, profile changes and invalid bytes after successful admission", () => {
     const egm = content("egm");

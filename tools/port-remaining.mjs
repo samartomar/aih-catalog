@@ -42,27 +42,27 @@ const check = process.argv.includes("--check");
 const PINS = {
   anthropic: {
     repository: "https://github.com/anthropics/skills",
-    commit: "34040c9c568585f6929bedeaad110ad08f079624",
+    commit: "e4bb5d960d87126ff3b3a8af1a104b7db67560ba",
   },
   shadcn: {
     repository: "https://github.com/shadcn-ui/ui",
-    commit: "f3d14c48cbad1b6a3b3c9c81db9f198a4188f712",
+    commit: "0e5b2e621a9ee4cf6a604bbe6c5c0d5b70561eb4",
   },
   guide: {
     repository: "https://github.com/samartomar/aih-extensions",
-    commit: "2481164a51ea7f9e480d51ef52f3d5cf15b017fa",
+    commit: "c89adaad320d679c905e7122b908c1bc9c8c1904",
   },
   pstack: {
     repository: "https://github.com/cursor/plugins",
-    commit: "ae5650febf4320793844c12c4adaa937f417f8da",
+    commit: "b1fbf4b60ac6813b4583ccc356850dafcf492665",
   },
   gstack: {
     repository: "https://github.com/garrytan/gstack",
-    commit: "1ea86923a86129d1f32828b36acfe6f91f17c8e6",
+    commit: "e6dd567349e85506127c2f4cf69a0392923c032c",
   },
   egm: {
     repository: "https://github.com/google/elephant-goldfish-model",
-    commit: "403d8881d62022490637d740657b33f01e321ea8",
+    commit: "46933754e63c0424daa9c270d7e0734245d79560",
   },
 };
 

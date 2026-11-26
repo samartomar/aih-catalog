@@ -6,22 +6,18 @@
       "kind": "skill"
     },
     {
-      "fetch": "upstream",
       "item": "anthropic.skill.docx",
       "kind": "skill"
     },
     {
-      "fetch": "upstream",
       "item": "anthropic.skill.pdf",
       "kind": "skill"
     },
     {
-      "fetch": "upstream",
       "item": "anthropic.skill.pptx",
       "kind": "skill"
     },
     {
-      "fetch": "upstream",
       "item": "anthropic.skill.xlsx",
       "kind": "skill"
     },
@@ -222,6 +218,10 @@
       "kind": "skill"
     },
     {
+      "item": "pstack.skill.reframe",
+      "kind": "skill"
+    },
+    {
       "item": "pstack.skill.setup-pstack",
       "kind": "skill"
     },
@@ -282,6 +282,10 @@
       "kind": "skill"
     },
     {
+      "item": "gstack.skill.build-check",
+      "kind": "skill"
+    },
+    {
       "item": "gstack.skill.canary",
       "kind": "skill"
     },
@@ -303,10 +307,6 @@
     },
     {
       "item": "gstack.skill.context-save",
-      "kind": "skill"
-    },
-    {
-      "item": "gstack.skill.cso",
       "kind": "skill"
     },
     {
@@ -367,10 +367,6 @@
     },
     {
       "item": "gstack.skill.health",
-      "kind": "skill"
-    },
-    {
-      "item": "gstack.skill.investigate",
       "kind": "skill"
     },
     {
@@ -462,6 +458,10 @@
       "kind": "skill"
     },
     {
+      "item": "gstack.skill.runaway-stopper",
+      "kind": "skill"
+    },
+    {
       "item": "gstack.skill.scrape",
       "kind": "skill"
     },
@@ -506,10 +506,6 @@
       "kind": "skill"
     },
     {
-      "item": "gstack.skill.verify",
-      "kind": "skill"
-    },
-    {
       "item": "gstack.skill.write-skill",
       "kind": "skill"
     },
@@ -531,6 +527,10 @@
     },
     {
       "item": "egm.agent.implementation_readiness",
+      "kind": "agent"
+    },
+    {
+      "item": "egm.agent.inventive_catalyst",
       "kind": "agent"
     },
     {
@@ -563,6 +563,10 @@
     },
     {
       "item": "egm.skill.egm-drift-report",
+      "kind": "skill"
+    },
+    {
+      "item": "egm.skill.egm-lite",
       "kind": "skill"
     },
     {
@@ -602,21 +606,21 @@
   },
   "contentItems": {
     "anthropic": 18,
-    "egm": 16,
-    "gstack": 62,
+    "egm": 18,
+    "gstack": 61,
     "guide": 2,
-    "pstack": 60,
+    "pstack": 61,
     "web-artifacts": 1
   },
   "counts": {
-    "contentItems": 159,
+    "contentItems": 161,
     "dropped": 22,
     "earlierItems": 96,
     "mapped": 69,
-    "newItems": 143,
+    "newItems": 145,
     "notice": 3,
     "split": 2,
-    "upstreamOnly": 5
+    "upstreamOnly": 1
   },
   "dispositions": [
     {
@@ -2888,20 +2892,20 @@
       "references": 0
     },
     "egm": {
-      "items": 0,
-      "references": 0
+      "items": 3,
+      "references": 4
     },
     "gstack": {
-      "items": 54,
-      "references": 253
+      "items": 53,
+      "references": 276
     },
     "guide": {
       "items": 0,
       "references": 0
     },
     "pstack": {
-      "items": 30,
-      "references": 138
+      "items": 26,
+      "references": 119
     },
     "web-artifacts": {
       "items": 0,
@@ -2910,34 +2914,34 @@
   },
   "pins": {
     "anthropic": {
-      "commit": "34040c9c568585f6929bedeaad110ad08f079624",
+      "commit": "e4bb5d960d87126ff3b3a8af1a104b7db67560ba",
       "repository": "https://github.com/anthropics/skills"
     },
     "egm": {
-      "commit": "403d8881d62022490637d740657b33f01e321ea8",
+      "commit": "46933754e63c0424daa9c270d7e0734245d79560",
       "repository": "https://github.com/google/elephant-goldfish-model"
     },
     "gstack": {
-      "commit": "1ea86923a86129d1f32828b36acfe6f91f17c8e6",
+      "commit": "e6dd567349e85506127c2f4cf69a0392923c032c",
       "repository": "https://github.com/garrytan/gstack"
     },
     "guide": {
-      "commit": "2481164a51ea7f9e480d51ef52f3d5cf15b017fa",
+      "commit": "c89adaad320d679c905e7122b908c1bc9c8c1904",
       "repository": "https://github.com/samartomar/aih-extensions"
     },
     "pstack": {
-      "commit": "ae5650febf4320793844c12c4adaa937f417f8da",
+      "commit": "b1fbf4b60ac6813b4583ccc356850dafcf492665",
       "repository": "https://github.com/cursor/plugins"
     },
     "shadcn": {
-      "commit": "f3d14c48cbad1b6a3b3c9c81db9f198a4188f712",
+      "commit": "0e5b2e621a9ee4cf6a604bbe6c5c0d5b70561eb4",
       "repository": "https://github.com/shadcn-ui/ui"
     }
   },
   "recipes": {
     "anthropic-academy-guide": {
       "content": {
-        "commit": "34040c9c568585f6929bedeaad110ad08f079624",
+        "commit": "e4bb5d960d87126ff3b3a8af1a104b7db67560ba",
         "repository": "https://github.com/anthropics/skills"
       },
       "framework": "anthropic",
@@ -2951,7 +2955,7 @@
       ],
       "plugins": {
         "claude-code": {
-          "commit": "34040c9c568585f6929bedeaad110ad08f079624",
+          "commit": "e4bb5d960d87126ff3b3a8af1a104b7db67560ba",
           "path": "/",
           "plugin": "academy-guide",
           "source": "anthropic"
@@ -2966,7 +2970,7 @@
     },
     "anthropic-base": {
       "content": {
-        "commit": "34040c9c568585f6929bedeaad110ad08f079624",
+        "commit": "e4bb5d960d87126ff3b3a8af1a104b7db67560ba",
         "repository": "https://github.com/anthropics/skills"
       },
       "framework": "anthropic",
@@ -3032,7 +3036,7 @@
       ],
       "plugins": {
         "claude-code": {
-          "commit": "34040c9c568585f6929bedeaad110ad08f079624",
+          "commit": "e4bb5d960d87126ff3b3a8af1a104b7db67560ba",
           "path": "/",
           "plugin": "example-skills",
           "source": "anthropic"
@@ -3044,7 +3048,7 @@
     },
     "anthropic-claude-api": {
       "content": {
-        "commit": "34040c9c568585f6929bedeaad110ad08f079624",
+        "commit": "e4bb5d960d87126ff3b3a8af1a104b7db67560ba",
         "repository": "https://github.com/anthropics/skills"
       },
       "framework": "anthropic",
@@ -3053,7 +3057,7 @@
       "members": [],
       "plugins": {
         "claude-code": {
-          "commit": "34040c9c568585f6929bedeaad110ad08f079624",
+          "commit": "e4bb5d960d87126ff3b3a8af1a104b7db67560ba",
           "path": "/",
           "plugin": "claude-api",
           "source": "anthropic"
@@ -3068,7 +3072,7 @@
     },
     "anthropic-discernment-nudge": {
       "content": {
-        "commit": "34040c9c568585f6929bedeaad110ad08f079624",
+        "commit": "e4bb5d960d87126ff3b3a8af1a104b7db67560ba",
         "repository": "https://github.com/anthropics/skills"
       },
       "framework": "anthropic",
@@ -3082,7 +3086,7 @@
       ],
       "plugins": {
         "claude-code": {
-          "commit": "34040c9c568585f6929bedeaad110ad08f079624",
+          "commit": "e4bb5d960d87126ff3b3a8af1a104b7db67560ba",
           "path": "/",
           "plugin": "discernment-nudge",
           "source": "anthropic"
@@ -3097,7 +3101,7 @@
     },
     "anthropic-document-skills": {
       "content": {
-        "commit": "34040c9c568585f6929bedeaad110ad08f079624",
+        "commit": "e4bb5d960d87126ff3b3a8af1a104b7db67560ba",
         "repository": "https://github.com/anthropics/skills"
       },
       "framework": "anthropic",
@@ -3123,7 +3127,7 @@
       ],
       "plugins": {
         "claude-code": {
-          "commit": "34040c9c568585f6929bedeaad110ad08f079624",
+          "commit": "e4bb5d960d87126ff3b3a8af1a104b7db67560ba",
           "path": "/",
           "plugin": "document-skills",
           "source": "anthropic"
@@ -3138,7 +3142,7 @@
     },
     "egm-base": {
       "content": {
-        "commit": "403d8881d62022490637d740657b33f01e321ea8",
+        "commit": "46933754e63c0424daa9c270d7e0734245d79560",
         "repository": "https://github.com/google/elephant-goldfish-model"
       },
       "framework": "egm",
@@ -3163,6 +3167,10 @@
         },
         {
           "item": "egm.agent.implementation_readiness",
+          "preTicked": true
+        },
+        {
+          "item": "egm.agent.inventive_catalyst",
           "preTicked": true
         },
         {
@@ -3198,6 +3206,10 @@
           "preTicked": true
         },
         {
+          "item": "egm.skill.egm-lite",
+          "preTicked": true
+        },
+        {
           "item": "egm.skill.egm-resolve",
           "preTicked": true
         },
@@ -3212,20 +3224,20 @@
       ],
       "plugins": {
         "antigravity": {
-          "commit": "403d8881d62022490637d740657b33f01e321ea8",
+          "commit": "46933754e63c0424daa9c270d7e0734245d79560",
           "path": "/",
           "plugin": "egm",
           "source": "egm"
         },
         "claude-code": {
-          "commit": "403d8881d62022490637d740657b33f01e321ea8",
+          "commit": "46933754e63c0424daa9c270d7e0734245d79560",
           "marketplace": "egm",
           "path": "/",
           "plugin": "egm",
           "source": "egm"
         },
         "codex": {
-          "commit": "403d8881d62022490637d740657b33f01e321ea8",
+          "commit": "46933754e63c0424daa9c270d7e0734245d79560",
           "marketplace": "https://github.com/google/elephant-goldfish-model",
           "marketplaceName": "egm",
           "path": "/",
@@ -3241,7 +3253,7 @@
     },
     "gstack-base": {
       "content": {
-        "commit": "1ea86923a86129d1f32828b36acfe6f91f17c8e6",
+        "commit": "e6dd567349e85506127c2f4cf69a0392923c032c",
         "repository": "https://github.com/garrytan/gstack"
       },
       "framework": "gstack",
@@ -3262,6 +3274,10 @@
         },
         {
           "item": "gstack.skill.browse",
+          "preTicked": true
+        },
+        {
+          "item": "gstack.skill.build-check",
           "preTicked": true
         },
         {
@@ -3286,10 +3302,6 @@
         },
         {
           "item": "gstack.skill.context-save",
-          "preTicked": true
-        },
-        {
-          "item": "gstack.skill.cso",
           "preTicked": true
         },
         {
@@ -3350,10 +3362,6 @@
         },
         {
           "item": "gstack.skill.health",
-          "preTicked": true
-        },
-        {
-          "item": "gstack.skill.investigate",
           "preTicked": true
         },
         {
@@ -3445,6 +3453,10 @@
           "preTicked": true
         },
         {
+          "item": "gstack.skill.runaway-stopper",
+          "preTicked": true
+        },
+        {
           "item": "gstack.skill.scrape",
           "preTicked": true
         },
@@ -3489,10 +3501,6 @@
           "preTicked": true
         },
         {
-          "item": "gstack.skill.verify",
-          "preTicked": true
-        },
-        {
           "item": "gstack.skill.write-skill",
           "preTicked": true
         }
@@ -3526,7 +3534,7 @@
             "--host",
             "agy"
           ],
-          "commit": "1ea86923a86129d1f32828b36acfe6f91f17c8e6",
+          "commit": "e6dd567349e85506127c2f4cf69a0392923c032c",
           "into": ".aihq/setup/gstack",
           "needs": [
             "bun>=1.4.2"
@@ -3539,7 +3547,7 @@
             "--host",
             "claude"
           ],
-          "commit": "1ea86923a86129d1f32828b36acfe6f91f17c8e6",
+          "commit": "e6dd567349e85506127c2f4cf69a0392923c032c",
           "into": ".claude/skills/gstack",
           "needs": [
             "bun>=1.4.2"
@@ -3552,7 +3560,7 @@
             "--host",
             "codex"
           ],
-          "commit": "1ea86923a86129d1f32828b36acfe6f91f17c8e6",
+          "commit": "e6dd567349e85506127c2f4cf69a0392923c032c",
           "into": ".aihq/setup/gstack",
           "needs": [
             "bun>=1.4.2"
@@ -3565,7 +3573,7 @@
             "--host",
             "copilot"
           ],
-          "commit": "1ea86923a86129d1f32828b36acfe6f91f17c8e6",
+          "commit": "e6dd567349e85506127c2f4cf69a0392923c032c",
           "into": ".aihq/setup/gstack",
           "needs": [
             "bun>=1.4.2"
@@ -3578,7 +3586,7 @@
             "--host",
             "cursor"
           ],
-          "commit": "1ea86923a86129d1f32828b36acfe6f91f17c8e6",
+          "commit": "e6dd567349e85506127c2f4cf69a0392923c032c",
           "into": ".aihq/setup/gstack",
           "needs": [
             "bun>=1.4.2"
@@ -3591,7 +3599,7 @@
             "--host",
             "kiro"
           ],
-          "commit": "1ea86923a86129d1f32828b36acfe6f91f17c8e6",
+          "commit": "e6dd567349e85506127c2f4cf69a0392923c032c",
           "into": ".aihq/setup/gstack",
           "needs": [
             "bun>=1.4.2"
@@ -3604,7 +3612,7 @@
             "--host",
             "opencode"
           ],
-          "commit": "1ea86923a86129d1f32828b36acfe6f91f17c8e6",
+          "commit": "e6dd567349e85506127c2f4cf69a0392923c032c",
           "into": ".aihq/setup/gstack",
           "needs": [
             "bun>=1.4.2"
@@ -3615,7 +3623,7 @@
     },
     "guide-base": {
       "content": {
-        "commit": "2481164a51ea7f9e480d51ef52f3d5cf15b017fa",
+        "commit": "c89adaad320d679c905e7122b908c1bc9c8c1904",
         "repository": "https://github.com/samartomar/aih-extensions"
       },
       "framework": "guide",
@@ -3643,7 +3651,7 @@
     },
     "pstack-base": {
       "content": {
-        "commit": "ae5650febf4320793844c12c4adaa937f417f8da",
+        "commit": "b1fbf4b60ac6813b4583ccc356850dafcf492665",
         "repository": "https://github.com/cursor/plugins"
       },
       "framework": "pstack",
@@ -3847,6 +3855,10 @@
           "preTicked": true
         },
         {
+          "item": "pstack.skill.reframe",
+          "preTicked": true
+        },
+        {
           "item": "pstack.skill.setup-pstack",
           "preTicked": true
         },
@@ -3898,10 +3910,6 @@
     "anthropic.skill.claude-api": "its upstream description is longer than the 1024 characters an item may carry (the Agent Skills limit), and Catalog does not edit upstream files"
   },
   "upstreamOnlyReasons": {
-    "anthropic.skill.doc-coauthoring": "the skill carries no licence, so Catalog records its files and sha256 and the plan fetches them from the pinned upstream",
-    "anthropic.skill.docx": "the skill's own LICENSE.txt reserves all rights, so Catalog records its files and sha256 and the plan fetches them from the pinned upstream",
-    "anthropic.skill.pdf": "the skill's own LICENSE.txt reserves all rights, so Catalog records its files and sha256 and the plan fetches them from the pinned upstream",
-    "anthropic.skill.pptx": "the skill's own LICENSE.txt reserves all rights, so Catalog records its files and sha256 and the plan fetches them from the pinned upstream",
-    "anthropic.skill.xlsx": "the skill's own LICENSE.txt reserves all rights, so Catalog records its files and sha256 and the plan fetches them from the pinned upstream"
+    "anthropic.skill.doc-coauthoring": "the skill carries no licence, so Catalog records its files and sha256 and the plan fetches them from the pinned upstream"
   }
 }

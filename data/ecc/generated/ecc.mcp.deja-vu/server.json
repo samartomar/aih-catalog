@@ -1,0 +1,36 @@
+{
+  "description": "Opt-in recall over local coding-session transcripts, including older sessions and other projects. Index persists under ~/.cache/deja; recalled text is sent to the connected model. Enable only with permission to read those histories; configure source/project exclusions for private sessions. Reviewed package version is pinned and offline mode is set. No LLM, embeddings or API key required by the local index. Not enabled by default.",
+  "name": "deja-vu",
+  "packages": [
+    {
+      "environmentVariables": [
+        {
+          "default": "1",
+          "description": "DEJA_OFFLINE",
+          "isRequired": true,
+          "isSecret": false,
+          "name": "DEJA_OFFLINE"
+        }
+      ],
+      "identifier": "@vshulcz/deja-vu",
+      "packageArguments": [
+        {
+          "type": "positional",
+          "value": "mcp"
+        }
+      ],
+      "registryType": "npm",
+      "runtimeArguments": [
+        {
+          "type": "positional",
+          "value": "-y"
+        }
+      ],
+      "runtimeHint": "npx",
+      "transport": {
+        "type": "stdio"
+      },
+      "version": "0.24.0"
+    }
+  ]
+}

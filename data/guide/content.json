@@ -78,7 +78,7 @@
   "schema": "urn:aihq:catalog:content:0.1.0",
   "sources": [
     {
-      "commit": "2481164a51ea7f9e480d51ef52f3d5cf15b017fa",
+      "commit": "c89adaad320d679c905e7122b908c1bc9c8c1904",
       "id": "guide",
       "kind": "git",
       "notices": [

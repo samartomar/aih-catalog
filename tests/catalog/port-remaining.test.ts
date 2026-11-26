@@ -15,12 +15,16 @@ import {
   readRecipe,
 } from "../../src/catalog/reader.js";
 import type { SourceFile } from "../../src/catalog/source.js";
-import { EGM_UPSTREAM, egmContent } from "./egm.js";
+import { type EGM_UPSTREAM, egmContent } from "./egm.js";
 import { fetches, placements, profile, sha, sortKeys } from "./helpers.js";
 
 const repositoryRoot = resolve(import.meta.dirname, "../..");
 const FAMILIES = ["anthropic", "egm", "gstack", "guide", "pstack", "web-artifacts"] as const;
 const FIXTURE = join(repositoryRoot, "tests/fixtures/port-remaining");
+const ACTIVE_EGM_ROOT = join(repositoryRoot, "tests/fixtures/egm-46933754");
+const ACTIVE_EGM = JSON.parse(
+  readFileSync(`${ACTIVE_EGM_ROOT}.upstream.json`, "utf8"),
+) as typeof EGM_UPSTREAM;
 const UPSTREAM = JSON.parse(
   readFileSync(join(repositoryRoot, "tests/fixtures/port-remaining.upstream.json"), "utf8"),
 ) as Record<
@@ -32,11 +36,8 @@ const UPSTREAM = JSON.parse(
     entries: { path: string; mode: string; blob: string }[];
   }
 >;
-/**
- * The sha256 of the upstream's "all rights reserved" notice of its document skills, as read at
- * the pin. Its text is restricted, so no copy is kept here; only this identity is checked.
- */
-const RESERVED_NOTICE = "79f6d8f5b427252fa3b1c11ecdbdb6bf610b944f7530b4de78f770f38741cfaa";
+/** SHA-256 of the Apache-2.0 notice shared by the four document skill folders at this pin. */
+const DOCUMENT_SKILLS_NOTICE = "58d1e17ffe5109a7ae296caafcadfdbe6a7d176f0bc4ab01e12a689b0499d8bd";
 const REPORT = JSON.parse(readFileSync(join(repositoryRoot, "port-report/remaining.json"), "utf8"));
 const MAINTAINED = JSON.parse(
   readFileSync(join(repositoryRoot, "port-report/maintained.json"), "utf8"),
@@ -44,21 +45,21 @@ const MAINTAINED = JSON.parse(
 
 /** The exact pins the port records; written out here, independently of the port tool. */
 const PINS = {
-  anthropic: ["https://github.com/anthropics/skills", "34040c9c568585f6929bedeaad110ad08f079624"],
-  "shadcn-notice": ["https://github.com/shadcn-ui/ui", "f3d14c48cbad1b6a3b3c9c81db9f198a4188f712"],
+  anthropic: ["https://github.com/anthropics/skills", "e4bb5d960d87126ff3b3a8af1a104b7db67560ba"],
+  "shadcn-notice": ["https://github.com/shadcn-ui/ui", "0e5b2e621a9ee4cf6a604bbe6c5c0d5b70561eb4"],
   guide: [
     "https://github.com/samartomar/aih-extensions",
-    "2481164a51ea7f9e480d51ef52f3d5cf15b017fa",
+    "c89adaad320d679c905e7122b908c1bc9c8c1904",
   ],
-  pstack: ["https://github.com/cursor/plugins", "ae5650febf4320793844c12c4adaa937f417f8da"],
+  pstack: ["https://github.com/cursor/plugins", "b1fbf4b60ac6813b4583ccc356850dafcf492665"],
   "pstack-claude": [
     "https://github.com/cursor/plugins",
-    "ae5650febf4320793844c12c4adaa937f417f8da",
+    "b1fbf4b60ac6813b4583ccc356850dafcf492665",
   ],
-  gstack: ["https://github.com/garrytan/gstack", "1ea86923a86129d1f32828b36acfe6f91f17c8e6"],
+  gstack: ["https://github.com/garrytan/gstack", "e6dd567349e85506127c2f4cf69a0392923c032c"],
   egm: [
     "https://github.com/google/elephant-goldfish-model",
-    "403d8881d62022490637d740657b33f01e321ea8",
+    "46933754e63c0424daa9c270d7e0734245d79560",
   ],
 } as const;
 
@@ -224,12 +225,11 @@ describe("the ported candidate data", () => {
       sha256: shaOf("anthropic", "THIRD_PARTY_NOTICES.md"),
       covers: "/",
     });
-    // The document skills' notices reserve all rights: only their recorded identity is kept,
-    // never their text (the plan fetches them with the skills).
+    // All four document skills now carry an Apache-2.0 notice at the selected source.
     for (const name of ["docx", "pdf", "pptx", "xlsx"])
       expect(notices("anthropic", "anthropic")).toContainEqual({
         sourcePath: `skills/${name}/LICENSE.txt`,
-        sha256: RESERVED_NOTICE,
+        sha256: DOCUMENT_SKILLS_NOTICE,
         covers: `skills/${name}`,
       });
     // Each skill's LICENSE.txt (claude-api's too, though it is no item) and the root notices.
@@ -249,41 +249,27 @@ describe("the ported candidate data", () => {
   });
 
   it("records EGM exactly as its pinned runtime fixture builds it", async () => {
-    const { content } = await egmContent();
-    const recorded = data("egm");
-    // The fixture holds the runtime files only. What the real data adds is the whole upstream
-    // tree: the plugin folder's own key, which is the commit's root tree, and the notice of the
-    // upstream's generated distributions/ copy, which covers no item.
-    const [plugin] = recorded.plugins ?? [];
-    expect(plugin?.folderScanKey).toBe(`git-sha1:${EGM_UPSTREAM.tree}`);
-    const [source] = recorded.sources;
-    expect(source?.notices.map((notice) => notice.sourcePath)).toContain(
-      "distributions/claude/LICENSE",
-    );
-    const trimmed = {
-      ...recorded,
-      sources: recorded.sources.map((each) => ({
-        ...each,
-        notices: each.notices.filter((notice) => !notice.sourcePath.startsWith("distributions/")),
-      })),
-      plugins: (recorded.plugins ?? []).map(({ folderScanKey: _, ...rest }) => rest),
-    };
-    expect(trimmed).toEqual({
-      ...content,
-      plugins: (content.plugins ?? []).map(({ folderScanKey: _, ...rest }) => rest),
+    expect(ACTIVE_EGM).toMatchObject({ repository: PINS.egm[0], commit: PINS.egm[1] });
+    const { content } = await egmContent({
+      root: ACTIVE_EGM_ROOT,
+      source: { kind: "git", repository: PINS.egm[0], commit: PINS.egm[1] },
     });
+    const recorded = data("egm");
+    // The real declaration additionally binds the full upstream Git tree, which the fixture
+    // does not materialize. The shipped-file scan keys and source notices must still agree.
+    const [plugin] = recorded.plugins ?? [];
+    expect(plugin?.folderScanKey).toBe(`git-sha1:${ACTIVE_EGM.tree}`);
+    const fixtureOnly = ({ plugins, ...rest }: Content) => ({
+      ...rest,
+      plugins: (plugins ?? []).map(({ folderScanKey: _, ...entry }) => entry),
+    });
+    expect(fixtureOnly(recorded)).toEqual(fixtureOnly(content));
   });
 
   it("records the upstream-only skills without shipping their bytes, and their Claude copies as editions", () => {
     const anthropic = data("anthropic");
     const upstreamOnly = anthropic.items.filter((item) => item.fetch === "upstream");
-    expect(upstreamOnly.map((item) => item.id)).toEqual([
-      "anthropic.skill.doc-coauthoring",
-      "anthropic.skill.docx",
-      "anthropic.skill.pdf",
-      "anthropic.skill.pptx",
-      "anthropic.skill.xlsx",
-    ]);
+    expect(upstreamOnly.map((item) => item.id)).toEqual(["anthropic.skill.doc-coauthoring"]);
     // claude-api's own description is over the 1024-character limit; template/ is the skeleton.
     expect(anthropic.items.map((item) => item.id)).not.toContain("anthropic.skill.claude-api");
     expect(anthropic.items.map((item) => item.id)).not.toContain("anthropic.skill.template");
@@ -295,7 +281,7 @@ describe("the ported candidate data", () => {
       "example-skills",
     ]);
     const pstack = data("pstack");
-    expect(pstack.items).toHaveLength(60);
+    expect(pstack.items).toHaveLength(61);
     for (const item of pstack.items)
       expect(
         item.editions?.["claude-code"]?.files.every((file) => file.sourceId === "pstack-claude"),
@@ -304,7 +290,7 @@ describe("the ported candidate data", () => {
     expect(pstack.items.find((item) => item.id === "pstack.skill.poteto-help")?.references).toEqual(
       [{ name: "pstack:poteto-mode", sourcePath: "skills/poteto-help/SKILL.md" }],
     );
-    expect(data("gstack").items).toHaveLength(62);
+    expect(data("gstack").items).toHaveLength(61);
   });
 });
 
@@ -343,32 +329,25 @@ describe("representative plans of the remaining families", () => {
     ).toMatchObject({ render: { name: "skill" }, scanned: false });
   });
 
-  it("fetches the document skills from their pin wherever Catalog places them", () => {
+  it("places each licensed document skill on Codex and registers the pinned Claude plugin", () => {
     const result = plan("anthropic-document-skills", ["claude-code", "codex"]);
     expect(result).toMatchObject({ status: "ok", clashes: [], unavailable: [] });
-    const fetched = fetches(result.plan);
-    // The only placement is Claude's pinned marketplace; every skill file is fetched.
-    expect(placements(result.plan).map((step) => step.op === "write" && step.path)).toEqual([
+    expect(fetches(result.plan)).toEqual([]);
+    expect(pathsOf(result.plan, "write")).toContain(
       ".aihq/marketplaces/claude-code/anthropic/.claude-plugin/marketplace.json",
-    ]);
-    expect(fetched.length).toBeGreaterThan(100);
-    expect(fetched.every((step) => step.scanned === false && step.clis.includes("codex"))).toBe(
-      true,
     );
-    expect(
-      fetched.find((step) => step.path === ".aihq/notices/anthropic/skills/docx/LICENSE.txt"),
-    ).toEqual({
-      op: "fetch",
-      root: "project",
-      path: ".aihq/notices/anthropic/skills/docx/LICENSE.txt",
-      source: "anthropic",
-      sourcePath: "skills/docx/LICENSE.txt",
-      sha256: RESERVED_NOTICE,
-      executable: false,
-      items: ["anthropic.skill.docx"],
-      clis: ["codex"],
-      scanned: false,
-    });
+    for (const name of ["docx", "pdf", "pptx", "xlsx"]) {
+      expect(result.plan).toContainEqual(
+        expect.objectContaining({ op: "write", path: `.agents/skills/${name}/SKILL.md` }),
+      );
+      expect(result.plan).toContainEqual(
+        expect.objectContaining({
+          op: "write",
+          path: `.aihq/notices/anthropic/skills/${name}/LICENSE.txt`,
+          from: expect.objectContaining({ sha256: DOCUMENT_SKILLS_NOTICE }),
+        }),
+      );
+    }
     expect(result.plan.find((step) => step.op === "plugin")).toMatchObject({
       plugin: "document-skills",
     });
@@ -448,14 +427,22 @@ describe("representative plans of the remaining families", () => {
     ).toEqual([expect.objectContaining({ item: "pstack.agent.poteto-agent", clis: ["codex"] })]);
   });
 
-  it("keeps EGM's real runtime bundle whole for Claude, Codex and Antigravity", () => {
+  it("places EGM's packed runtime and reports the optional project index as unresolved for copies", () => {
     const result = plan("egm-base", ["claude-code", "codex", "antigravity"]);
     expect(result).toMatchObject({
-      status: "ok",
+      status: "incomplete",
       missing: [],
       unavailable: [],
       clashes: [],
-      references: [],
+      references: [
+        {
+          clis: ["antigravity", "codex"],
+          file: "skills/egm-brainstorm/SKILL.md",
+          item: "egm.skill.egm-brainstorm",
+          kind: "path",
+          path: "docs/designs/README.md",
+        },
+      ],
     });
     const writes = pathsOf(result.plan, "write");
     expect(writes).toContain(".aihq/plugins/egm/.claude-plugin/marketplace.json");
@@ -521,8 +508,8 @@ describe("the remaining-port report", () => {
       split: 2,
       notice: 3,
       dropped: 22,
-      upstreamOnly: 5,
-      contentItems: 159,
+      upstreamOnly: 1,
+      contentItems: 161,
     });
     const byId = new Map(
       REPORT.dispositions.map((entry: { earlier: { id: string } }) => [entry.earlier.id, entry]),
@@ -549,8 +536,11 @@ describe("the remaining-port report", () => {
       item: "extensions.skill.engineering.tdd",
     });
     // The upstream-only items are new: none was in an earlier release.
-    expect(
-      REPORT.added.filter((entry: { fetch?: string }) => entry.fetch === "upstream"),
-    ).toHaveLength(5);
+    expect(REPORT.added.filter((entry: { fetch?: string }) => entry.fetch === "upstream")).toEqual([
+      expect.objectContaining({
+        fetch: "upstream",
+        item: "anthropic.skill.doc-coauthoring",
+      }),
+    ]);
   });
 });

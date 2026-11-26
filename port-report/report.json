@@ -11,9 +11,9 @@
     },
     "dispositions": {
       "bundle": 1,
-      "dropped": 21,
+      "dropped": 24,
       "edition": 65,
-      "mapped": 687,
+      "mapped": 684,
       "notice": 3
     },
     "families": [
@@ -112,7 +112,7 @@
   },
   "frameworks": {
     "anthropic": {
-      "contentSha256": "5ac6dab17882ef4eac64689131d938a595587ec3bf0e6a8d214ce2964c0b75a8",
+      "contentSha256": "e32b807e2b273d2fcd3a01b055a8ae082a6d0bd626042248da1115e3cfc8e15d",
       "items": 18,
       "section": "remaining"
     },
@@ -127,27 +127,27 @@
       "section": "aiSetup"
     },
     "ecc": {
-      "contentSha256": "a74daffc2cdff297c8cb79b70ae18d6ddde47429facd5219741ab818def3d181",
-      "items": 645,
+      "contentSha256": "2d6fd354ad6ccd0ee8df97283a94d52b159cdbd2020ae54c6ead32109f7e9841",
+      "items": 698,
       "section": "maintained"
     },
     "egm": {
-      "contentSha256": "0a577515792a5815c7f6350fd53bb057f50cf5c535d6d5d0942eb67b26d965bd",
-      "items": 16,
+      "contentSha256": "9e667a8f22fdf6bf2600a011ee371bd9503f932b7f1e6ccaceb7da300511733d",
+      "items": 18,
       "section": "remaining"
     },
     "extensions": {
-      "contentSha256": "83f1acc34873452635c1e8ac9fda44292341f835750b8ccc7f6eee145eeb8b44",
-      "items": 65,
+      "contentSha256": "541aaa217ae6952af7850e63258fa79cd2fe8dbc2f5a0d4ae704e68682c76482",
+      "items": 66,
       "section": "maintained"
     },
     "gstack": {
-      "contentSha256": "3c8677e648308443672b708a59ca18f6168e45a1dbc0719acfb993bf1dee25fe",
-      "items": 62,
+      "contentSha256": "725db2470e1e0f7b4a86a7596032d7d001c4b24625dffc0784339b96bad5957d",
+      "items": 61,
       "section": "remaining"
     },
     "guide": {
-      "contentSha256": "cae82b6d44445b2338e6fbe02f6f65c02901f27b73f886c81f5c6a0d5e535505",
+      "contentSha256": "e0bd9ba3c76c825c43f68dad36740df0aafeb70534791cd4dd6c3ce434d8e187",
       "items": 2,
       "section": "remaining"
     },
@@ -157,8 +157,8 @@
       "section": "maintained"
     },
     "pstack": {
-      "contentSha256": "89ef89b836bf50648b744788239b1133f7e9f02f4d684b55fd85186f67aeb33a",
-      "items": 60,
+      "contentSha256": "1db0dfea1b3fec78c1d534d475be72f191fb2b0b52be196e3c3799ba775d650a",
+      "items": 61,
       "section": "remaining"
     },
     "serena": {
@@ -167,12 +167,12 @@
       "section": "aiSetup"
     },
     "superpowers": {
-      "contentSha256": "66434875f03236f882eb6610cebc156f691aea6c8e0b95001855a7223e203591",
+      "contentSha256": "96caf576295f12892caf833227f886bece1fddd902a1383cfd516cb26afadc14",
       "items": 17,
       "section": "maintained"
     },
     "web-artifacts": {
-      "contentSha256": "69a5f917cf922d44fb38192ca162920be5d41c0f7ab36114f2580f4028213462",
+      "contentSha256": "6e472d14b2776b79632b594c547e94903f166f42e01bb394c0c5d7fc38978a93",
       "items": 1,
       "section": "remaining"
     }
@@ -182,10 +182,11 @@
       "The port report does not verify production scan admission; the data-commit gate requires separate matching trusted-evidence verification.",
       "Recipes are drafts in the section reports; each is published once it names the admitted data commit.",
       "Extensions declares no per-client routes yet, so it has no base recipe and is planned through items only.",
-      "gstack: 54 items name 253 files no placed bundle provides",
-      "pstack: 30 items name 138 files no placed bundle provides",
-      "21 baseline items are dropped with their reasons; 1 upstream item cannot be represented (anthropic.skill.claude-api).",
-      "13 items are fetched from their pinned upstream at install time instead of shipped (licence), and are not scanned.",
+      "egm: 3 items name 4 files no placed bundle provides",
+      "gstack: 53 items name 276 files no placed bundle provides",
+      "pstack: 26 items name 119 files no placed bundle provides",
+      "24 baseline items are dropped with their reasons; 1 upstream item cannot be represented (anthropic.skill.claude-api).",
+      "9 items are fetched from their pinned upstream at install time instead of shipped (licence), and are not scanned.",
       "Path references are reported strictly: an item that names a source file outside its own files is `incomplete` unless a placed bundle or the project-scope sibling layout provides it."
     ],
     "native": [
@@ -277,17 +278,17 @@
     },
     "maintained": {
       "path": "port-report/maintained.json",
-      "sha256": "fac758d9985ad6e3444c32d67fc9c506485d9ad6c458442f7160e900b05d7915"
+      "sha256": "c13c9d2cf73ca94a33d28cacf0bd6505939b4609a130f6ef90ce102a78489d9b"
     },
     "remaining": {
       "path": "port-report/remaining.json",
-      "sha256": "7e3c7485afd7e6f75529c88075e514b82fda22aeacf7f1b29bb6d9f199216c24"
+      "sha256": "848ff96b7826e1de08e365922bb5db495bf04a0c70ad81a02dcff1af6649dcac"
     }
   },
   "totals": {
     "draftRecipes": 10,
     "frameworks": 13,
-    "items": 902,
+    "items": 958,
     "qualifications": 13
   }
 }

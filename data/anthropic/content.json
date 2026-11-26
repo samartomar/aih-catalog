@@ -797,16 +797,15 @@
     },
     {
       "arguments": false,
-      "behaviourSha256": "287226875940534f669f6a842664d928793e1695d1bcd661ba6aed5e6b192074",
-      "contentSha256": "16d32acd0bec0097c590723f03e542799515e68f2ebce41e1edfdc7f09fc0e79",
+      "behaviourSha256": "4237fdb8d28a04c0c2c756c97c0a4f190ab64d0864c86785cb838fe6a95d2e3a",
+      "contentSha256": "e9f6aac698e1b7c8aef93ffd7cfcc707107cbbb90155e8dd543fdeb84ab82aad",
       "description": "Use this skill whenever the user wants to create, read, edit, or manipulate Word documents (.docx files) or Word templates (.dotx files). Triggers include: any mention of 'Word doc', 'word document', '.docx', '.dotx', or requests to produce professional documents with formatting like tables of contents, headings, page numbers, or letterheads. Also use when extracting or reorganizing content from .docx or .dotx files, inserting or replacing images in documents, performing find-and-replace in Word files, working with tracked changes or comments, or converting content into a polished Word document. If the user asks for a 'report', 'memo', 'letter', 'template', or similar deliverable as a Word or .docx file, use this skill. Do NOT use for PDFs, spreadsheets, Google Docs, or general coding tasks unrelated to document generation.",
-      "fetch": "upstream",
       "files": [
         {
-          "bytes": 6911,
+          "bytes": 7488,
           "executable": false,
           "role": "content",
-          "sha256": "8017469ea95fb7d28225c62daf8e2f3492a7b516fc64c18c28977cbf8980b7fe",
+          "sha256": "895d5aa6c4cd98e4aed4c995d846f056f3549086e79bcd6617afea6014f82288",
           "sourceId": "anthropic",
           "sourcePath": "skills/docx/SKILL.md"
         },
@@ -843,26 +842,26 @@
           "sourcePath": "skills/docx/scripts/merge_runs.py"
         },
         {
-          "bytes": 3358,
+          "bytes": 4042,
           "executable": false,
           "role": "content",
-          "sha256": "678e42456d9e10923c8b9a93691cdd993de3433448a184fa72a0c31f4ae086d5",
+          "sha256": "5c456ffc522900399b5f9402f92d66aaf2d9f87655d236c69f60bf07f4fd7c9b",
           "sourceId": "anthropic",
           "sourcePath": "skills/docx/scripts/office/helpers/__init__.py"
         },
         {
-          "bytes": 5862,
+          "bytes": 9938,
           "executable": false,
           "role": "content",
-          "sha256": "47ac266f7d39d11ede6bb0d1f3a19d801394fd2964636f1b48beb701f1832964",
+          "sha256": "aed734e9a6c743ae712fc228c868bf0f6abcfb6a53549eefb19081b15d240fda",
           "sourceId": "anthropic",
           "sourcePath": "skills/docx/scripts/office/helpers/pptx_chart.py"
         },
         {
-          "bytes": 1675,
+          "bytes": 3352,
           "executable": false,
           "role": "content",
-          "sha256": "7b9f69b4a5bd6a2d9eabf9e0e3e796d7a421373145f6a8cd11f60b7ba2d6a5d0",
+          "sha256": "06fe06953bf038826b85ecc142f4dc9299a37fa0c4e4dd9b00b10486df33524d",
           "sourceId": "anthropic",
           "sourcePath": "skills/docx/scripts/office/helpers/pptx_slide.py"
         },
@@ -1187,18 +1186,18 @@
           "sourcePath": "skills/docx/scripts/office/schemas/microsoft/wml-symex-2015.xsd"
         },
         {
-          "bytes": 5927,
+          "bytes": 9100,
           "executable": false,
           "role": "content",
-          "sha256": "df2c8d7249c132a4512d744482e4b5ed0ecbe885f0bcfb1295e7e6a7ced0432c",
+          "sha256": "bcfa227707681ffbecc0f0af5c4e7155407b3baaf5cec5cdd41387c97cdd40c7",
           "sourceId": "anthropic",
           "sourcePath": "skills/docx/scripts/office/soffice.py"
         },
         {
-          "bytes": 6142,
+          "bytes": 7808,
           "executable": true,
           "role": "content",
-          "sha256": "346a4c89d92fff55e610f11efda48c30228815b29bdb10b987e48f7af70acf1e",
+          "sha256": "8c10ec61d8e880877515019e1fe8fab9a1f590c9e50ed0631418e960aca1e313",
           "sourceId": "anthropic",
           "sourcePath": "skills/docx/scripts/office/validate.py"
         },
@@ -1211,34 +1210,34 @@
           "sourcePath": "skills/docx/scripts/office/validators/__init__.py"
         },
         {
-          "bytes": 33756,
+          "bytes": 34369,
           "executable": false,
           "role": "content",
-          "sha256": "f818ea28c793ba42960fa4498265e2632a62c86f7b5d6aff6fa89dacc02d59ea",
+          "sha256": "6129ec6a4fc0a4aa78af1434f9baa73994cc24d3261afda4e680e00f215cbf3b",
           "sourceId": "anthropic",
           "sourcePath": "skills/docx/scripts/office/validators/base.py"
         },
         {
-          "bytes": 17482,
+          "bytes": 19745,
           "executable": false,
           "role": "content",
-          "sha256": "93d3444c0ef3f043d21a2285c46d2cda478426b930dc33dcf3b11265935517b5",
+          "sha256": "7b0f1a23c9cd9ff07187d9d7d359f62317f94a5e389d63fd19766e1688a195a2",
           "sourceId": "anthropic",
           "sourcePath": "skills/docx/scripts/office/validators/docx.py"
         },
         {
-          "bytes": 15966,
+          "bytes": 21058,
           "executable": false,
           "role": "content",
-          "sha256": "17eadad2b7a8374ccbe4cda45693bcd6a36f9d61a7d60f9c9ceef9464dec8299",
+          "sha256": "3a100ec5f00ae183bca67f4aaa8e3e902caee60254e141b8120f32c53d85cee7",
           "sourceId": "anthropic",
           "sourcePath": "skills/docx/scripts/office/validators/pptx.py"
         },
         {
-          "bytes": 11231,
+          "bytes": 18983,
           "executable": false,
           "role": "content",
-          "sha256": "ed50d0885eee4b9c387f546b059bcaed64086815880a5167336244f93e305123",
+          "sha256": "f9c4455adc32b3890d5203d6c25d868d98d7e970bbad76b686f502950737599a",
           "sourceId": "anthropic",
           "sourcePath": "skills/docx/scripts/office/validators/redlining.py"
         },
@@ -1286,7 +1285,7 @@
       "id": "anthropic.skill.docx",
       "kind": "skill",
       "name": "docx",
-      "scanKey": "git-sha1:69fb549698703b888842b006c63b2224a19932f3",
+      "scanKey": "git-sha1:4f5ead96dfd8c1ac013e9329ba559de140bd3076",
       "userOnly": false
     },
     {
@@ -1365,15 +1364,15 @@
     },
     {
       "arguments": false,
-      "behaviourSha256": "7643839a5d9e56d2f8b80a0863617def9b3e351990d8cd099761eb364bf82e43",
-      "contentSha256": "a99ab47f538d1de5891e2d080ddc22e62a3af45423e3124a3038917f0f8df637",
+      "behaviourSha256": "f109747d112c5aeaad085f654c8ddf64c61daa781fda3097bac8e20fc8c14374",
+      "contentSha256": "05cf3bb10428318dedad153fd0554ded0672b8578c0f90eb44e869ce2009eacd",
       "description": "Guide for creating high-quality MCP (Model Context Protocol) servers that enable LLMs to interact with external services through well-designed tools. Use when building MCP servers to integrate external APIs or services, whether in Python (FastMCP) or Node/TypeScript (MCP SDK).",
       "files": [
         {
-          "bytes": 9092,
+          "bytes": 11129,
           "executable": false,
           "role": "content",
-          "sha256": "0f4592dcb53cf2b5d6b7febee6b4152018b565551a1c29e3c612f57b218ab295",
+          "sha256": "b483b56d6673134497e45489c317f26ae0f1429c194db0297e43073e17e6748c",
           "sourceId": "anthropic",
           "sourcePath": "skills/mcp-builder/SKILL.md"
         },
@@ -1394,12 +1393,20 @@
           "sourcePath": "skills/mcp-builder/reference/mcp_best_practices.md"
         },
         {
-          "bytes": 28550,
+          "bytes": 28745,
           "executable": false,
           "role": "content",
-          "sha256": "c3ba35a4f599dd53be9c6555ae72c19a7bf412cd5426576c2c08d42755482c66",
+          "sha256": "ee3c95d812e450f6168b734390d0c9ef6f8ebeef041d73a122c972dfbd4d476a",
           "sourceId": "anthropic",
           "sourcePath": "skills/mcp-builder/reference/node_mcp_server.md"
+        },
+        {
+          "bytes": 35171,
+          "executable": false,
+          "role": "content",
+          "sha256": "49b2fe48f33910b743ae3a56353fffa5d5f252f531053f24f2da4e5914c0d3aa",
+          "sourceId": "anthropic",
+          "sourcePath": "skills/mcp-builder/reference/node_mcp_server_v2.md"
         },
         {
           "bytes": 25099,
@@ -1445,39 +1452,38 @@
       "id": "anthropic.skill.mcp-builder",
       "kind": "skill",
       "name": "mcp-builder",
-      "scanKey": "git-sha1:8f94b7a4533f87c95cd8c3e63c19e016192b0768",
+      "scanKey": "git-sha1:5664bc861088a02aa8d85cfccdc0232d0f8a7b9e",
       "userOnly": false
     },
     {
       "arguments": false,
-      "behaviourSha256": "b3a59e23b517590f3507bbf496ba381bd917b0c4267d01f4764ccfd9b4e95094",
-      "contentSha256": "05587e0bba981bae72a1472da2643410383590a3da5db3115ea165841abbace3",
+      "behaviourSha256": "80ac4c88347dd25a17f70ca3018c70c19ecbb368c5c8f9f3a87f2b5fac274eb7",
+      "contentSha256": "d399f548f56268e65a30166f6e312faa96b016d27a3a9b8862d08330b8eb7697",
       "description": "Use this skill whenever the user wants to do anything with PDF files. This includes reading or extracting text/tables from PDFs, combining or merging multiple PDFs into one, splitting PDFs apart, rotating pages, adding watermarks, creating new PDFs, filling PDF forms, encrypting/decrypting PDFs, extracting images, and OCR on scanned PDFs to make them searchable. If the user mentions a .pdf file or asks to produce one, use this skill.",
-      "fetch": "upstream",
       "files": [
         {
-          "bytes": 8072,
+          "bytes": 11857,
           "executable": false,
           "role": "content",
-          "sha256": "9f78b8359fbd4943ad260a7a1e436e5a96503406d6c34e99f69223d647d85b9c",
+          "sha256": "d5df5757e23634cd8a1a37e092af6c3b3b63afb3fd3ce86337fce9017cc3ee9f",
+          "sourceId": "anthropic",
+          "sourcePath": "skills/pdf/FORMS.md"
+        },
+        {
+          "bytes": 16724,
+          "executable": false,
+          "role": "content",
+          "sha256": "07af9a8f59e77e88fe9b238a403348244f38a4771c54911c412716d8f88f0ea9",
+          "sourceId": "anthropic",
+          "sourcePath": "skills/pdf/REFERENCE.md"
+        },
+        {
+          "bytes": 8058,
+          "executable": false,
+          "role": "content",
+          "sha256": "d1c7caf5f35eb7d37877dd7fc33a095037be2b34fb5d2f7f4d43bde3165bb4ee",
           "sourceId": "anthropic",
           "sourcePath": "skills/pdf/SKILL.md"
-        },
-        {
-          "bytes": 11854,
-          "executable": false,
-          "role": "content",
-          "sha256": "9530b3f57034792e0242a3abfe8b3c296466329551916f2ff6c5a70db78f7e44",
-          "sourceId": "anthropic",
-          "sourcePath": "skills/pdf/forms.md"
-        },
-        {
-          "bytes": 16692,
-          "executable": false,
-          "role": "content",
-          "sha256": "03a5f964f8abecbbe156f363356e927e864d7ee964f1012c84ee1bfc8acbeb95",
-          "sourceId": "anthropic",
-          "sourcePath": "skills/pdf/reference.md"
         },
         {
           "bytes": 2774,
@@ -1547,21 +1553,20 @@
       "id": "anthropic.skill.pdf",
       "kind": "skill",
       "name": "pdf",
-      "scanKey": "git-sha1:cd20948803455cc16bb215695a928a0b312b6864",
+      "scanKey": "git-sha1:d4afd805e96aaca502cb6e8ea4d59f1a8461e195",
       "userOnly": false
     },
     {
       "arguments": false,
-      "behaviourSha256": "67675905e3e9d0d718f144b6e8c7f4081a625ea474be28fbe877f35c4203b63c",
-      "contentSha256": "572f62f757d6ccd8ac7378f1e401fc9fe2a425e4756b0ed3ea410824b7bf7f43",
+      "behaviourSha256": "1f3a515554bc20a26b25a9092729ac7d14a3199cf5208dbbd87ddec7bcd8fb3d",
+      "contentSha256": "29c33ab972cc980fbee61cb860dbc66d4ac5362d8a8b7496e544d7b834c30197",
       "description": "Use this skill any time a .pptx or .potx file is involved in any way — as input, output, or both. This includes: creating slide decks, pitch decks, or presentations; reading, parsing, or extracting text from any .pptx or .potx file (even if the extracted content will be used elsewhere, like in an email or summary); editing, modifying, or updating existing presentations; combining or splitting slide files; working with templates (.potx), layouts, speaker notes, or comments. Trigger whenever the user mentions \"deck,\" \"slides,\" \"presentation,\" or references a .pptx or .potx filename, regardless of what they plan to do with the content afterward. If a .pptx or .potx file needs to be opened, created, or touched, use this skill.",
-      "fetch": "upstream",
       "files": [
         {
-          "bytes": 20796,
+          "bytes": 28365,
           "executable": false,
           "role": "content",
-          "sha256": "a7ff03e2c85b636f55232a6b1555f5dd90216b7a1a359ab289d8364e6acbc6a0",
+          "sha256": "598c981d93f2173b251f86a4bc94e9fb4e4f5ddaa314ba2dd4eca24b7a07808e",
           "sourceId": "anthropic",
           "sourcePath": "skills/pptx/SKILL.md"
         },
@@ -1574,12 +1579,20 @@
           "sourcePath": "skills/pptx/scripts/__init__.py"
         },
         {
-          "bytes": 14537,
+          "bytes": 18831,
           "executable": true,
           "role": "content",
-          "sha256": "3922f819ee1f6b8bdc6aa146d1a86de70640f5f919321fe3f01a764482ff69c9",
+          "sha256": "23a4c66a9f43e651189cbc9f82ba0a8271d19dc8d44cf0c426dda66f7eb6a93a",
           "sourceId": "anthropic",
           "sourcePath": "skills/pptx/scripts/add_slide.py"
+        },
+        {
+          "bytes": 7291,
+          "executable": false,
+          "role": "content",
+          "sha256": "e440b33c43f2e707076cb64b57ca926ce886564b115c19ee23ac487bdb1a6259",
+          "sourceId": "anthropic",
+          "sourcePath": "skills/pptx/scripts/apply_theme.js"
         },
         {
           "bytes": 10415,
@@ -1590,26 +1603,26 @@
           "sourcePath": "skills/pptx/scripts/clean.py"
         },
         {
-          "bytes": 3358,
+          "bytes": 4042,
           "executable": false,
           "role": "content",
-          "sha256": "678e42456d9e10923c8b9a93691cdd993de3433448a184fa72a0c31f4ae086d5",
+          "sha256": "5c456ffc522900399b5f9402f92d66aaf2d9f87655d236c69f60bf07f4fd7c9b",
           "sourceId": "anthropic",
           "sourcePath": "skills/pptx/scripts/office/helpers/__init__.py"
         },
         {
-          "bytes": 5862,
+          "bytes": 9938,
           "executable": false,
           "role": "content",
-          "sha256": "47ac266f7d39d11ede6bb0d1f3a19d801394fd2964636f1b48beb701f1832964",
+          "sha256": "aed734e9a6c743ae712fc228c868bf0f6abcfb6a53549eefb19081b15d240fda",
           "sourceId": "anthropic",
           "sourcePath": "skills/pptx/scripts/office/helpers/pptx_chart.py"
         },
         {
-          "bytes": 1675,
+          "bytes": 3352,
           "executable": false,
           "role": "content",
-          "sha256": "7b9f69b4a5bd6a2d9eabf9e0e3e796d7a421373145f6a8cd11f60b7ba2d6a5d0",
+          "sha256": "06fe06953bf038826b85ecc142f4dc9299a37fa0c4e4dd9b00b10486df33524d",
           "sourceId": "anthropic",
           "sourcePath": "skills/pptx/scripts/office/helpers/pptx_slide.py"
         },
@@ -1934,18 +1947,18 @@
           "sourcePath": "skills/pptx/scripts/office/schemas/microsoft/wml-symex-2015.xsd"
         },
         {
-          "bytes": 5927,
+          "bytes": 9100,
           "executable": false,
           "role": "content",
-          "sha256": "df2c8d7249c132a4512d744482e4b5ed0ecbe885f0bcfb1295e7e6a7ced0432c",
+          "sha256": "bcfa227707681ffbecc0f0af5c4e7155407b3baaf5cec5cdd41387c97cdd40c7",
           "sourceId": "anthropic",
           "sourcePath": "skills/pptx/scripts/office/soffice.py"
         },
         {
-          "bytes": 6142,
+          "bytes": 7808,
           "executable": true,
           "role": "content",
-          "sha256": "346a4c89d92fff55e610f11efda48c30228815b29bdb10b987e48f7af70acf1e",
+          "sha256": "8c10ec61d8e880877515019e1fe8fab9a1f590c9e50ed0631418e960aca1e313",
           "sourceId": "anthropic",
           "sourcePath": "skills/pptx/scripts/office/validate.py"
         },
@@ -1958,36 +1971,44 @@
           "sourcePath": "skills/pptx/scripts/office/validators/__init__.py"
         },
         {
-          "bytes": 33756,
+          "bytes": 34369,
           "executable": false,
           "role": "content",
-          "sha256": "f818ea28c793ba42960fa4498265e2632a62c86f7b5d6aff6fa89dacc02d59ea",
+          "sha256": "6129ec6a4fc0a4aa78af1434f9baa73994cc24d3261afda4e680e00f215cbf3b",
           "sourceId": "anthropic",
           "sourcePath": "skills/pptx/scripts/office/validators/base.py"
         },
         {
-          "bytes": 17482,
+          "bytes": 19745,
           "executable": false,
           "role": "content",
-          "sha256": "93d3444c0ef3f043d21a2285c46d2cda478426b930dc33dcf3b11265935517b5",
+          "sha256": "7b0f1a23c9cd9ff07187d9d7d359f62317f94a5e389d63fd19766e1688a195a2",
           "sourceId": "anthropic",
           "sourcePath": "skills/pptx/scripts/office/validators/docx.py"
         },
         {
-          "bytes": 15966,
+          "bytes": 21058,
           "executable": false,
           "role": "content",
-          "sha256": "17eadad2b7a8374ccbe4cda45693bcd6a36f9d61a7d60f9c9ceef9464dec8299",
+          "sha256": "3a100ec5f00ae183bca67f4aaa8e3e902caee60254e141b8120f32c53d85cee7",
           "sourceId": "anthropic",
           "sourcePath": "skills/pptx/scripts/office/validators/pptx.py"
         },
         {
-          "bytes": 11231,
+          "bytes": 18983,
           "executable": false,
           "role": "content",
-          "sha256": "ed50d0885eee4b9c387f546b059bcaed64086815880a5167336244f93e305123",
+          "sha256": "f9c4455adc32b3890d5203d6c25d868d98d7e970bbad76b686f502950737599a",
           "sourceId": "anthropic",
           "sourcePath": "skills/pptx/scripts/office/validators/redlining.py"
+        },
+        {
+          "bytes": 4446,
+          "executable": true,
+          "role": "content",
+          "sha256": "0deab09d4ae494411ee893f9c69fffc19fe264a6053990a2f066334c0d88d422",
+          "sourceId": "anthropic",
+          "sourcePath": "skills/pptx/scripts/slide_text.py"
         },
         {
           "bytes": 9802,
@@ -2001,7 +2022,7 @@
       "id": "anthropic.skill.pptx",
       "kind": "skill",
       "name": "pptx",
-      "scanKey": "git-sha1:d2434d6538cf38043802d6de1f324abd997164bc",
+      "scanKey": "git-sha1:54478b9969a0f5a8eb5def07dcb81d8a1e972e9d",
       "userOnly": false
     },
     {
@@ -2423,40 +2444,39 @@
     },
     {
       "arguments": false,
-      "behaviourSha256": "75e346d1a91f673b35bd2a6c7f78beaa06e88962f27e17277251e9e9e7633f60",
-      "contentSha256": "9cc42fe4d16f61dd19ccd032fbe877aa0b17adbd7661a792c4999070621ccc92",
+      "behaviourSha256": "85ea9845c7ac0cc77b68bef9f48f3fbfc6561cedcfbb76f2a8a14afb50353a1b",
+      "contentSha256": "9b48dccc449fffd30ae3f66b7c92e034a8167fd1f0949b2b540e9aab78fb8cc0",
       "description": "Use this skill any time a spreadsheet file is the primary input or output. This means any task where the user wants to: open, read, edit, or fix an existing .xlsx, .xlsm, .xltx, .csv, or .tsv file (e.g., adding columns, computing formulas, formatting, charting, cleaning messy data); create a new spreadsheet from scratch or from other data sources; or convert between tabular file formats. Trigger especially when the user references a spreadsheet file by name or path — even casually (like \"the xlsx in my downloads\") — and wants something done to it or produced from it. Also trigger for cleaning or restructuring messy tabular data files (malformed rows, misplaced headers, junk data) into proper spreadsheets. The deliverable must be a spreadsheet file. Do NOT trigger when the primary deliverable is a Word document, HTML report, standalone Python script, database pipeline, or Google Sheets API integration, even if tabular data is involved.",
-      "fetch": "upstream",
       "files": [
         {
-          "bytes": 8598,
+          "bytes": 9770,
           "executable": false,
           "role": "content",
-          "sha256": "6712b39718fe815054abca9c3ee72f989613e6f771c8a5c58f30a65a6c905622",
+          "sha256": "f32b1c2b5d5d31e02964df110d6489613d9345f86830c118cfe24159d8448ce6",
           "sourceId": "anthropic",
           "sourcePath": "skills/xlsx/SKILL.md"
         },
         {
-          "bytes": 3358,
+          "bytes": 4042,
           "executable": false,
           "role": "content",
-          "sha256": "678e42456d9e10923c8b9a93691cdd993de3433448a184fa72a0c31f4ae086d5",
+          "sha256": "5c456ffc522900399b5f9402f92d66aaf2d9f87655d236c69f60bf07f4fd7c9b",
           "sourceId": "anthropic",
           "sourcePath": "skills/xlsx/scripts/office/helpers/__init__.py"
         },
         {
-          "bytes": 5862,
+          "bytes": 9938,
           "executable": false,
           "role": "content",
-          "sha256": "47ac266f7d39d11ede6bb0d1f3a19d801394fd2964636f1b48beb701f1832964",
+          "sha256": "aed734e9a6c743ae712fc228c868bf0f6abcfb6a53549eefb19081b15d240fda",
           "sourceId": "anthropic",
           "sourcePath": "skills/xlsx/scripts/office/helpers/pptx_chart.py"
         },
         {
-          "bytes": 1675,
+          "bytes": 3352,
           "executable": false,
           "role": "content",
-          "sha256": "7b9f69b4a5bd6a2d9eabf9e0e3e796d7a421373145f6a8cd11f60b7ba2d6a5d0",
+          "sha256": "06fe06953bf038826b85ecc142f4dc9299a37fa0c4e4dd9b00b10486df33524d",
           "sourceId": "anthropic",
           "sourcePath": "skills/xlsx/scripts/office/helpers/pptx_slide.py"
         },
@@ -2781,18 +2801,18 @@
           "sourcePath": "skills/xlsx/scripts/office/schemas/microsoft/wml-symex-2015.xsd"
         },
         {
-          "bytes": 5927,
+          "bytes": 9100,
           "executable": false,
           "role": "content",
-          "sha256": "df2c8d7249c132a4512d744482e4b5ed0ecbe885f0bcfb1295e7e6a7ced0432c",
+          "sha256": "bcfa227707681ffbecc0f0af5c4e7155407b3baaf5cec5cdd41387c97cdd40c7",
           "sourceId": "anthropic",
           "sourcePath": "skills/xlsx/scripts/office/soffice.py"
         },
         {
-          "bytes": 6142,
+          "bytes": 7808,
           "executable": true,
           "role": "content",
-          "sha256": "346a4c89d92fff55e610f11efda48c30228815b29bdb10b987e48f7af70acf1e",
+          "sha256": "8c10ec61d8e880877515019e1fe8fab9a1f590c9e50ed0631418e960aca1e313",
           "sourceId": "anthropic",
           "sourcePath": "skills/xlsx/scripts/office/validate.py"
         },
@@ -2805,42 +2825,42 @@
           "sourcePath": "skills/xlsx/scripts/office/validators/__init__.py"
         },
         {
-          "bytes": 33756,
+          "bytes": 34369,
           "executable": false,
           "role": "content",
-          "sha256": "f818ea28c793ba42960fa4498265e2632a62c86f7b5d6aff6fa89dacc02d59ea",
+          "sha256": "6129ec6a4fc0a4aa78af1434f9baa73994cc24d3261afda4e680e00f215cbf3b",
           "sourceId": "anthropic",
           "sourcePath": "skills/xlsx/scripts/office/validators/base.py"
         },
         {
-          "bytes": 17482,
+          "bytes": 19745,
           "executable": false,
           "role": "content",
-          "sha256": "93d3444c0ef3f043d21a2285c46d2cda478426b930dc33dcf3b11265935517b5",
+          "sha256": "7b0f1a23c9cd9ff07187d9d7d359f62317f94a5e389d63fd19766e1688a195a2",
           "sourceId": "anthropic",
           "sourcePath": "skills/xlsx/scripts/office/validators/docx.py"
         },
         {
-          "bytes": 15966,
+          "bytes": 21058,
           "executable": false,
           "role": "content",
-          "sha256": "17eadad2b7a8374ccbe4cda45693bcd6a36f9d61a7d60f9c9ceef9464dec8299",
+          "sha256": "3a100ec5f00ae183bca67f4aaa8e3e902caee60254e141b8120f32c53d85cee7",
           "sourceId": "anthropic",
           "sourcePath": "skills/xlsx/scripts/office/validators/pptx.py"
         },
         {
-          "bytes": 11231,
+          "bytes": 18983,
           "executable": false,
           "role": "content",
-          "sha256": "ed50d0885eee4b9c387f546b059bcaed64086815880a5167336244f93e305123",
+          "sha256": "f9c4455adc32b3890d5203d6c25d868d98d7e970bbad76b686f502950737599a",
           "sourceId": "anthropic",
           "sourcePath": "skills/xlsx/scripts/office/validators/redlining.py"
         },
         {
-          "bytes": 10670,
+          "bytes": 34340,
           "executable": true,
           "role": "content",
-          "sha256": "66f6e726d5a53cfabea0b6471d6669deb95e54e96cb7913b687e4388da1bb3d9",
+          "sha256": "7265aa4a41f5273596ee5694ce8a4d881c18adafb6203fece769107d08403263",
           "sourceId": "anthropic",
           "sourcePath": "skills/xlsx/scripts/recalc.py"
         }
@@ -2848,7 +2868,7 @@
       "id": "anthropic.skill.xlsx",
       "kind": "skill",
       "name": "xlsx",
-      "scanKey": "git-sha1:02560051decfb853f525c660eaff04c1b020a1d3",
+      "scanKey": "git-sha1:35a958321e37b1de7b23418b9018e2d3d1beade4",
       "userOnly": false
     }
   ],
@@ -2874,7 +2894,7 @@
           "sourcePath": "skills/academy-guide/SKILL.md"
         }
       ],
-      "folderScanKey": "git-sha1:60cb5b056141a1b24cfa2e1b1c2540bfb162850a",
+      "folderScanKey": "git-sha1:d495c40fdd16cfe817a71aa05ecc1969ba98e925",
       "include": [
         ".claude-plugin/marketplace.json",
         "skills/academy-guide/"
@@ -2899,21 +2919,21 @@
           "sourcePath": "skills/claude-api/LICENSE.txt"
         },
         {
-          "bytes": 86198,
+          "bytes": 105146,
           "executable": false,
-          "sha256": "8227f0d1192594bfea04df6c9f1d9d727dd300c3f4b2c42d315dd9fe58b1a421",
+          "sha256": "40537cca17c4aa86e4ce83ced39efcbfb1204905e3cf4c4ff98f2eab011e4b7f",
           "sourcePath": "skills/claude-api/SKILL.md"
         },
         {
-          "bytes": 18417,
+          "bytes": 18933,
           "executable": false,
-          "sha256": "87deed4e878a7b5c573a216944846e82e3cb3a53973f2d44fb70f80ac06f1388",
+          "sha256": "87a2cc5c6e670e0bf34120f9a592d321567eea57c716c06791f6d2dcaba08b00",
           "sourcePath": "skills/claude-api/csharp/claude-api/README.md"
         },
         {
-          "bytes": 411,
+          "bytes": 413,
           "executable": false,
-          "sha256": "6918e951d5a100b0e7dddf6e5e7c5ffa3ad4d45604a12534b833fd0e6ccda9d1",
+          "sha256": "ec276fccf21757ed00803dfa4bc35f14f334138629fa53c77a025d718eda96a1",
           "sourcePath": "skills/claude-api/csharp/claude-api/batches.md"
         },
         {
@@ -2923,33 +2943,33 @@
           "sourcePath": "skills/claude-api/csharp/claude-api/files-api.md"
         },
         {
-          "bytes": 789,
+          "bytes": 787,
           "executable": false,
-          "sha256": "9b382189c6d2a8f31534188bc9533539e8fbf895781f727b955b3b7f01e65005",
+          "sha256": "bc0100e50b3495e869901bcfb231870cb3483b936534af5fd3dddb5d07e4531e",
           "sourcePath": "skills/claude-api/csharp/claude-api/streaming.md"
         },
         {
-          "bytes": 6002,
+          "bytes": 7623,
           "executable": false,
-          "sha256": "d8ae6d64d6cc91395959b799bc441870034e3da45875fe5dc2b5a14e6669da3a",
+          "sha256": "18aa857c41e39eedb35815bfd8d50868a1bbc1f1a657f5e7233a3879baebc764",
           "sourcePath": "skills/claude-api/csharp/claude-api/tool-use.md"
         },
         {
-          "bytes": 9193,
+          "bytes": 9714,
           "executable": false,
-          "sha256": "f7c66602635a881db3cb7d9c771be9413cd405c262a41d770bf8b25422ce0df1",
+          "sha256": "4520e447d37924e62fe982923f3eceea5338dbf3b3a0d25d0f914272c16b90a0",
           "sourcePath": "skills/claude-api/curl/examples.md"
         },
         {
-          "bytes": 8749,
+          "bytes": 10788,
           "executable": false,
-          "sha256": "e1fe01c98f270e08544b200d660c25fc6efb9b7caf3c321b29bab02d2ed01dc5",
+          "sha256": "faa7dd3d83cfd32d1faabb13fee5902e041285579b00256f17fd21681ed3ff2a",
           "sourcePath": "skills/claude-api/curl/managed-agents.md"
         },
         {
-          "bytes": 7760,
+          "bytes": 8477,
           "executable": false,
-          "sha256": "54e6ee16e037258d0f341df2c38b07e32096f78bdc440f5559eafd360ceaf8d6",
+          "sha256": "c73ac644d8efe65a8d149e800267f98b0aa9d1e716ca38a22fd8803d5c35bfae",
           "sourcePath": "skills/claude-api/go/claude-api/README.md"
         },
         {
@@ -2959,27 +2979,27 @@
           "sourcePath": "skills/claude-api/go/claude-api/files-api.md"
         },
         {
-          "bytes": 1037,
+          "bytes": 1026,
           "executable": false,
-          "sha256": "c0bd4253dd0994b07d76e7358df6b163050f775268111a853369684a18c8d00c",
+          "sha256": "a523e992e438309ca1bbc075ded2b652eb257242fd0ce521afd3b8ea024ed94d",
           "sourcePath": "skills/claude-api/go/claude-api/streaming.md"
         },
         {
-          "bytes": 8416,
+          "bytes": 10018,
           "executable": false,
-          "sha256": "d71df68e6ac84f7919f2e2ec15efd211e3f98fb11db6661d6b6b167abdd2cdfc",
+          "sha256": "18c6dc0cec151293b44697c340e0e0759f6081ad711ca34b06570c2450f243e9",
           "sourcePath": "skills/claude-api/go/claude-api/tool-use.md"
         },
         {
-          "bytes": 18937,
+          "bytes": 22460,
           "executable": false,
-          "sha256": "908ef55a20c6a8de2ffd7d21aa0700c6eb89dc4dca5f96985d04d3c6e2f55307",
+          "sha256": "0343be8d49f94687fe5e068ad69d9e05253b408e7bcd0e230b39924f6404facc",
           "sourcePath": "skills/claude-api/go/managed-agents/README.md"
         },
         {
-          "bytes": 11308,
+          "bytes": 11946,
           "executable": false,
-          "sha256": "a58f4a016915e5e084f62c403e45867a2ce71af5e225ef7920d4319d78e9387f",
+          "sha256": "cb6d395dc1d930371f828290132681541eff7f1a7e2739bb4c6655ebbb3b8c7f",
           "sourcePath": "skills/claude-api/java/claude-api/README.md"
         },
         {
@@ -2989,33 +3009,33 @@
           "sourcePath": "skills/claude-api/java/claude-api/files-api.md"
         },
         {
-          "bytes": 659,
+          "bytes": 655,
           "executable": false,
-          "sha256": "f3347630f70832796713fe954ef0efcd863406bb47618de3f405c41966596983",
+          "sha256": "de13bc9573b37edb5af69606853c4fde3d494ee10ff47d1a030ecef9cc17463b",
           "sourcePath": "skills/claude-api/java/claude-api/streaming.md"
         },
         {
-          "bytes": 9521,
+          "bytes": 11134,
           "executable": false,
-          "sha256": "049802442b48ba336aa85e1b71f4c603cab72b5d93d560fbb78dda66d4579df5",
+          "sha256": "1916b8d4e49b5d319a2d0c7e21b5a3d7a0f225e4a94d82139e769f66eb66f6d1",
           "sourcePath": "skills/claude-api/java/claude-api/tool-use.md"
         },
         {
-          "bytes": 16942,
+          "bytes": 20465,
           "executable": false,
-          "sha256": "7b6a6d205b06c59674bdccc340aff772a3ce38cea1c12b0d0608abcc536d77ec",
+          "sha256": "ba2a845898b302dc78b5354aa8f34ae4fc2c2ea41d12aa7d0440db59ee004e0c",
           "sourcePath": "skills/claude-api/java/managed-agents/README.md"
         },
         {
-          "bytes": 6113,
+          "bytes": 6554,
           "executable": false,
-          "sha256": "0449be03728dfc8e0b236cc0c263f319c1997629c0b1bcbe8586e28d98d2de96",
+          "sha256": "00e2e88f3ea9a6cce812d3e6ae9e035bc36f88828a09e518bb73af91097a9d66",
           "sourcePath": "skills/claude-api/php/claude-api/README.md"
         },
         {
-          "bytes": 445,
+          "bytes": 447,
           "executable": false,
-          "sha256": "5f575dd2fa1c4d89ea097d3d0885ab367356e38ba5b8643b7ed4b366e1953fc6",
+          "sha256": "6f82a29f718ff6e6b02aaaee3cfd6cda2feb82aca57d945f11a2c021214a699d",
           "sourcePath": "skills/claude-api/php/claude-api/batches.md"
         },
         {
@@ -3025,93 +3045,93 @@
           "sourcePath": "skills/claude-api/php/claude-api/files-api.md"
         },
         {
-          "bytes": 680,
+          "bytes": 682,
           "executable": false,
-          "sha256": "0414d8c99283b3fe526ab0971cacad09af815b6da92eee2355b051393bf3f985",
+          "sha256": "3b8ac667b21f17750eb3c1fc7dc166fd7b1f57a1d8b11e74489de4432e21d31d",
           "sourcePath": "skills/claude-api/php/claude-api/streaming.md"
         },
         {
-          "bytes": 8081,
+          "bytes": 9722,
           "executable": false,
-          "sha256": "34abece0444f3e04276e2936173232e2bc8c5630bdffd3f2179e8e1f6732b5ae",
+          "sha256": "1d79c316ef608d8327da1ae7495ecc4a0c517bdd761037c886d8fc61a0eca7d0",
           "sourcePath": "skills/claude-api/php/claude-api/tool-use.md"
         },
         {
-          "bytes": 13511,
+          "bytes": 16555,
           "executable": false,
-          "sha256": "347ee6bdcc6846b931ef9e730c20d007e4edbebfe7a26b071da642a16eeffda6",
+          "sha256": "2f9ada8a85098a7a4a7265c29fadb74d695a33bf19bc6d5df3a2c275b4a535b2",
           "sourcePath": "skills/claude-api/php/managed-agents/README.md"
         },
         {
-          "bytes": 19875,
+          "bytes": 20623,
           "executable": false,
-          "sha256": "55bd142e7d22bc7dfb1e37287f37b4a15bd8b5dc920775b8aab65a6d21654e6d",
+          "sha256": "284fbc6408809afd27288da95c5fb32daa48bd77518cd5fd4e973cc05363eaa8",
           "sourcePath": "skills/claude-api/python/claude-api/README.md"
         },
         {
-          "bytes": 5582,
+          "bytes": 5723,
           "executable": false,
-          "sha256": "e08591b12c75a7ed8e06b3aba551043ffd8ed696179c265b2129265deb81054a",
+          "sha256": "7e4d07173845836617be3db70482c182311ad2d6d5ddf786482ca57c7c45776c",
           "sourcePath": "skills/claude-api/python/claude-api/batches.md"
         },
         {
-          "bytes": 4493,
+          "bytes": 4499,
           "executable": false,
-          "sha256": "d3d8486cdf84cd7a73234dc258adcc75cffa78b43fcccd446ea771f72ef455f7",
+          "sha256": "2aa142978660d9ae3200d21a4d333531ca101898706f620834304e8a7d534580",
           "sourcePath": "skills/claude-api/python/claude-api/files-api.md"
         },
         {
-          "bytes": 28716,
+          "bytes": 28760,
           "executable": false,
-          "sha256": "27f749d01b938c5802db7abcb8ea49b13b58b3272aedd068a5f5c525da833e4b",
+          "sha256": "f7c5651b21dd6fd5651935415d907fa0a369736f3055d50edb3d236ea016527c",
           "sourcePath": "skills/claude-api/python/claude-api/sdk-upgrade.md"
         },
         {
-          "bytes": 6531,
+          "bytes": 11940,
           "executable": false,
-          "sha256": "00a1c046e8e8de1119f6921335e97d5653075862a8e03b649eae2d26febedb6f",
+          "sha256": "8f73a54dbbb5e82c2c7690d7d866f17ad8c72f662a2be6dd788b5c0956714026",
           "sourcePath": "skills/claude-api/python/claude-api/streaming.md"
         },
         {
-          "bytes": 19264,
+          "bytes": 21411,
           "executable": false,
-          "sha256": "0d710fdab90e2e4999d91b2e87937a762fce8f040deda9528d991f850f09f95a",
+          "sha256": "548dcc4bd2a36e8b90cec446f9b0b7917d2d75a085c7c2603b28c840bd621621",
           "sourcePath": "skills/claude-api/python/claude-api/tool-use.md"
         },
         {
-          "bytes": 10341,
+          "bytes": 14823,
           "executable": false,
-          "sha256": "f8d73686938429140b885823feab4c1ac10c256574de330b89c3c120923a7702",
+          "sha256": "82b6e5847027b0ffe5976116e5c249a58e9e2781eb09e914a81ee2f9eb970245",
           "sourcePath": "skills/claude-api/python/managed-agents/README.md"
         },
         {
-          "bytes": 4471,
+          "bytes": 4843,
           "executable": false,
-          "sha256": "77acd5f82553426b1c7669f80104b6e41999c1f96b1007103e8291df1bf2ee24",
+          "sha256": "c7de89d236f22bc0b44a091a45ee186ec057caa021a71acd4d3849599cbf3b36",
           "sourcePath": "skills/claude-api/ruby/claude-api/README.md"
         },
         {
-          "bytes": 233,
+          "bytes": 235,
           "executable": false,
-          "sha256": "a2c667b3dc160b3aacb9468c83b7a0a7523db3876e2abe2770abc163552f0334",
+          "sha256": "09b784f2ab0a5fd17e0589225408c618d26c6dd3cd601364ff92f409d5b104a0",
           "sourcePath": "skills/claude-api/ruby/claude-api/streaming.md"
         },
         {
-          "bytes": 1061,
+          "bytes": 2688,
           "executable": false,
-          "sha256": "a545009aa563e9966b4f923eacb2af612df3c63af7f07bbe40def84b10282e38",
+          "sha256": "80cbb7c7fd4a01b816524eb54e0f8f4e5b4cc7643d393dfce6b9682e0f4d61b6",
           "sourcePath": "skills/claude-api/ruby/claude-api/tool-use.md"
         },
         {
-          "bytes": 10450,
+          "bytes": 12201,
           "executable": false,
-          "sha256": "2318b5c33862eb5d27fef1a00018eb4464d3e2764a40e64b374bcd2f86b6e5ac",
+          "sha256": "729ba22b8711a09192006d169098f16b933dd124ff36421772e4334d862306ab",
           "sourcePath": "skills/claude-api/ruby/managed-agents/README.md"
         },
         {
-          "bytes": 11604,
+          "bytes": 11606,
           "executable": false,
-          "sha256": "50d79d03f3a4ccae038efb5b9805d9d21838486c601f2dfb7b212585c308ef64",
+          "sha256": "a69c53817391fca50c0a1848f46de9debf71fa3681298fccb0a6435b760bac2d",
           "sourcePath": "skills/claude-api/shared/admin-api.md"
         },
         {
@@ -3121,111 +3141,243 @@
           "sourcePath": "skills/claude-api/shared/agent-design.md"
         },
         {
-          "bytes": 18162,
+          "bytes": 23999,
           "executable": false,
-          "sha256": "4f8b4319fc096b48f311eff782a3b818a872933852ecb3e811157352cb618210",
+          "sha256": "2baa725ea0248ab7d98dcb218f09e5eb22f768006ad28f4d5011b4975b4d500e",
           "sourcePath": "skills/claude-api/shared/anthropic-cli.md"
         },
         {
-          "bytes": 4412,
+          "bytes": 4420,
           "executable": false,
-          "sha256": "d3ce9bc6ea5d9b9b6e9ec4f8aa8e28493a2a198a433c2297b377cbb84f86ad9d",
+          "sha256": "dec03193c61909167846c0526a4feacf011578b5e7ee29f76378141315cf97f5",
           "sourcePath": "skills/claude-api/shared/claude-platform-on-aws.md"
         },
         {
-          "bytes": 44959,
+          "bytes": 58448,
           "executable": false,
-          "sha256": "b007478601b2bdabef41793ce2727ea4281544b64a443b04ac15fabfdbe58c2a",
+          "sha256": "d0107a954e9059f43c0aaac07ac1f8a9f5aa0a898834d3d983d623e5976e051b",
           "sourcePath": "skills/claude-api/shared/cost-optimization.md"
         },
         {
-          "bytes": 15474,
+          "bytes": 20796,
           "executable": false,
-          "sha256": "1bfe197bcf264c8b86c1815cf5ee367bdbfa80ba0ac20041713ffdfa504491c8",
+          "sha256": "1abf8dcc262732f7ee5e4c58d1909fbb0722ac12e1b957bffdf64f28fde9e4d2",
           "sourcePath": "skills/claude-api/shared/error-codes.md"
         },
         {
-          "bytes": 22559,
+          "bytes": 54835,
           "executable": false,
-          "sha256": "75aef376b170d5fb62d762f7287bf2bf8d2d7589f26323ad9765a3d9625b1022",
+          "sha256": "c8f6ae960867f6b3b35557aec75361553888ae7168f268365444bf6a4e09a5d7",
+          "sourcePath": "skills/claude-api/shared/evals/build-eval.md"
+        },
+        {
+          "bytes": 31711,
+          "executable": false,
+          "sha256": "dd46a354fed24d96c7f9acf42f9da64f5cceaa797949662d82374fd2cf7a3515",
+          "sourcePath": "skills/claude-api/shared/evals/cost-hillclimb.md"
+        },
+        {
+          "bytes": 27892,
+          "executable": false,
+          "sha256": "a013f8eb0452c51c5a31860df0fb47219dcdb4da507092fc98867225095026ba",
+          "sourcePath": "skills/claude-api/shared/evals/eval-audit.md"
+        },
+        {
+          "bytes": 69153,
+          "executable": false,
+          "sha256": "315ae8540ebaeb9f1d7de5efa49625e6137ead255dc3a545b63393df89375588",
+          "sourcePath": "skills/claude-api/shared/evals/eval-hillclimb.md"
+        },
+        {
+          "bytes": 16121,
+          "executable": false,
+          "sha256": "9a83404a9b3c413113df39d9bdf08e003ff4d6a75386f4010887da3298766687",
+          "sourcePath": "skills/claude-api/shared/evals/report/SCHEMA.md"
+        },
+        {
+          "bytes": 27329,
+          "executable": false,
+          "sha256": "af79ca5fa5f06747dbcaa1d40017c8c8e81e0aa11cb8e32b848043893cdb03c7",
+          "sourcePath": "skills/claude-api/shared/evals/report/build-report-lite.mjs"
+        },
+        {
+          "bytes": 33142,
+          "executable": false,
+          "sha256": "c3a87ba4b94b3018b83c075d5148ba7760580aa447699d513d45ab55b82a531a",
+          "sourcePath": "skills/claude-api/shared/evals/report/runner-scaffold.mjs"
+        },
+        {
+          "bytes": 17732,
+          "executable": false,
+          "sha256": "cc82c88587c861919557598df0421ea7e8cec683f63adead997a0170dc78732b",
           "sourcePath": "skills/claude-api/shared/live-sources.md"
         },
         {
-          "bytes": 33958,
+          "bytes": 35296,
           "executable": false,
-          "sha256": "abb04671f430a4542012d8d25bc8b3932704142302a1eeb4c4d7a33d46314595",
+          "sha256": "efd84dc8a17a2842965c775a905b17fa94cf762cc544df81e708f3aa7a89ae7b",
           "sourcePath": "skills/claude-api/shared/managed-agents-api-reference.md"
         },
         {
-          "bytes": 12043,
+          "bytes": 12095,
           "executable": false,
-          "sha256": "f3d752675e225892f97da4d7bffbefd430841d6655b2c53a926f212121759d55",
+          "sha256": "e9cf54ca98a9cdd7dba0f51acfedfc1b0f160bad243e39f338ff39d4bf5bf823",
           "sourcePath": "skills/claude-api/shared/managed-agents-client-patterns.md"
         },
         {
-          "bytes": 32573,
+          "bytes": 33515,
           "executable": false,
-          "sha256": "f375cdf6ec7e7106540408e0f788279ee84bf304af3d0ef2a13d13470a407e0f",
+          "sha256": "b1e7f90f644ef3333bc2c8407ba17410cf672314868474c73242ac969e22007f",
           "sourcePath": "skills/claude-api/shared/managed-agents-core.md"
         },
         {
-          "bytes": 12653,
+          "bytes": 14234,
           "executable": false,
-          "sha256": "faa3bb1a55a8bfc308d7884329ed2ed9fa2b9f64f39696bb51aeb3c69b86b264",
+          "sha256": "227e52e6a3d1c967c68912738ff184a97d1f4cd019c6a7bc7cd90c9b9857e5a5",
           "sourcePath": "skills/claude-api/shared/managed-agents-environments.md"
         },
         {
-          "bytes": 24955,
+          "bytes": 26015,
           "executable": false,
-          "sha256": "cf449696835d8188b6ec27f90a24c517b47756e3f6a5f8f957760ac2a060473e",
+          "sha256": "3c5edc1428bc4b9cff1ebf01cecffaff3ef1650c19afa48c616fcd05b9586e03",
           "sourcePath": "skills/claude-api/shared/managed-agents-events.md"
         },
         {
-          "bytes": 11154,
+          "bytes": 11362,
           "executable": false,
-          "sha256": "9f14213db20c1fcd1547e7c4882f9adde50b7b3f602b29684e5d851bf06d370a",
+          "sha256": "0dec5641630f97629ea75bbbe5c2bced861f9c16b0572a68c901849ea4d00bcb",
           "sourcePath": "skills/claude-api/shared/managed-agents-memory.md"
         },
         {
-          "bytes": 26194,
+          "bytes": 66616,
           "executable": false,
-          "sha256": "b937599363615432ba9f69c3cc53616d2e7844907fc5a3f744355a55b9d38a1c",
+          "sha256": "f3d03cc910064cf419c80ce79c5fe62abde127467deea55491b447a07953a06b",
           "sourcePath": "skills/claude-api/shared/managed-agents-multiagent.md"
         },
         {
-          "bytes": 10454,
+          "bytes": 19798,
           "executable": false,
-          "sha256": "d6f0fae12e1ec04e5a96863f928f9b62d09ab860c2653d13a62b6b282d832682",
+          "sha256": "e37628c5639786a7868acfed4be0e25678b69b7d13a9aced03d74deebe042342",
+          "sourcePath": "skills/claude-api/shared/managed-agents-onboarding-from-quickstart.md"
+        },
+        {
+          "bytes": 32707,
+          "executable": false,
+          "sha256": "b6c49289186d7cc521c995ba88fa916b65433101b2b3e9bf3c9add94ad87fa34",
+          "sourcePath": "skills/claude-api/shared/managed-agents-onboarding-from-url.md"
+        },
+        {
+          "bytes": 16787,
+          "executable": false,
+          "sha256": "025683a9ee3db081d8a6978980349ce68d1df316d0c5aea31ae12438907208c9",
           "sourcePath": "skills/claude-api/shared/managed-agents-onboarding.md"
         },
         {
-          "bytes": 7244,
+          "bytes": 8960,
           "executable": false,
-          "sha256": "742b89e66d22dcb605c89a667aa5572ce768a6b81448f624a1f73efa2cedfca2",
+          "sha256": "a516c6bf6a6a76f7f5ef83ec80895efd5de718e8f9418b57c705ce151afc5afe",
           "sourcePath": "skills/claude-api/shared/managed-agents-outcomes.md"
         },
         {
-          "bytes": 13165,
+          "bytes": 14571,
           "executable": false,
-          "sha256": "a250fd240dbddc63c5821612051f4a40fbc7fd40dbb6091299b708d0c594f89b",
+          "sha256": "abcbdc29435c07be4749e21f005ed51f45942af03fa0bdcdeb18ebfa38c6a6f8",
           "sourcePath": "skills/claude-api/shared/managed-agents-overview.md"
         },
         {
-          "bytes": 8734,
+          "bytes": 8096,
           "executable": false,
-          "sha256": "65312565b26ce16176c63185f9b392f0a93ffc4ef46180a5eff32ca3678a47d3",
+          "sha256": "9afd40ef3e1bca9e1cc4c6655d314127cec0b4dcff0e12f6016508c134954248",
+          "sourcePath": "skills/claude-api/shared/managed-agents-quickstarts/bug-hunter.md"
+        },
+        {
+          "bytes": 1806,
+          "executable": false,
+          "sha256": "312ee5f886de59b6db4603d2df9766d66285db36973656c5b9ff0bcc1ed02279",
+          "sourcePath": "skills/claude-api/shared/managed-agents-quickstarts/contract-tracker.md"
+        },
+        {
+          "bytes": 1561,
+          "executable": false,
+          "sha256": "c2116bac43972f2b40311104bd7cd4e084cca806dd40a1ddf8462845d785bd57",
+          "sourcePath": "skills/claude-api/shared/managed-agents-quickstarts/data-analyst.md"
+        },
+        {
+          "bytes": 2430,
+          "executable": false,
+          "sha256": "a680856d874dff23cd3f016e36d0a58bc4db36c56d790d216743f236ee37a48c",
+          "sourcePath": "skills/claude-api/shared/managed-agents-quickstarts/deep-researcher.md"
+        },
+        {
+          "bytes": 4886,
+          "executable": false,
+          "sha256": "c2570c5e14d51c5caa77646ac417d18619d34a27cc94dc72cf020c698f2803f3",
+          "sourcePath": "skills/claude-api/shared/managed-agents-quickstarts/explainer-video-maker.md"
+        },
+        {
+          "bytes": 2105,
+          "executable": false,
+          "sha256": "f17f26eee0109f4172134c5bea5761c52b8459e44ae03608c701cd3492f4a3af",
+          "sourcePath": "skills/claude-api/shared/managed-agents-quickstarts/field-monitor.md"
+        },
+        {
+          "bytes": 1723,
+          "executable": false,
+          "sha256": "badd3622ffab0798ab44a55189f47e95c107107ce57eda9fa5357b1aded8fb2a",
+          "sourcePath": "skills/claude-api/shared/managed-agents-quickstarts/incident-commander.md"
+        },
+        {
+          "bytes": 11394,
+          "executable": false,
+          "sha256": "922396e14b569bc98a7bdde34d10890cc81c5184e81971e6c9be108d191dd639",
+          "sourcePath": "skills/claude-api/shared/managed-agents-quickstarts/performance-tuner.md"
+        },
+        {
+          "bytes": 2091,
+          "executable": false,
+          "sha256": "8b5ed9895feb1ade54578a270493c63d0f57b3bb0fbc2eafcfa2e87d3130fa75",
+          "sourcePath": "skills/claude-api/shared/managed-agents-quickstarts/sprint-retro-facilitator.md"
+        },
+        {
+          "bytes": 1541,
+          "executable": false,
+          "sha256": "c278074c8c48d35fc6c68ed32eaa8704cae73a8e74035fd1d4a6abdcb9bd0fbd",
+          "sourcePath": "skills/claude-api/shared/managed-agents-quickstarts/structured-extractor.md"
+        },
+        {
+          "bytes": 1481,
+          "executable": false,
+          "sha256": "da75c50edf207f5ef468fbbbfc2e77d56e7d906a6c2cda28756f896195e171c5",
+          "sourcePath": "skills/claude-api/shared/managed-agents-quickstarts/support-agent.md"
+        },
+        {
+          "bytes": 1842,
+          "executable": false,
+          "sha256": "46720e5341808a9938825be44f936c91f83739ebdef9e1d17d9f0ec22738346b",
+          "sourcePath": "skills/claude-api/shared/managed-agents-quickstarts/support-to-eng-escalator.md"
+        },
+        {
+          "bytes": 5642,
+          "executable": false,
+          "sha256": "e67861c63b9d46b01c8d2784998b7f0de9a87aa6012b77127def1253c5ac13db",
+          "sourcePath": "skills/claude-api/shared/managed-agents-quickstarts/watchlist-scanner.md"
+        },
+        {
+          "bytes": 9561,
+          "executable": false,
+          "sha256": "3fdf7bd691b4f798149d7ebdb933dcee7d14d5d47dd6bf8196c41b819223175e",
           "sourcePath": "skills/claude-api/shared/managed-agents-scheduled-deployments.md"
         },
         {
-          "bytes": 27847,
+          "bytes": 27926,
           "executable": false,
-          "sha256": "3228ab72afbe3ab1a0ac0f5a41995e1764c947cf17ce22a858b41b67262b71ee",
+          "sha256": "a0c0d98ee1921ee5856a9fd1c02931d724c7b7ffffe17f72c85bc90190399085",
           "sourcePath": "skills/claude-api/shared/managed-agents-self-hosted-sandboxes.md"
         },
         {
-          "bytes": 35652,
+          "bytes": 37869,
           "executable": false,
-          "sha256": "3238b1e2c76a31af87a2ed90a3dba5d0293a9682001fbc8c7c23947ab0bb6470",
+          "sha256": "9a9fd54ebb5e81eb0c6b7505f1cadc420fed5696cdab3e0080dd00ccf2e37b6f",
           "sourcePath": "skills/claude-api/shared/managed-agents-tools.md"
         },
         {
@@ -3235,92 +3387,116 @@
           "sourcePath": "skills/claude-api/shared/managed-agents-webhooks.md"
         },
         {
-          "bytes": 244863,
+          "bytes": 346255,
           "executable": false,
-          "sha256": "646531ed152701c571771d38306b1d6ac358270a7ca8763b39a9e694916b08c9",
+          "sha256": "b4fe96362b865a28726ab877c966624d5bfc2f86ff9b34940a34e3f8b6fc034e",
           "sourcePath": "skills/claude-api/shared/model-migration.md"
         },
         {
-          "bytes": 13936,
+          "bytes": 17502,
           "executable": false,
-          "sha256": "247f3f7adb64943c70a78643e2d6ebc48baa8da3d5369e1329153bd9dbc952f0",
+          "sha256": "c1af1f093d46fd58e50ef3e8e28d339650f333059bfc49a63d01d0175675161b",
           "sourcePath": "skills/claude-api/shared/models.md"
         },
         {
-          "bytes": 5537,
+          "bytes": 7415,
           "executable": false,
-          "sha256": "b11e6ef8162daeb15ce12dff4187f5e28055bb7cef47f2b104f2b806a873d8aa",
+          "sha256": "607997bc16de403970cb32c1dc1fa63e68f7f02328728be59397e7cefb2efed4",
           "sourcePath": "skills/claude-api/shared/platform-availability.md"
         },
         {
-          "bytes": 34966,
+          "bytes": 64049,
           "executable": false,
-          "sha256": "571b08c181a8f3f0906a99045ff0bca88ca728d5a2d01afabb620b270c8048a2",
+          "sha256": "29921d69fa8dc7e450e7bb793c9f59ae755262ccc933a52eb7116c207defb34c",
+          "sourcePath": "skills/claude-api/shared/preserved-thinking-migration.md"
+        },
+        {
+          "bytes": 39705,
+          "executable": false,
+          "sha256": "c2dbadb0439806863723e5ef7279d626d731d8179fd39293ff26d226b94d3694",
+          "sourcePath": "skills/claude-api/shared/preserved-thinking-migration/causes.md"
+        },
+        {
+          "bytes": 66582,
+          "executable": false,
+          "sha256": "f23abb75bc079d835f57da7598ac5a1bee4318214ab803185feb94d8db8c4b88",
+          "sourcePath": "skills/claude-api/shared/preserved-thinking-migration/drop_block_probe.py"
+        },
+        {
+          "bytes": 94008,
+          "executable": false,
+          "sha256": "734934b81b5f26e9ed2f8f51f44fed6554233de4f37b22a8845ae4ffcb622ac0",
+          "sourcePath": "skills/claude-api/shared/preserved-thinking-migration/prefix_diff.py"
+        },
+        {
+          "bytes": 49344,
+          "executable": false,
+          "sha256": "1a50ec950f9c11bb4ad1a5032a26bb20cd52c9d358adf6add2cb1ceb1aaf6cc9",
           "sourcePath": "skills/claude-api/shared/prompt-audit.md"
         },
         {
-          "bytes": 31084,
+          "bytes": 33116,
           "executable": false,
-          "sha256": "07d3ee1266f2825adc1413c4e561b1a09ba9304617f4057f782b0c87a72640fd",
+          "sha256": "5800f883ff1babe24105e7e0e3fc7e9b03dfcce25bb2ccded4bb40d8c81d8464",
           "sourcePath": "skills/claude-api/shared/prompt-caching.md"
         },
         {
-          "bytes": 1597,
+          "bytes": 1603,
           "executable": false,
-          "sha256": "b8be5d38127a79b35c0d79d3e4f1309abcdb6b15ea6917c991c14a7bb2a7d9dc",
+          "sha256": "8674e246c165decdc13106a4861a254ededb0421caf7fa4015ed0fb36e6c60dc",
           "sourcePath": "skills/claude-api/shared/token-counting.md"
         },
         {
-          "bytes": 35290,
+          "bytes": 44359,
           "executable": false,
-          "sha256": "0c5db4fa5a0b60f0e47e473b7735bf94c62b35c6d345f2cfed06409deb9b8f2e",
+          "sha256": "62293e7bb7763f7ae487d3b98ead6b733689b2fd7089784ad5859dd869a153f5",
           "sourcePath": "skills/claude-api/shared/tool-use-concepts.md"
         },
         {
-          "bytes": 15131,
+          "bytes": 15833,
           "executable": false,
-          "sha256": "a77f594d6aa535c481e4fbc69fbd0394d693e913b143efb902eb65a8b1866af1",
+          "sha256": "b2a01ccbaa0d4406e400bcd8efc033759af5d646a97aab744aee55bf07d6ab16",
           "sourcePath": "skills/claude-api/typescript/claude-api/README.md"
         },
         {
-          "bytes": 2590,
+          "bytes": 2594,
           "executable": false,
-          "sha256": "2489eb1d61c0a731b503b0a176383d72234b51064295a3c8c066f2708cab466e",
+          "sha256": "acc33bb981acd48b6ee9a6b2c2afeef9487c42ef2b117225da3949dc61efb464",
           "sourcePath": "skills/claude-api/typescript/claude-api/batches.md"
         },
         {
-          "bytes": 2382,
+          "bytes": 2384,
           "executable": false,
-          "sha256": "2b19e3c499cb11243fbc13158e838f7a51ecad6e2542ecc6783e9d2605ee8249",
+          "sha256": "df8e4e433a4ded6d4c3eb40de9bc0782cf77aaa8e3e331a539aec1cff55d1316",
           "sourcePath": "skills/claude-api/typescript/claude-api/files-api.md"
         },
         {
-          "bytes": 5825,
+          "bytes": 9514,
           "executable": false,
-          "sha256": "cd26b613d1198a602e47e43fd84e873c8d722afbc872a864621256a13f082d65",
+          "sha256": "09db982effb0b7d14e29eddd5425b00040debfedccf3dd0db9af73f7d2da3e79",
           "sourcePath": "skills/claude-api/typescript/claude-api/streaming.md"
         },
         {
-          "bytes": 18877,
+          "bytes": 24295,
           "executable": false,
-          "sha256": "442c3562e6d8d835dcc634657b3eba450b275fde35b8503d49f37ad945b41fec",
+          "sha256": "d0c3e5da146c6da8a85ced14f964dc33de4c0153aa2748dee35c319752e8b725",
           "sourcePath": "skills/claude-api/typescript/claude-api/tool-use.md"
         },
         {
-          "bytes": 9828,
+          "bytes": 14013,
           "executable": false,
-          "sha256": "dfb701b1d49f2dec91464b1e6ab9bd5bcd0786736144711f7079464cff0a5a18",
+          "sha256": "5daf6b0c6a443e1ae720b0a7343e061ebdbaeb751dd674f37f9abf9d12efc66f",
           "sourcePath": "skills/claude-api/typescript/managed-agents/README.md"
         }
       ],
-      "folderScanKey": "git-sha1:60cb5b056141a1b24cfa2e1b1c2540bfb162850a",
+      "folderScanKey": "git-sha1:d495c40fdd16cfe817a71aa05ecc1969ba98e925",
       "include": [
         ".claude-plugin/marketplace.json",
         "skills/claude-api/"
       ],
       "path": "/",
       "plugin": "claude-api",
-      "scanKey": "git-sha1:6119f6d16e0262376487a57d43f247055f9d5976",
+      "scanKey": "git-sha1:d166c5cbe5309b00f7242c92817b29fb557e41e3",
       "sourceId": "anthropic"
     },
     {
@@ -3344,7 +3520,7 @@
           "sourcePath": "skills/discernment-nudge/SKILL.md"
         }
       ],
-      "folderScanKey": "git-sha1:60cb5b056141a1b24cfa2e1b1c2540bfb162850a",
+      "folderScanKey": "git-sha1:d495c40fdd16cfe817a71aa05ecc1969ba98e925",
       "include": [
         ".claude-plugin/marketplace.json",
         "skills/discernment-nudge/"
@@ -3363,15 +3539,15 @@
           "sourcePath": ".claude-plugin/marketplace.json"
         },
         {
-          "bytes": 1467,
+          "bytes": 11357,
           "executable": false,
-          "sha256": "79f6d8f5b427252fa3b1c11ecdbdb6bf610b944f7530b4de78f770f38741cfaa",
+          "sha256": "58d1e17ffe5109a7ae296caafcadfdbe6a7d176f0bc4ab01e12a689b0499d8bd",
           "sourcePath": "skills/docx/LICENSE.txt"
         },
         {
-          "bytes": 6911,
+          "bytes": 7488,
           "executable": false,
-          "sha256": "8017469ea95fb7d28225c62daf8e2f3492a7b516fc64c18c28977cbf8980b7fe",
+          "sha256": "895d5aa6c4cd98e4aed4c995d846f056f3549086e79bcd6617afea6014f82288",
           "sourcePath": "skills/docx/SKILL.md"
         },
         {
@@ -3399,21 +3575,21 @@
           "sourcePath": "skills/docx/scripts/merge_runs.py"
         },
         {
-          "bytes": 3358,
+          "bytes": 4042,
           "executable": false,
-          "sha256": "678e42456d9e10923c8b9a93691cdd993de3433448a184fa72a0c31f4ae086d5",
+          "sha256": "5c456ffc522900399b5f9402f92d66aaf2d9f87655d236c69f60bf07f4fd7c9b",
           "sourcePath": "skills/docx/scripts/office/helpers/__init__.py"
         },
         {
-          "bytes": 5862,
+          "bytes": 9938,
           "executable": false,
-          "sha256": "47ac266f7d39d11ede6bb0d1f3a19d801394fd2964636f1b48beb701f1832964",
+          "sha256": "aed734e9a6c743ae712fc228c868bf0f6abcfb6a53549eefb19081b15d240fda",
           "sourcePath": "skills/docx/scripts/office/helpers/pptx_chart.py"
         },
         {
-          "bytes": 1675,
+          "bytes": 3352,
           "executable": false,
-          "sha256": "7b9f69b4a5bd6a2d9eabf9e0e3e796d7a421373145f6a8cd11f60b7ba2d6a5d0",
+          "sha256": "06fe06953bf038826b85ecc142f4dc9299a37fa0c4e4dd9b00b10486df33524d",
           "sourcePath": "skills/docx/scripts/office/helpers/pptx_slide.py"
         },
         {
@@ -3657,15 +3833,15 @@
           "sourcePath": "skills/docx/scripts/office/schemas/microsoft/wml-symex-2015.xsd"
         },
         {
-          "bytes": 5927,
+          "bytes": 9100,
           "executable": false,
-          "sha256": "df2c8d7249c132a4512d744482e4b5ed0ecbe885f0bcfb1295e7e6a7ced0432c",
+          "sha256": "bcfa227707681ffbecc0f0af5c4e7155407b3baaf5cec5cdd41387c97cdd40c7",
           "sourcePath": "skills/docx/scripts/office/soffice.py"
         },
         {
-          "bytes": 6142,
+          "bytes": 7808,
           "executable": true,
-          "sha256": "346a4c89d92fff55e610f11efda48c30228815b29bdb10b987e48f7af70acf1e",
+          "sha256": "8c10ec61d8e880877515019e1fe8fab9a1f590c9e50ed0631418e960aca1e313",
           "sourcePath": "skills/docx/scripts/office/validate.py"
         },
         {
@@ -3675,27 +3851,27 @@
           "sourcePath": "skills/docx/scripts/office/validators/__init__.py"
         },
         {
-          "bytes": 33756,
+          "bytes": 34369,
           "executable": false,
-          "sha256": "f818ea28c793ba42960fa4498265e2632a62c86f7b5d6aff6fa89dacc02d59ea",
+          "sha256": "6129ec6a4fc0a4aa78af1434f9baa73994cc24d3261afda4e680e00f215cbf3b",
           "sourcePath": "skills/docx/scripts/office/validators/base.py"
         },
         {
-          "bytes": 17482,
+          "bytes": 19745,
           "executable": false,
-          "sha256": "93d3444c0ef3f043d21a2285c46d2cda478426b930dc33dcf3b11265935517b5",
+          "sha256": "7b0f1a23c9cd9ff07187d9d7d359f62317f94a5e389d63fd19766e1688a195a2",
           "sourcePath": "skills/docx/scripts/office/validators/docx.py"
         },
         {
-          "bytes": 15966,
+          "bytes": 21058,
           "executable": false,
-          "sha256": "17eadad2b7a8374ccbe4cda45693bcd6a36f9d61a7d60f9c9ceef9464dec8299",
+          "sha256": "3a100ec5f00ae183bca67f4aaa8e3e902caee60254e141b8120f32c53d85cee7",
           "sourcePath": "skills/docx/scripts/office/validators/pptx.py"
         },
         {
-          "bytes": 11231,
+          "bytes": 18983,
           "executable": false,
-          "sha256": "ed50d0885eee4b9c387f546b059bcaed64086815880a5167336244f93e305123",
+          "sha256": "f9c4455adc32b3890d5203d6c25d868d98d7e970bbad76b686f502950737599a",
           "sourcePath": "skills/docx/scripts/office/validators/redlining.py"
         },
         {
@@ -3729,28 +3905,28 @@
           "sourcePath": "skills/docx/scripts/templates/people.xml"
         },
         {
-          "bytes": 1467,
+          "bytes": 11857,
           "executable": false,
-          "sha256": "79f6d8f5b427252fa3b1c11ecdbdb6bf610b944f7530b4de78f770f38741cfaa",
+          "sha256": "d5df5757e23634cd8a1a37e092af6c3b3b63afb3fd3ce86337fce9017cc3ee9f",
+          "sourcePath": "skills/pdf/FORMS.md"
+        },
+        {
+          "bytes": 11357,
+          "executable": false,
+          "sha256": "58d1e17ffe5109a7ae296caafcadfdbe6a7d176f0bc4ab01e12a689b0499d8bd",
           "sourcePath": "skills/pdf/LICENSE.txt"
         },
         {
-          "bytes": 8072,
+          "bytes": 16724,
           "executable": false,
-          "sha256": "9f78b8359fbd4943ad260a7a1e436e5a96503406d6c34e99f69223d647d85b9c",
+          "sha256": "07af9a8f59e77e88fe9b238a403348244f38a4771c54911c412716d8f88f0ea9",
+          "sourcePath": "skills/pdf/REFERENCE.md"
+        },
+        {
+          "bytes": 8058,
+          "executable": false,
+          "sha256": "d1c7caf5f35eb7d37877dd7fc33a095037be2b34fb5d2f7f4d43bde3165bb4ee",
           "sourcePath": "skills/pdf/SKILL.md"
-        },
-        {
-          "bytes": 11854,
-          "executable": false,
-          "sha256": "9530b3f57034792e0242a3abfe8b3c296466329551916f2ff6c5a70db78f7e44",
-          "sourcePath": "skills/pdf/forms.md"
-        },
-        {
-          "bytes": 16692,
-          "executable": false,
-          "sha256": "03a5f964f8abecbbe156f363356e927e864d7ee964f1012c84ee1bfc8acbeb95",
-          "sourcePath": "skills/pdf/reference.md"
         },
         {
           "bytes": 2774,
@@ -3801,15 +3977,15 @@
           "sourcePath": "skills/pdf/scripts/fill_pdf_form_with_annotations.py"
         },
         {
-          "bytes": 1467,
+          "bytes": 11357,
           "executable": false,
-          "sha256": "79f6d8f5b427252fa3b1c11ecdbdb6bf610b944f7530b4de78f770f38741cfaa",
+          "sha256": "58d1e17ffe5109a7ae296caafcadfdbe6a7d176f0bc4ab01e12a689b0499d8bd",
           "sourcePath": "skills/pptx/LICENSE.txt"
         },
         {
-          "bytes": 20796,
+          "bytes": 28365,
           "executable": false,
-          "sha256": "a7ff03e2c85b636f55232a6b1555f5dd90216b7a1a359ab289d8364e6acbc6a0",
+          "sha256": "598c981d93f2173b251f86a4bc94e9fb4e4f5ddaa314ba2dd4eca24b7a07808e",
           "sourcePath": "skills/pptx/SKILL.md"
         },
         {
@@ -3819,10 +3995,16 @@
           "sourcePath": "skills/pptx/scripts/__init__.py"
         },
         {
-          "bytes": 14537,
+          "bytes": 18831,
           "executable": true,
-          "sha256": "3922f819ee1f6b8bdc6aa146d1a86de70640f5f919321fe3f01a764482ff69c9",
+          "sha256": "23a4c66a9f43e651189cbc9f82ba0a8271d19dc8d44cf0c426dda66f7eb6a93a",
           "sourcePath": "skills/pptx/scripts/add_slide.py"
+        },
+        {
+          "bytes": 7291,
+          "executable": false,
+          "sha256": "e440b33c43f2e707076cb64b57ca926ce886564b115c19ee23ac487bdb1a6259",
+          "sourcePath": "skills/pptx/scripts/apply_theme.js"
         },
         {
           "bytes": 10415,
@@ -3831,21 +4013,21 @@
           "sourcePath": "skills/pptx/scripts/clean.py"
         },
         {
-          "bytes": 3358,
+          "bytes": 4042,
           "executable": false,
-          "sha256": "678e42456d9e10923c8b9a93691cdd993de3433448a184fa72a0c31f4ae086d5",
+          "sha256": "5c456ffc522900399b5f9402f92d66aaf2d9f87655d236c69f60bf07f4fd7c9b",
           "sourcePath": "skills/pptx/scripts/office/helpers/__init__.py"
         },
         {
-          "bytes": 5862,
+          "bytes": 9938,
           "executable": false,
-          "sha256": "47ac266f7d39d11ede6bb0d1f3a19d801394fd2964636f1b48beb701f1832964",
+          "sha256": "aed734e9a6c743ae712fc228c868bf0f6abcfb6a53549eefb19081b15d240fda",
           "sourcePath": "skills/pptx/scripts/office/helpers/pptx_chart.py"
         },
         {
-          "bytes": 1675,
+          "bytes": 3352,
           "executable": false,
-          "sha256": "7b9f69b4a5bd6a2d9eabf9e0e3e796d7a421373145f6a8cd11f60b7ba2d6a5d0",
+          "sha256": "06fe06953bf038826b85ecc142f4dc9299a37fa0c4e4dd9b00b10486df33524d",
           "sourcePath": "skills/pptx/scripts/office/helpers/pptx_slide.py"
         },
         {
@@ -4089,15 +4271,15 @@
           "sourcePath": "skills/pptx/scripts/office/schemas/microsoft/wml-symex-2015.xsd"
         },
         {
-          "bytes": 5927,
+          "bytes": 9100,
           "executable": false,
-          "sha256": "df2c8d7249c132a4512d744482e4b5ed0ecbe885f0bcfb1295e7e6a7ced0432c",
+          "sha256": "bcfa227707681ffbecc0f0af5c4e7155407b3baaf5cec5cdd41387c97cdd40c7",
           "sourcePath": "skills/pptx/scripts/office/soffice.py"
         },
         {
-          "bytes": 6142,
+          "bytes": 7808,
           "executable": true,
-          "sha256": "346a4c89d92fff55e610f11efda48c30228815b29bdb10b987e48f7af70acf1e",
+          "sha256": "8c10ec61d8e880877515019e1fe8fab9a1f590c9e50ed0631418e960aca1e313",
           "sourcePath": "skills/pptx/scripts/office/validate.py"
         },
         {
@@ -4107,28 +4289,34 @@
           "sourcePath": "skills/pptx/scripts/office/validators/__init__.py"
         },
         {
-          "bytes": 33756,
+          "bytes": 34369,
           "executable": false,
-          "sha256": "f818ea28c793ba42960fa4498265e2632a62c86f7b5d6aff6fa89dacc02d59ea",
+          "sha256": "6129ec6a4fc0a4aa78af1434f9baa73994cc24d3261afda4e680e00f215cbf3b",
           "sourcePath": "skills/pptx/scripts/office/validators/base.py"
         },
         {
-          "bytes": 17482,
+          "bytes": 19745,
           "executable": false,
-          "sha256": "93d3444c0ef3f043d21a2285c46d2cda478426b930dc33dcf3b11265935517b5",
+          "sha256": "7b0f1a23c9cd9ff07187d9d7d359f62317f94a5e389d63fd19766e1688a195a2",
           "sourcePath": "skills/pptx/scripts/office/validators/docx.py"
         },
         {
-          "bytes": 15966,
+          "bytes": 21058,
           "executable": false,
-          "sha256": "17eadad2b7a8374ccbe4cda45693bcd6a36f9d61a7d60f9c9ceef9464dec8299",
+          "sha256": "3a100ec5f00ae183bca67f4aaa8e3e902caee60254e141b8120f32c53d85cee7",
           "sourcePath": "skills/pptx/scripts/office/validators/pptx.py"
         },
         {
-          "bytes": 11231,
+          "bytes": 18983,
           "executable": false,
-          "sha256": "ed50d0885eee4b9c387f546b059bcaed64086815880a5167336244f93e305123",
+          "sha256": "f9c4455adc32b3890d5203d6c25d868d98d7e970bbad76b686f502950737599a",
           "sourcePath": "skills/pptx/scripts/office/validators/redlining.py"
+        },
+        {
+          "bytes": 4446,
+          "executable": true,
+          "sha256": "0deab09d4ae494411ee893f9c69fffc19fe264a6053990a2f066334c0d88d422",
+          "sourcePath": "skills/pptx/scripts/slide_text.py"
         },
         {
           "bytes": 9802,
@@ -4137,33 +4325,33 @@
           "sourcePath": "skills/pptx/scripts/thumbnail.py"
         },
         {
-          "bytes": 1467,
+          "bytes": 11357,
           "executable": false,
-          "sha256": "79f6d8f5b427252fa3b1c11ecdbdb6bf610b944f7530b4de78f770f38741cfaa",
+          "sha256": "58d1e17ffe5109a7ae296caafcadfdbe6a7d176f0bc4ab01e12a689b0499d8bd",
           "sourcePath": "skills/xlsx/LICENSE.txt"
         },
         {
-          "bytes": 8598,
+          "bytes": 9770,
           "executable": false,
-          "sha256": "6712b39718fe815054abca9c3ee72f989613e6f771c8a5c58f30a65a6c905622",
+          "sha256": "f32b1c2b5d5d31e02964df110d6489613d9345f86830c118cfe24159d8448ce6",
           "sourcePath": "skills/xlsx/SKILL.md"
         },
         {
-          "bytes": 3358,
+          "bytes": 4042,
           "executable": false,
-          "sha256": "678e42456d9e10923c8b9a93691cdd993de3433448a184fa72a0c31f4ae086d5",
+          "sha256": "5c456ffc522900399b5f9402f92d66aaf2d9f87655d236c69f60bf07f4fd7c9b",
           "sourcePath": "skills/xlsx/scripts/office/helpers/__init__.py"
         },
         {
-          "bytes": 5862,
+          "bytes": 9938,
           "executable": false,
-          "sha256": "47ac266f7d39d11ede6bb0d1f3a19d801394fd2964636f1b48beb701f1832964",
+          "sha256": "aed734e9a6c743ae712fc228c868bf0f6abcfb6a53549eefb19081b15d240fda",
           "sourcePath": "skills/xlsx/scripts/office/helpers/pptx_chart.py"
         },
         {
-          "bytes": 1675,
+          "bytes": 3352,
           "executable": false,
-          "sha256": "7b9f69b4a5bd6a2d9eabf9e0e3e796d7a421373145f6a8cd11f60b7ba2d6a5d0",
+          "sha256": "06fe06953bf038826b85ecc142f4dc9299a37fa0c4e4dd9b00b10486df33524d",
           "sourcePath": "skills/xlsx/scripts/office/helpers/pptx_slide.py"
         },
         {
@@ -4407,15 +4595,15 @@
           "sourcePath": "skills/xlsx/scripts/office/schemas/microsoft/wml-symex-2015.xsd"
         },
         {
-          "bytes": 5927,
+          "bytes": 9100,
           "executable": false,
-          "sha256": "df2c8d7249c132a4512d744482e4b5ed0ecbe885f0bcfb1295e7e6a7ced0432c",
+          "sha256": "bcfa227707681ffbecc0f0af5c4e7155407b3baaf5cec5cdd41387c97cdd40c7",
           "sourcePath": "skills/xlsx/scripts/office/soffice.py"
         },
         {
-          "bytes": 6142,
+          "bytes": 7808,
           "executable": true,
-          "sha256": "346a4c89d92fff55e610f11efda48c30228815b29bdb10b987e48f7af70acf1e",
+          "sha256": "8c10ec61d8e880877515019e1fe8fab9a1f590c9e50ed0631418e960aca1e313",
           "sourcePath": "skills/xlsx/scripts/office/validate.py"
         },
         {
@@ -4425,37 +4613,37 @@
           "sourcePath": "skills/xlsx/scripts/office/validators/__init__.py"
         },
         {
-          "bytes": 33756,
+          "bytes": 34369,
           "executable": false,
-          "sha256": "f818ea28c793ba42960fa4498265e2632a62c86f7b5d6aff6fa89dacc02d59ea",
+          "sha256": "6129ec6a4fc0a4aa78af1434f9baa73994cc24d3261afda4e680e00f215cbf3b",
           "sourcePath": "skills/xlsx/scripts/office/validators/base.py"
         },
         {
-          "bytes": 17482,
+          "bytes": 19745,
           "executable": false,
-          "sha256": "93d3444c0ef3f043d21a2285c46d2cda478426b930dc33dcf3b11265935517b5",
+          "sha256": "7b0f1a23c9cd9ff07187d9d7d359f62317f94a5e389d63fd19766e1688a195a2",
           "sourcePath": "skills/xlsx/scripts/office/validators/docx.py"
         },
         {
-          "bytes": 15966,
+          "bytes": 21058,
           "executable": false,
-          "sha256": "17eadad2b7a8374ccbe4cda45693bcd6a36f9d61a7d60f9c9ceef9464dec8299",
+          "sha256": "3a100ec5f00ae183bca67f4aaa8e3e902caee60254e141b8120f32c53d85cee7",
           "sourcePath": "skills/xlsx/scripts/office/validators/pptx.py"
         },
         {
-          "bytes": 11231,
+          "bytes": 18983,
           "executable": false,
-          "sha256": "ed50d0885eee4b9c387f546b059bcaed64086815880a5167336244f93e305123",
+          "sha256": "f9c4455adc32b3890d5203d6c25d868d98d7e970bbad76b686f502950737599a",
           "sourcePath": "skills/xlsx/scripts/office/validators/redlining.py"
         },
         {
-          "bytes": 10670,
+          "bytes": 34340,
           "executable": true,
-          "sha256": "66f6e726d5a53cfabea0b6471d6669deb95e54e96cb7913b687e4388da1bb3d9",
+          "sha256": "7265aa4a41f5273596ee5694ce8a4d881c18adafb6203fece769107d08403263",
           "sourcePath": "skills/xlsx/scripts/recalc.py"
         }
       ],
-      "folderScanKey": "git-sha1:60cb5b056141a1b24cfa2e1b1c2540bfb162850a",
+      "folderScanKey": "git-sha1:d495c40fdd16cfe817a71aa05ecc1969ba98e925",
       "include": [
         ".claude-plugin/marketplace.json",
         "skills/docx/",
@@ -4465,7 +4653,7 @@
       ],
       "path": "/",
       "plugin": "document-skills",
-      "scanKey": "git-sha1:2632ee9c571f704df3f730a4cad5fb45f351ffc7",
+      "scanKey": "git-sha1:177364894f2e869a4cb154f553e7b67eb9ee3d06",
       "sourceId": "anthropic"
     },
     {
@@ -5071,9 +5259,9 @@
           "sourcePath": "skills/mcp-builder/LICENSE.txt"
         },
         {
-          "bytes": 9092,
+          "bytes": 11129,
           "executable": false,
-          "sha256": "0f4592dcb53cf2b5d6b7febee6b4152018b565551a1c29e3c612f57b218ab295",
+          "sha256": "b483b56d6673134497e45489c317f26ae0f1429c194db0297e43073e17e6748c",
           "sourcePath": "skills/mcp-builder/SKILL.md"
         },
         {
@@ -5089,10 +5277,16 @@
           "sourcePath": "skills/mcp-builder/reference/mcp_best_practices.md"
         },
         {
-          "bytes": 28550,
+          "bytes": 28745,
           "executable": false,
-          "sha256": "c3ba35a4f599dd53be9c6555ae72c19a7bf412cd5426576c2c08d42755482c66",
+          "sha256": "ee3c95d812e450f6168b734390d0c9ef6f8ebeef041d73a122c972dfbd4d476a",
           "sourcePath": "skills/mcp-builder/reference/node_mcp_server.md"
+        },
+        {
+          "bytes": 35171,
+          "executable": false,
+          "sha256": "49b2fe48f33910b743ae3a56353fffa5d5f252f531053f24f2da4e5914c0d3aa",
+          "sourcePath": "skills/mcp-builder/reference/node_mcp_server_v2.md"
         },
         {
           "bytes": 25099,
@@ -5419,7 +5613,7 @@
           "sourcePath": "skills/webapp-testing/scripts/with_server.py"
         }
       ],
-      "folderScanKey": "git-sha1:60cb5b056141a1b24cfa2e1b1c2540bfb162850a",
+      "folderScanKey": "git-sha1:d495c40fdd16cfe817a71aa05ecc1969ba98e925",
       "include": [
         ".claude-plugin/marketplace.json",
         "skills/algorithmic-art/",
@@ -5437,14 +5631,14 @@
       ],
       "path": "/",
       "plugin": "example-skills",
-      "scanKey": "git-sha1:2c49d2064276e785216f0665381a55065f15be50",
+      "scanKey": "git-sha1:b6558596b06c5a9cd33f8d4a21669b228d869eb3",
       "sourceId": "anthropic"
     }
   ],
   "schema": "urn:aihq:catalog:content:0.1.0",
   "sources": [
     {
-      "commit": "34040c9c568585f6929bedeaad110ad08f079624",
+      "commit": "e4bb5d960d87126ff3b3a8af1a104b7db67560ba",
       "id": "anthropic",
       "kind": "git",
       "notices": [
@@ -5485,7 +5679,7 @@
         },
         {
           "covers": "skills/docx",
-          "sha256": "79f6d8f5b427252fa3b1c11ecdbdb6bf610b944f7530b4de78f770f38741cfaa",
+          "sha256": "58d1e17ffe5109a7ae296caafcadfdbe6a7d176f0bc4ab01e12a689b0499d8bd",
           "sourcePath": "skills/docx/LICENSE.txt"
         },
         {
@@ -5505,12 +5699,12 @@
         },
         {
           "covers": "skills/pdf",
-          "sha256": "79f6d8f5b427252fa3b1c11ecdbdb6bf610b944f7530b4de78f770f38741cfaa",
+          "sha256": "58d1e17ffe5109a7ae296caafcadfdbe6a7d176f0bc4ab01e12a689b0499d8bd",
           "sourcePath": "skills/pdf/LICENSE.txt"
         },
         {
           "covers": "skills/pptx",
-          "sha256": "79f6d8f5b427252fa3b1c11ecdbdb6bf610b944f7530b4de78f770f38741cfaa",
+          "sha256": "58d1e17ffe5109a7ae296caafcadfdbe6a7d176f0bc4ab01e12a689b0499d8bd",
           "sourcePath": "skills/pptx/LICENSE.txt"
         },
         {
@@ -5540,14 +5734,14 @@
         },
         {
           "covers": "skills/xlsx",
-          "sha256": "79f6d8f5b427252fa3b1c11ecdbdb6bf610b944f7530b4de78f770f38741cfaa",
+          "sha256": "58d1e17ffe5109a7ae296caafcadfdbe6a7d176f0bc4ab01e12a689b0499d8bd",
           "sourcePath": "skills/xlsx/LICENSE.txt"
         }
       ],
       "repository": "https://github.com/anthropics/skills"
     },
     {
-      "commit": "f3d14c48cbad1b6a3b3c9c81db9f198a4188f712",
+      "commit": "0e5b2e621a9ee4cf6a604bbe6c5c0d5b70561eb4",
       "id": "shadcn-notice",
       "kind": "git",
       "notices": [

@@ -6,15 +6,15 @@
   "items": [
     {
       "arguments": false,
-      "behaviourSha256": "a782da9bf69dc17f8a0292571970bcf0fa9407c98771ebfd16070935b053de33",
-      "contentSha256": "2cc3ad23d9e943e64ebfa389dbfa3f9243bb9d1a16e0489b496738413b016b40",
+      "behaviourSha256": "15725c25a98016eba1887aa9e7f347d121802b4bff47c16bbd2baa2dfacae01d",
+      "contentSha256": "a16209284edbff32df1039b846e65e97ffeaad7243a3965dec2b0d7aa64b848b",
       "description": "Build a standalone styled React HTML artifact using a locked project-local Vite pipeline.",
       "files": [
         {
-          "bytes": 3328,
+          "bytes": 3338,
           "executable": false,
           "role": "content",
-          "sha256": "e58b0102940a2ce6de8532d4974fc7a9b44e034624b907a3ddfd8a5e5c5c31f8",
+          "sha256": "0ede0da7b2b9ec8dc9346cd59585a335fd286c6b18e0c0e9569b4e5c8b012ea9",
           "sourceId": "web-artifacts",
           "sourcePath": "skills/web-artifacts-builder/SKILL.md"
         },
@@ -22,7 +22,7 @@
           "bytes": 1635,
           "executable": false,
           "role": "content",
-          "sha256": "a4dd347a9cbbb8164ffc1c94eec1dda571e383ad7c43fe8e481a6486341d6429",
+          "sha256": "54c13fca6d2a8141c8314957e11456286ff4693d131d2f9deaf8aef0c8b7ce9e",
           "sourceId": "web-artifacts",
           "sourcePath": "skills/web-artifacts-builder/artifact.mjs"
         },
@@ -38,15 +38,15 @@
           "bytes": 705,
           "executable": false,
           "role": "content",
-          "sha256": "d3eed8d953234a0b23e3015159483f01427eecd025282df46ff9437eabc05a45",
+          "sha256": "4d05bc4b75778c5c200172f4063c55c8391760fd1d77bce44ec5f51580a0889e",
           "sourceId": "web-artifacts",
           "sourcePath": "skills/web-artifacts-builder/template/components.package.json"
         },
         {
-          "bytes": 41895,
+          "bytes": 40838,
           "executable": false,
           "role": "content",
-          "sha256": "3a3e9a028dcceb241cc1f0f5c7365c6125876d26185a0f1c3a4b758e5524424d",
+          "sha256": "acf198106e29987d757637cf5810017af486c3521155e311e4c86e3f982578db",
           "sourceId": "web-artifacts",
           "sourcePath": "skills/web-artifacts-builder/template/components.pnpm-lock.yaml"
         },
@@ -59,18 +59,18 @@
           "sourcePath": "skills/web-artifacts-builder/template/index.html"
         },
         {
-          "bytes": 550,
+          "bytes": 582,
           "executable": false,
           "role": "content",
-          "sha256": "4669723da0d61798a9b69b6519457c414cf0568ff3035e13cb5c14764dd802b2",
+          "sha256": "728b8430bd9bb91eed98abd9e936faf3ca86d352e4e9ca696f6f0f2c711837a7",
           "sourceId": "web-artifacts",
           "sourcePath": "skills/web-artifacts-builder/template/package.json"
         },
         {
-          "bytes": 40512,
+          "bytes": 39455,
           "executable": false,
           "role": "content",
-          "sha256": "5209f37988c14d245956c92348c91151dae5ceaa8e6e622d2b6109a79655a225",
+          "sha256": "08609a4d13b0ead9eb6831b9fd62472a0c3e3771c5048c27c69e224a3d460234",
           "sourceId": "web-artifacts",
           "sourcePath": "skills/web-artifacts-builder/template/pnpm-lock.yaml"
         },
@@ -118,7 +118,7 @@
       "id": "web-artifacts.skill.web-artifacts-builder",
       "kind": "skill",
       "name": "web-artifacts-builder-modern",
-      "scanKey": "git-sha1:a095b4b444f896e135592dad0bc816b22ff9d664",
+      "scanKey": "git-sha1:82d1a6d3ef045cc89b68c3210e7b5896d67bd11b",
       "userOnly": false
     }
   ],

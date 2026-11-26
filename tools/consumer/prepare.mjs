@@ -21,7 +21,7 @@ import {
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
-import { dirname, join } from "node:path";
+import { dirname, join, relative, sep } from "node:path";
 import { fetchSource } from "@aihq/catalog/node";
 import { SCAN_FOLDER, SCAN_TREES } from "./fixtures.mjs";
 import { canonical } from "./lib.mjs";
@@ -31,8 +31,9 @@ for await (const chunk of process.stdin) text += chunk;
 const { repository, commit, inputs, network } = JSON.parse(text);
 mkdirSync(inputs, { recursive: true });
 const sha = (bytes) => createHash("sha256").update(bytes).digest("hex");
+const executablePaths = [];
 
-/** Writes fetched files as a plain folder, keeping execute bits, and returns their identity. */
+/** Keep Git modes alongside the materialized bytes for Windows, whose filesystem omits them. */
 function materialise(folder, files) {
   const listing = [];
   for (const file of files) {
@@ -41,6 +42,7 @@ function materialise(folder, files) {
     mkdirSync(dirname(target), { recursive: true });
     writeFileSync(target, file.bytes);
     chmodSync(target, file.mode === "100755" ? 0o755 : 0o644);
+    if (file.mode === "100755") executablePaths.push(relative(inputs, target).split(sep).join("/"));
     listing.push(`${file.mode} ${file.sha256} ${file.path}`);
   }
   listing.sort();
@@ -78,12 +80,12 @@ if (network) {
     ecc: await fetchInto("upstream/ecc", {
       kind: "git",
       repository: "https://github.com/affaan-m/ECC",
-      ref: "5064474d4d762dc9640234a41617cccb79185cec",
+      ref: "4adeee6732a12d1540f49a4d50a38ce8c97f9a53",
     }),
     superpowers: await fetchInto("upstream/superpowers", {
       kind: "git",
       repository: "https://github.com/obra/superpowers",
-      ref: "5bf4e78011075bcfc0dc295f0724994cd123ee71",
+      ref: "22f0b463e7a5e579904dd6211a520321035526f7",
     }),
   };
 }
@@ -208,4 +210,4 @@ try {
   }
 }
 
-process.stdout.write(JSON.stringify({ identity, trees }));
+process.stdout.write(JSON.stringify({ identity, trees, executablePaths: executablePaths.sort() }));

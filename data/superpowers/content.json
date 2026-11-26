@@ -5,39 +5,39 @@
   },
   "items": [
     {
-      "behaviourSha256": "5213bfcb1ce403f2c38b447e2ce8bb99823f06d635c42aa60bd80492bb061d71",
-      "contentSha256": "539dc6394a74a2160d4e4b457809dfbcb506cc1017cf8be343b93289ff8e69d7",
+      "behaviourSha256": "bd0572177510bb705cbfd21a78c3b1874ea547e218581cef8c98e03f50d3cea9",
+      "contentSha256": "4809524fb802b6b18a9e2d0adcce5228f7e8c50ab9b22f28a071576e39097391",
       "description": "SessionStart hook for startup|clear|compact",
       "editions": {
         "claude-code": {
           "files": [
             {
-              "bytes": 334,
+              "bytes": 424,
               "derivedFrom": {
                 "pointer": "/hooks/SessionStart/0",
                 "sourcePath": "hooks/hooks.json"
               },
               "executable": false,
               "role": "content",
-              "sha256": "fb5f6b6b03b4bdfa241cc3c49e260c15ef5b3e5868a90a38b3dfe79ea63c12ee",
+              "sha256": "9e006655be3a69f3c4b5c296f4a720b72737d358bf2f85f8f04dc26729553a3b",
               "sourceId": "superpowers-generated",
               "sourcePath": "superpowers.hook.session-start/hooks.json"
             }
           ],
-          "scanKey": "git-sha1:19bb6a64e2fb629022fbc7f5afb77b343e1e323b"
+          "scanKey": "git-sha1:9c048216470164736ae5c783cc2260dfe6c7744c"
         }
       },
       "event": "session-start",
       "files": [
         {
-          "bytes": 334,
+          "bytes": 424,
           "derivedFrom": {
             "pointer": "/hooks/SessionStart/0",
             "sourcePath": "hooks/hooks.json"
           },
           "executable": false,
           "role": "content",
-          "sha256": "fb5f6b6b03b4bdfa241cc3c49e260c15ef5b3e5868a90a38b3dfe79ea63c12ee",
+          "sha256": "9e006655be3a69f3c4b5c296f4a720b72737d358bf2f85f8f04dc26729553a3b",
           "sourceId": "superpowers-generated",
           "sourcePath": "superpowers.hook.session-start/hooks.json"
         }
@@ -60,7 +60,7 @@
           "sourcePath": "superpowers.hook.session-start/hooks.json"
         }
       ],
-      "scanKey": "git-sha1:19bb6a64e2fb629022fbc7f5afb77b343e1e323b"
+      "scanKey": "git-sha1:9c048216470164736ae5c783cc2260dfe6c7744c"
     },
     {
       "behaviourSha256": "7a0f907570d3ec464d4592e4fd2a26b18c93dedc3fdddf33b2155c1c4ad36bc0",
@@ -84,17 +84,25 @@
     },
     {
       "arguments": false,
-      "behaviourSha256": "d3cf872de9fd0e6279f1126b201b4709b7897971dd9d3db97d9a6913d462024c",
-      "contentSha256": "2ae5b4e338a98fc92b558b05e8af954011ac142e42ace3de5d7df08d712aea24",
-      "description": "You MUST use this before any creative work - creating features, building components, adding functionality, or modifying behavior. Explores user intent, requirements and design before implementation.",
+      "behaviourSha256": "16da2fa9b2322834bd41a1559bf7ff7eb0b1537a62b50d87a0673f25075dcb03",
+      "contentSha256": "0ca553f81190be9e695dc7654d5c1017693edf4fa295b9ab8a35c84a9e6a0cd6",
+      "description": "You MUST use this before any creative work - creating features, building components, adding functionality, modifying behavior, or planning anything new, in software or out of it (a talk, a business, a renovation).",
       "files": [
         {
-          "bytes": 17548,
+          "bytes": 15190,
           "executable": false,
           "role": "content",
-          "sha256": "a32d2255354775aa124855aa7100cf276bea096fff4ebb3a0edf57be216e6c72",
+          "sha256": "2c9ca71f94886f9ca9f4aef055f7cafb3e1a9bdf3aeebf8f4cb547c69405d207",
           "sourceId": "superpowers",
           "sourcePath": "skills/brainstorming/SKILL.md"
+        },
+        {
+          "bytes": 881,
+          "executable": false,
+          "role": "content",
+          "sha256": "36d51a4723d6f0a3ce5811a0ea3b3a8424f07533947e1355f5d8cb8cce40c55e",
+          "sourceId": "superpowers",
+          "sourcePath": "skills/brainstorming/builder-check-prompt.md"
         },
         {
           "bytes": 8094,
@@ -113,18 +121,18 @@
           "sourcePath": "skills/brainstorming/scripts/helper.js"
         },
         {
-          "bytes": 25693,
+          "bytes": 25699,
           "executable": false,
           "role": "content",
-          "sha256": "2d2961ea8d11f56c5f4c3a1a68d22709efa5d7601a2246d8c880774e7e9e8412",
+          "sha256": "763abf96510e0b892a1141397b31aa82ef900cf87ed34dde94bc8782baf4a7ca",
           "sourceId": "superpowers",
           "sourcePath": "skills/brainstorming/scripts/server.cjs"
         },
         {
-          "bytes": 6908,
+          "bytes": 7315,
           "executable": true,
           "role": "content",
-          "sha256": "a4e5ae84275bcaacd2f84345afeabe59cf7b00ba080e123da7cc1fb226f12847",
+          "sha256": "314dd68dc00e8dd94c7491aca8a5f004c7fddffc161e2b07482f29f48d13659a",
           "sourceId": "superpowers",
           "sourcePath": "skills/brainstorming/scripts/start-server.sh"
         },
@@ -135,14 +143,6 @@
           "sha256": "0b5ccbbd57f62d3ed88993f7940b5ee0e5c0fc9b21c550c623da4f6292e47daf",
           "sourceId": "superpowers",
           "sourcePath": "skills/brainstorming/scripts/stop-server.sh"
-        },
-        {
-          "bytes": 1747,
-          "executable": false,
-          "role": "content",
-          "sha256": "95a0a195de9d984be2fffa95bab16fc8c563bc296a9cfc5e9c29cb3ece0d7457",
-          "sourceId": "superpowers",
-          "sourcePath": "skills/brainstorming/spec-document-reviewer-prompt.md"
         },
         {
           "bytes": 13413,
@@ -156,20 +156,26 @@
       "id": "superpowers.skill.brainstorming",
       "kind": "skill",
       "name": "brainstorming",
-      "scanKey": "git-sha1:03d4c6657cd20ba0fce9d270fc688150bd191c3b",
+      "references": [
+        {
+          "name": "superpowers:writing-plans",
+          "sourcePath": "skills/brainstorming/SKILL.md"
+        }
+      ],
+      "scanKey": "git-sha1:ebd5b1afb600976b12a4c07fedd9c408c1e82f97",
       "userOnly": false
     },
     {
       "arguments": false,
-      "behaviourSha256": "271eec2f7392dc66f6f272593f71792405ddfcca463d1eff237a70cf77033bed",
-      "contentSha256": "bed551e9481acc5b89408a594befd26a4ede7b6c18a465bfe8a2cc613f1eea93",
+      "behaviourSha256": "0247c33425658e99744a0b01a50340f696f0ca5214aa17de6a0e8492dea05405",
+      "contentSha256": "417599faf9ca1c757e155605cf502585bbad7912e719e62e9eabaa297a6c02f7",
       "description": "Use when a superpowers session went wrong and your human partner wants to know why — repeated work, ignored plans, stumbles, poor results, a skill that didn't fire, \"it took too long\", \"why is it so expensive\", \"what is it doing\" — or wants to build a bug report for the superpowers maintainers, for the current session or a past one identified by id or path, on any harness.",
       "files": [
         {
-          "bytes": 6904,
+          "bytes": 6941,
           "executable": false,
           "role": "content",
-          "sha256": "5a652f8132cc901eb5ca61f89157839f87a2f20aed037fc7a2b51051bc37cd19",
+          "sha256": "3143de8695c5a2d63e8b1675f33837578076f464deb127c2ebdd0b46fceef886",
           "sourceId": "superpowers",
           "sourcePath": "skills/diagnosing-superpowers/SKILL.md"
         },
@@ -270,10 +276,10 @@
           "sourcePath": "skills/diagnosing-superpowers/references/context-safety.md"
         },
         {
-          "bytes": 1644,
+          "bytes": 1636,
           "executable": false,
           "role": "content",
-          "sha256": "a656f5e15b21c7a200c39c038f5ede74b9d6ea3ceeb90f39af7e930c8d8424d6",
+          "sha256": "d26ef9197b4a6ae5159ae6d11abd162bcc624d95fc7ccf508e07b68f916a1b19",
           "sourceId": "superpowers",
           "sourcePath": "skills/diagnosing-superpowers/references/github-issues.md"
         },
@@ -310,10 +316,10 @@
           "sourcePath": "skills/diagnosing-superpowers/templates/case.md"
         },
         {
-          "bytes": 1851,
+          "bytes": 2680,
           "executable": false,
           "role": "content",
-          "sha256": "8f28dbfe60602f77dda76d81815cb4e2dce7d3e2a93348890e1581be8310ac1f",
+          "sha256": "afd21779e5de5bc5adfe2f5a50a04e44ab8d50d9ad0f829243de248d6f023eed",
           "sourceId": "superpowers",
           "sourcePath": "skills/diagnosing-superpowers/templates/issue.md"
         },
@@ -329,7 +335,7 @@
       "id": "superpowers.skill.diagnosing-superpowers",
       "kind": "skill",
       "name": "diagnosing-superpowers",
-      "scanKey": "git-sha1:9a975225f7a42de50cd2d43483701b6348f99fd5",
+      "scanKey": "git-sha1:effb02c345170011be4470c73b99530de43182a7",
       "userOnly": false
     },
     {
@@ -355,31 +361,31 @@
     },
     {
       "arguments": false,
-      "behaviourSha256": "385c0d00648e7d82d61f2a21c4a6deb2067dec01d2ca1e5786c8c0f62758e4a3",
-      "contentSha256": "798f0e17068903da0a755adacf3b3ad52ddff82120c51e20993a7c419d046cb8",
+      "behaviourSha256": "36843216a5612c8c7a3ddf8b108549c0f4984bf807a6234b4f04c32794fc1e62",
+      "contentSha256": "77c5700248da93c0754c793ef738268d03bf7679526481c7b221c55cb1121f58",
       "description": "Use when executing an implementation plan in the current session as the implementer yourself — your human partner chose inline execution, or no subagent tool is available",
       "files": [
         {
-          "bytes": 20405,
+          "bytes": 18364,
           "executable": false,
           "role": "content",
-          "sha256": "f38e8f2ddcf079f65493adc713c1fed78421dfaf5f4dbf6b3a6b2b1d95466e71",
+          "sha256": "deaf176fa179827e80f2ea3101db3ea90fdf562ebef340eba761e4687940f5f5",
           "sourceId": "superpowers",
           "sourcePath": "skills/executing-plans/SKILL.md"
         },
         {
-          "bytes": 1670,
+          "bytes": 1900,
           "executable": true,
           "role": "content",
-          "sha256": "f704dc216e0602f95c601b9ee1113c9a55cc1c5f6e4d149dddfba0fd3ad1c314",
+          "sha256": "ac0b5ebafc7d471507b7e94d88da77a11f187ba277c8d48fefaf8ff3e4fee50e",
           "sourceId": "superpowers",
           "sourcePath": "skills/executing-plans/scripts/task-done"
         },
         {
-          "bytes": 963,
+          "bytes": 1185,
           "executable": true,
           "role": "content",
-          "sha256": "f833693c8fce3700fc9f841562d80f8015cd40f652c168a3405ac3e46947a1fe",
+          "sha256": "4ae7ce3b6777c3240af786197836a6b4bbf3b0ee831c25f147c149ea8db54a21",
           "sourceId": "superpowers",
           "sourcePath": "skills/executing-plans/scripts/task-start"
         }
@@ -435,7 +441,7 @@
           "sourcePath": "skills/executing-plans/SKILL.md"
         }
       ],
-      "scanKey": "git-sha1:899ffeab92be3de6cd9ed0078b32737b18b8c135",
+      "scanKey": "git-sha1:3a8438d91d9340747ffd985fdbcfe7238d6e1e57",
       "userOnly": false
     },
     {
@@ -482,15 +488,15 @@
     },
     {
       "arguments": false,
-      "behaviourSha256": "4f9eae2c70cd090ea380af175afe70d2610cbb89c39ea36a3a34c9157f0bbf7b",
-      "contentSha256": "6f0a30547944db6d55bef9905868871d8225071edc6c4ec1cbfbd9246fdb9b50",
+      "behaviourSha256": "26ecd9d538dbdced7ee2c04333dda0d41313b1f49933818e25a9ebf95db2a457",
+      "contentSha256": "fc145f5f358af987514d0873c4d325375df1be624d4b6c98fb44ca685852305c",
       "description": "Use when completing tasks, implementing major features, or before merging to verify work meets requirements",
       "files": [
         {
-          "bytes": 2977,
+          "bytes": 2974,
           "executable": false,
           "role": "content",
-          "sha256": "cfcee1b06774e7c0517f1e09be1a11f2d5680257072723e709ddbcf7e08b795a",
+          "sha256": "2180e14a448e9410bec88e6646a2d1f0ce7fdd58de27388c1e052e929679d2bc",
           "sourceId": "superpowers",
           "sourcePath": "skills/requesting-code-review/SKILL.md"
         },
@@ -506,20 +512,20 @@
       "id": "superpowers.skill.requesting-code-review",
       "kind": "skill",
       "name": "requesting-code-review",
-      "scanKey": "git-sha1:5fcdadfccd8c90987a11969d2f8c844820fee6e1",
+      "scanKey": "git-sha1:f4a6749898702895ea4fd57c7f186cf43205b99a",
       "userOnly": false
     },
     {
       "arguments": false,
-      "behaviourSha256": "8e37de3dc4e09c278cccfccba8414da2b5d66b8c8680cbfdc953d84cad13b24b",
-      "contentSha256": "fac27a6825dd955875154826b8350e064b98a4b5bd08f561accef20a839e6f22",
+      "behaviourSha256": "06b59e69e608d4e2aa45eb19fafb9f01fc71fbea594a9a31417e1c378e656dc0",
+      "contentSha256": "41b41e57a5bba315e8d3e863abcf8dd0eee81cd15f14dae7d6da3ea502762138",
       "description": "Use when executing implementation plans with independent tasks in the current session",
       "files": [
         {
-          "bytes": 32577,
+          "bytes": 19740,
           "executable": false,
           "role": "content",
-          "sha256": "8dde5589ee083fb4999106d116f01c8fdaf3116a8a9813fdedeb80329de49046",
+          "sha256": "1baf70e307bde682c462513c86116333f1f066168c6710f45145bf5f0b00828d",
           "sourceId": "superpowers",
           "sourcePath": "skills/subagent-driven-development/SKILL.md"
         },
@@ -532,42 +538,106 @@
           "sourcePath": "skills/subagent-driven-development/implementer-prompt.md"
         },
         {
-          "bytes": 4761,
+          "bytes": 4833,
           "executable": false,
           "role": "content",
-          "sha256": "0828a5e9cbb12ba49f14621dd8c3953c48c0fc383e75bb5494f055ed0d6d824f",
+          "sha256": "ad54d0a10f1c2c8e656456e0a46e654af5dfe5ee6bcef63428cfd69b8dcd9311",
           "sourceId": "superpowers",
           "sourcePath": "skills/subagent-driven-development/re-review-prompt.md"
         },
         {
-          "bytes": 2029,
+          "bytes": 583,
+          "executable": false,
+          "role": "content",
+          "sha256": "b54dc7e23dbfb90db89bcb2fb3af591aabf6a271a165fbc0da4c6f9439980eac",
+          "sourceId": "superpowers",
+          "sourcePath": "skills/subagent-driven-development/references/batching.md"
+        },
+        {
+          "bytes": 513,
+          "executable": false,
+          "role": "content",
+          "sha256": "e698713a15e0eabf1a2ab26ffe1bb04bf70c9d6d2e2060d44a0f9a1bdd4408bf",
+          "sourceId": "superpowers",
+          "sourcePath": "skills/subagent-driven-development/references/cannot-verify.md"
+        },
+        {
+          "bytes": 2576,
+          "executable": false,
+          "role": "content",
+          "sha256": "6c9e12093e46c4ad0a203bc07709c17e3470f855f1b78e55c5e7b722a012a32c",
+          "sourceId": "superpowers",
+          "sourcePath": "skills/subagent-driven-development/references/final-review.md"
+        },
+        {
+          "bytes": 4314,
+          "executable": false,
+          "role": "content",
+          "sha256": "1938ce707915efc44021e563ebc29666329e20ad861b6c50b89f305b8f4e8d8b",
+          "sourceId": "superpowers",
+          "sourcePath": "skills/subagent-driven-development/references/fix-loop.md"
+        },
+        {
+          "bytes": 1062,
+          "executable": false,
+          "role": "content",
+          "sha256": "8f759cdd4936220c38aab05b6d6c48c6df8ac8f146b0f37a6d2facbf87133c67",
+          "sourceId": "superpowers",
+          "sourcePath": "skills/subagent-driven-development/references/handling-reports.md"
+        },
+        {
+          "bytes": 1353,
+          "executable": false,
+          "role": "content",
+          "sha256": "3ea21c5fc1af1a190ac8a9d19ceb0849b47bf2ffe27b87dffcc21b6a0539776c",
+          "sourceId": "superpowers",
+          "sourcePath": "skills/subagent-driven-development/references/preflight.md"
+        },
+        {
+          "bytes": 614,
+          "executable": false,
+          "role": "content",
+          "sha256": "ff6e38bde2276faa2a7e93513086caded0ea10edbf2ec7f349a7e3b0d7c668c4",
+          "sourceId": "superpowers",
+          "sourcePath": "skills/subagent-driven-development/references/resuming.md"
+        },
+        {
+          "bytes": 2444,
           "executable": true,
           "role": "content",
-          "sha256": "f9275175b2276b1d5fdb1bae0bedaadd2a950659b7c6f311ea37ff85e1861b1f",
+          "sha256": "aed7c6e09fc660417d28898ed975e84651cb9f18f4675141cd475edfb7037f3d",
           "sourceId": "superpowers",
           "sourcePath": "skills/subagent-driven-development/scripts/review-package"
         },
         {
-          "bytes": 3265,
+          "bytes": 2356,
           "executable": true,
           "role": "content",
-          "sha256": "75ca46c756ba4209ca36e0d3d65567257ceb33bc7a6775b9dad946707cb3bd7b",
+          "sha256": "6f8256a776968d394bae679572e41ce572fd45c72074b98f9a8eb8b4f160e06f",
+          "sourceId": "superpowers",
+          "sourcePath": "skills/subagent-driven-development/scripts/sdd-repo"
+        },
+        {
+          "bytes": 4823,
+          "executable": true,
+          "role": "content",
+          "sha256": "de3af5252fa595fc2000ba05cf69e06187d5c8aae9d283cced4c167ad1813061",
           "sourceId": "superpowers",
           "sourcePath": "skills/subagent-driven-development/scripts/sdd-workspace"
         },
         {
-          "bytes": 1322,
+          "bytes": 4769,
           "executable": true,
           "role": "content",
-          "sha256": "cc563538e09abf719b34ddf4b2fa7a65cf3b301729039dbfa923cb060f729146",
+          "sha256": "0f244a12e146393c552ba62069d3eedcc85cb3f76de67b01f4e11219e5ebbcd8",
           "sourceId": "superpowers",
           "sourcePath": "skills/subagent-driven-development/scripts/task-brief"
         },
         {
-          "bytes": 9031,
+          "bytes": 9175,
           "executable": false,
           "role": "content",
-          "sha256": "bfed55c8f19d0ff6ed57b0fe09127c92890e9311c6c73917129598826bf9ebe8",
+          "sha256": "61a04c2fb29907887d8babee1594f5e35ae26d461e7e584f5b7c283215165e08",
           "sourceId": "superpowers",
           "sourcePath": "skills/subagent-driven-development/task-reviewer-prompt.md"
         }
@@ -578,7 +648,7 @@
       "pathReferences": [
         {
           "path": "skills/requesting-code-review/code-reviewer.md",
-          "sourcePath": "skills/subagent-driven-development/SKILL.md"
+          "sourcePath": "skills/subagent-driven-development/references/final-review.md"
         }
       ],
       "references": [
@@ -587,36 +657,60 @@
           "sourcePath": "skills/subagent-driven-development/SKILL.md"
         },
         {
+          "name": "superpowers:finishing-a-development-branch",
+          "sourcePath": "skills/subagent-driven-development/references/final-review.md"
+        },
+        {
           "name": "superpowers:requesting-code-review",
-          "sourcePath": "skills/subagent-driven-development/SKILL.md"
+          "sourcePath": "skills/subagent-driven-development/references/final-review.md"
+        },
+        {
+          "name": "superpowers:subagent-driven-development",
+          "sourcePath": "skills/subagent-driven-development/references/batching.md"
+        },
+        {
+          "name": "superpowers:subagent-driven-development",
+          "sourcePath": "skills/subagent-driven-development/references/cannot-verify.md"
+        },
+        {
+          "name": "superpowers:subagent-driven-development",
+          "sourcePath": "skills/subagent-driven-development/references/final-review.md"
+        },
+        {
+          "name": "superpowers:subagent-driven-development",
+          "sourcePath": "skills/subagent-driven-development/references/fix-loop.md"
+        },
+        {
+          "name": "superpowers:subagent-driven-development",
+          "sourcePath": "skills/subagent-driven-development/references/handling-reports.md"
+        },
+        {
+          "name": "superpowers:subagent-driven-development",
+          "sourcePath": "skills/subagent-driven-development/references/preflight.md"
+        },
+        {
+          "name": "superpowers:subagent-driven-development",
+          "sourcePath": "skills/subagent-driven-development/references/resuming.md"
         },
         {
           "name": "superpowers:using-git-worktrees",
           "sourcePath": "skills/subagent-driven-development/SKILL.md"
         }
       ],
-      "scanKey": "git-sha1:5d44ced88725298e847c62c67a726dcc29e20d00",
+      "scanKey": "git-sha1:c04a61186680d4cfc6784136d0421cd4abcfb40c",
       "userOnly": false
     },
     {
       "arguments": false,
-      "behaviourSha256": "5f961e751d862b83ec7fe8bffee63efeea0085e7fabec7b4107439effa41b3e5",
-      "contentSha256": "1ea5c55dbff3d49d91730c82a036d575ac6709f633d4d425a9d7949701ebe008",
+      "behaviourSha256": "d93eb5a103351f525e7444db3f59b4f10337447e4c148768096376248319d17b",
+      "contentSha256": "3698103be0d20c33442591390b030b5e8c499d053e8eaa6094f440ad99e339ef",
       "description": "Use when encountering any bug, test failure, or unexpected behavior, before proposing fixes",
       "files": [
         {
-          "bytes": 4257,
+          "bytes": 9530,
           "executable": false,
           "role": "content",
-          "sha256": "c24733a5b1821bd6bed1fc950261f0b9f4e90097e0bbb96459d8179713730789",
-          "sourceId": "superpowers",
-          "sourcePath": "skills/systematic-debugging/CREATION-LOG.md"
-        },
-        {
-          "bytes": 9465,
-          "executable": false,
-          "role": "content",
-          "sha256": "808fc5717aa88ad65efff312b11c186294d3e6ee301afb584e2f86599b137787",
+          "sha256": "51c6435d98c83c42c96ba7c35725a0b2c376cd487fb1a4e6bd0ddbe7e33ef202",
           "sourceId": "superpowers",
           "sourcePath": "skills/systematic-debugging/SKILL.md"
         },
@@ -659,38 +753,6 @@
           "sha256": "75b933b6a8c40bdb2031b10f21654395b56ec6ab6bc7b018c18d3fe57aeb7fb8",
           "sourceId": "superpowers",
           "sourcePath": "skills/systematic-debugging/root-cause-tracing.md"
-        },
-        {
-          "bytes": 653,
-          "executable": false,
-          "role": "content",
-          "sha256": "fe2ba480d78ac0d686dc025f41c2a32a43d642bf533f91b0c6053a04d35d6486",
-          "sourceId": "superpowers",
-          "sourcePath": "skills/systematic-debugging/test-academic.md"
-        },
-        {
-          "bytes": 1900,
-          "executable": false,
-          "role": "content",
-          "sha256": "0b6a915db0054577819834c79be9eb614e97bddba10d73768e1fbe91cfed048a",
-          "sourceId": "superpowers",
-          "sourcePath": "skills/systematic-debugging/test-pressure-1.md"
-        },
-        {
-          "bytes": 2283,
-          "executable": false,
-          "role": "content",
-          "sha256": "b2030aeffba07050e8ad573ddf87486457c4a016a786bb326235bebd856f2016",
-          "sourceId": "superpowers",
-          "sourcePath": "skills/systematic-debugging/test-pressure-2.md"
-        },
-        {
-          "bytes": 2692,
-          "executable": false,
-          "role": "content",
-          "sha256": "96b50a52e2c7989c9cf20fb752c47c1e9a3a70dc362f8f7989f8f5b64dac7708",
-          "sourceId": "superpowers",
-          "sourcePath": "skills/systematic-debugging/test-pressure-3.md"
         }
       ],
       "id": "superpowers.skill.systematic-debugging",
@@ -706,7 +768,7 @@
           "sourcePath": "skills/systematic-debugging/SKILL.md"
         }
       ],
-      "scanKey": "git-sha1:9a48dfda84bf339cba4b03fd803ba0dca2e158e3",
+      "scanKey": "git-sha1:774f23e27e35cb0a89ede39156e7b079fbb84190",
       "userOnly": false
     },
     {
@@ -887,25 +949,17 @@
     },
     {
       "arguments": false,
-      "behaviourSha256": "131cd98f352356442968f5b48eaa9e83e3a5106cc12f553c5e05c59d756a9dda",
-      "contentSha256": "5d883f51039b46dd410f7bf0e8f8b809c074d3fc1ec122ca095b675397a33b44",
+      "behaviourSha256": "8de50920f663ac70c292634d538cbe1d71a353da2424b359a5c7d6145e1188ff",
+      "contentSha256": "4093c97ffc0c22c3ad58135559f7b833177ab20c3131fc039c0533696cf68478",
       "description": "Use when you have a spec or requirements for a multi-step task, before touching code",
       "files": [
         {
-          "bytes": 9092,
+          "bytes": 10335,
           "executable": false,
           "role": "content",
-          "sha256": "0bc3d36590f7b2c323ed3ec18ff77e9f8ed57af42f5680a02b11a2d20de265cf",
+          "sha256": "a6c67c1900064347c2a329990dd3c555657c51c3ec53b259a08aa01a2c26139a",
           "sourceId": "superpowers",
           "sourcePath": "skills/writing-plans/SKILL.md"
-        },
-        {
-          "bytes": 1713,
-          "executable": false,
-          "role": "content",
-          "sha256": "aa728b96aad603c8be28875a4305637f6c984aa81ffcadcb13e743202fa2a0c7",
-          "sourceId": "superpowers",
-          "sourcePath": "skills/writing-plans/plan-document-reviewer-prompt.md"
         }
       ],
       "id": "superpowers.skill.writing-plans",
@@ -925,30 +979,22 @@
           "sourcePath": "skills/writing-plans/SKILL.md"
         }
       ],
-      "scanKey": "git-sha1:bcaac5df52c27d16685a35932c17a1c418d8ce98",
+      "scanKey": "git-sha1:cc97fa00eb2ccd4f283e34eb2ba06a48e1e679f7",
       "userOnly": false
     },
     {
       "arguments": false,
-      "behaviourSha256": "d83e0bedd612e0d3a85c538a9b1c483d409a2b9e47512a9a8a7ace174a398a72",
-      "contentSha256": "469e5dc153ad8ab28d59c780551b60b37de81530e70b824ed6647c9cc1e0a4ae",
+      "behaviourSha256": "f84af26dc1a2badab5790e53f72277f8f3045d1cb77ece3d091331fd618e2ee9",
+      "contentSha256": "2b483e7ced685e5fb5d3e01db957c650781c4928c7595171c8c63f1d2b49a02d",
       "description": "Use when creating new skills, editing existing skills, or verifying skills work before deployment",
       "files": [
         {
-          "bytes": 26623,
+          "bytes": 16738,
           "executable": false,
           "role": "content",
-          "sha256": "bbdfe742f853562e643a3d40d64476359d47881e39cef80a189283fa26d11ab9",
+          "sha256": "8cb3ac68c6d8c4bb46886b998b09af7989643cab8bd0e46ee86dd62e64546bbe",
           "sourceId": "superpowers",
           "sourcePath": "skills/writing-skills/SKILL.md"
-        },
-        {
-          "bytes": 46197,
-          "executable": false,
-          "role": "content",
-          "sha256": "217629b356c09c9bd11017c9788e8fc654ca1b32c92d4a51cd490e16dd65e59a",
-          "sourceId": "superpowers",
-          "sourcePath": "skills/writing-skills/anthropic-best-practices.md"
         },
         {
           "bytes": 5423,
@@ -956,7 +1002,39 @@
           "role": "content",
           "sha256": "0b379a3415e185d3c434b3ad283d8aa132f3022c2a4f210f168865b5986bcef0",
           "sourceId": "superpowers",
-          "sourcePath": "skills/writing-skills/examples/CLAUDE_MD_TESTING.md"
+          "sourcePath": "skills/writing-skills/references/CLAUDE_MD_TESTING.md"
+        },
+        {
+          "bytes": 46197,
+          "executable": false,
+          "role": "content",
+          "sha256": "217629b356c09c9bd11017c9788e8fc654ca1b32c92d4a51cd490e16dd65e59a",
+          "sourceId": "superpowers",
+          "sourcePath": "skills/writing-skills/references/anthropic-best-practices.md"
+        },
+        {
+          "bytes": 2577,
+          "executable": false,
+          "role": "content",
+          "sha256": "9397023e6bc85b556a57f3097371363bf03e28e755c57f403f470bcda90e0a23",
+          "sourceId": "superpowers",
+          "sourcePath": "skills/writing-skills/references/bulletproofing.md"
+        },
+        {
+          "bytes": 7616,
+          "executable": false,
+          "role": "content",
+          "sha256": "c6bbc74af3be90f693f7cbc986af6fa94e8df75f65109b52e96032587f5b92af",
+          "sourceId": "superpowers",
+          "sourcePath": "skills/writing-skills/references/discovery.md"
+        },
+        {
+          "bytes": 1262,
+          "executable": false,
+          "role": "content",
+          "sha256": "8b1f542391f274f0d33f3457ac099a3d317d6877eaa3b8d3b1ebef151b55fda7",
+          "sourceId": "superpowers",
+          "sourcePath": "skills/writing-skills/references/flowcharts.md"
         },
         {
           "bytes": 5970,
@@ -964,7 +1042,7 @@
           "role": "content",
           "sha256": "e2890a593c91370e384b42f2f67b1a6232c9e69dddea7891a0c1c46d7b20b694",
           "sourceId": "superpowers",
-          "sourcePath": "skills/writing-skills/graphviz-conventions.dot"
+          "sourcePath": "skills/writing-skills/references/graphviz-conventions.dot"
         },
         {
           "bytes": 5901,
@@ -972,7 +1050,15 @@
           "role": "content",
           "sha256": "a51bc9bf75189ea73a27b3fb504a2fdfdb966fb1f7f1cdf03203230a216ccc03",
           "sourceId": "superpowers",
-          "sourcePath": "skills/writing-skills/persuasion-principles.md"
+          "sourcePath": "skills/writing-skills/references/persuasion-principles.md"
+        },
+        {
+          "bytes": 12557,
+          "executable": false,
+          "role": "content",
+          "sha256": "ed8a6862c085900135962390530d9dc7637ad6d650b4324ce3b051287a5c3f22",
+          "sourceId": "superpowers",
+          "sourcePath": "skills/writing-skills/references/testing-skills-with-subagents.md"
         },
         {
           "bytes": 4968,
@@ -981,14 +1067,6 @@
           "sha256": "c7f412cc629461c4d10287e668731874c0497707023e3e3f74a5355eb2cee196",
           "sourceId": "superpowers",
           "sourcePath": "skills/writing-skills/render-graphs.js"
-        },
-        {
-          "bytes": 12558,
-          "executable": false,
-          "role": "content",
-          "sha256": "c711346852c911b24a84aa161e0cff06a4cd7f4e2fa9e9c0a266cead5afcbade",
-          "sourceId": "superpowers",
-          "sourcePath": "skills/writing-skills/testing-skills-with-subagents.md"
         }
       ],
       "id": "superpowers.skill.writing-skills",
@@ -1007,7 +1085,7 @@
       "references": [
         {
           "name": "superpowers:systematic-debugging",
-          "sourcePath": "skills/writing-skills/SKILL.md"
+          "sourcePath": "skills/writing-skills/references/discovery.md"
         },
         {
           "name": "superpowers:test-driven-development",
@@ -1015,10 +1093,26 @@
         },
         {
           "name": "superpowers:test-driven-development",
-          "sourcePath": "skills/writing-skills/testing-skills-with-subagents.md"
+          "sourcePath": "skills/writing-skills/references/discovery.md"
+        },
+        {
+          "name": "superpowers:test-driven-development",
+          "sourcePath": "skills/writing-skills/references/testing-skills-with-subagents.md"
+        },
+        {
+          "name": "superpowers:writing-skills",
+          "sourcePath": "skills/writing-skills/references/bulletproofing.md"
+        },
+        {
+          "name": "superpowers:writing-skills",
+          "sourcePath": "skills/writing-skills/references/discovery.md"
+        },
+        {
+          "name": "superpowers:writing-skills",
+          "sourcePath": "skills/writing-skills/references/flowcharts.md"
         }
       ],
-      "scanKey": "git-sha1:f761162236b19330da62b22ad0da20f5dac7c6ab",
+      "scanKey": "git-sha1:660ede63b84ce5d07ef28cccc2973165e2ca06e2",
       "userOnly": false
     }
   ],
@@ -1032,33 +1126,39 @@
           "sourcePath": ".agents/plugins/marketplace.json"
         },
         {
+          "bytes": 668,
+          "executable": false,
+          "sha256": "47fe1ae9311cdf7a1136e2d39d74194ee2bc06d4b9fe2fe8d8652a265ca4a57a",
+          "sourcePath": ".antigravity-plugin/plugin.json"
+        },
+        {
           "bytes": 514,
           "executable": false,
-          "sha256": "bbc0b9b453afe5f027c14c6c8dba5ba6b214468cc8d1d5ccd6af55d3748d81b6",
+          "sha256": "04015bf36c0c8e475e61509f4c0c2e72838abb1b6ab70a2c44f04be4317f79fa",
           "sourcePath": ".claude-plugin/marketplace.json"
         },
         {
           "bytes": 497,
           "executable": false,
-          "sha256": "aaa8449b5cc65a6df6feaa09f9317e87efb51440b17f626104d57222b3611a8e",
+          "sha256": "6728b554d1aaf9235f7981c7838a32f50c191297284af97f4c2a808155f7c399",
           "sourcePath": ".claude-plugin/plugin.json"
         },
         {
           "bytes": 1730,
           "executable": false,
-          "sha256": "8f879f5e2f04c5d2a93bd9ea455072384dc35d01f1dfc5307ca1be0cef5be9aa",
+          "sha256": "925b862a7ee38f170f4595a33a1d3c1cecd5e944f271b30d98efa55919febab0",
           "sourcePath": ".codex-plugin/plugin.json"
         },
         {
           "bytes": 578,
           "executable": false,
-          "sha256": "998f2cdd2824c4d84184043d07e94b9fbc0bdb5e79c23c14cd266355d0394fbd",
+          "sha256": "e74bbc3086286fec5595e3adc35f3c340ec255508afdf5030dd617a6a850afea",
           "sourcePath": ".cursor-plugin/plugin.json"
         },
         {
           "bytes": 575,
           "executable": false,
-          "sha256": "717a5137ee3416c17bf7d2fbffb1edbc820e2bb8a6f5b9bc35b18b23afafd1bb",
+          "sha256": "5d1227aa357f7c44c07c6555190c3f8e106af24666b8cb48bf0475026113f3d7",
           "sourcePath": ".devin-plugin/plugin.json"
         },
         {
@@ -1074,9 +1174,9 @@
           "sourcePath": ".github/FUNDING.yml"
         },
         {
-          "bytes": 1593,
+          "bytes": 2338,
           "executable": false,
-          "sha256": "32a5b6e5ad3528daac479ad0025502dfad9dd06fe457242c1506ac19c77d6e46",
+          "sha256": "c766d3023f9a12280019055997ad2424887778d9b701b4118ea86a7fbf1f7fdb",
           "sourcePath": ".github/ISSUE_TEMPLATE/bug_report.md"
         },
         {
@@ -1086,27 +1186,21 @@
           "sourcePath": ".github/ISSUE_TEMPLATE/config.yml"
         },
         {
-          "bytes": 1018,
+          "bytes": 2164,
           "executable": false,
-          "sha256": "42f87b4f856c872d01e933d2b2f4e1176e2811d1c36631679af6b9e76c3ee072",
-          "sourcePath": ".github/ISSUE_TEMPLATE/diagnosis_report.md"
-        },
-        {
-          "bytes": 1604,
-          "executable": false,
-          "sha256": "59ad1c8a7b5faca0273fa310f6c78fe2a3ec4917d9f3e12fb1220d5381c8f783",
+          "sha256": "a7aac80c9df2e46fce9a3c89a6e9e73e8d81e6de311dbd634ed9d5dfacb0bdc8",
           "sourcePath": ".github/ISSUE_TEMPLATE/feature_request.md"
         },
         {
-          "bytes": 974,
+          "bytes": 1525,
           "executable": false,
-          "sha256": "006109a23ce39dbf252cc9f8acb59765cc755a1edfeb840efc79035f2c1d44a9",
+          "sha256": "19f6d78322bf53b62ac8d7baf117492de3bbfae80851657c24c102980ea2aa26",
           "sourcePath": ".github/ISSUE_TEMPLATE/platform_support.md"
         },
         {
-          "bytes": 5814,
+          "bytes": 6626,
           "executable": false,
-          "sha256": "b5cde91d5809bec88f6d11f6e295695549a59ea9fc5e32469ea12ad485cb37fb",
+          "sha256": "d837f95474fafb23298bb6e295409ecc522d4c4db6a2e1eff955bbfb7a4a40d9",
           "sourcePath": ".github/PULL_REQUEST_TEMPLATE.md"
         },
         {
@@ -1116,51 +1210,51 @@
           "sourcePath": ".gitignore"
         },
         {
-          "bytes": 3937,
+          "bytes": 5092,
           "executable": false,
-          "sha256": "7fd93899e39371d56ba1e32660548673afa78f3a4a8bd306f93fbb418afa6f3c",
+          "sha256": "767b7956f86b0343a8244943ac733c4f9f2a38cb571162cf67b26d2704a8afb1",
           "sourcePath": ".hermes-plugin/__init__.py"
         },
         {
           "bytes": 151,
           "executable": false,
-          "sha256": "5db5d7dcf9c6a7ce0cf2e90924087ea52e92510a91ccc60916b03562b0b49ca2",
+          "sha256": "31827794da38529aa1fd1b0020f29b6325a94029aaa425a1c3a1b329c47efec7",
           "sourcePath": ".hermes-plugin/plugin.yaml"
         },
         {
           "bytes": 3090,
           "executable": false,
-          "sha256": "ea5a1db06d1577f9e08339c4353e9cbcd4d381d64b9523c756d5f237424b2d6e",
+          "sha256": "fd150224125adf931a839b210adeff56a36ce7937c67916da93c7da428d22e44",
           "sourcePath": ".kimi-plugin/plugin.json"
         },
         {
           "bytes": 507,
           "executable": false,
-          "sha256": "abf65c85ebee8ef70da0890c617e544bca855b4cfa464e63df5c9cacd05c97f5",
+          "sha256": "cb77cc7e9cc87ca74892584ad6810288551b6ec71123ece2da112a20a6b190ae",
           "sourcePath": ".muse-plugin/marketplace.json"
         },
         {
-          "bytes": 2286,
+          "bytes": 2288,
           "executable": false,
-          "sha256": "8ec5ba62667187e5660da986c5e5e21bf363a62bb7e1f461df15095e892eb960",
+          "sha256": "56f1ce972975db8f6efe65e6b0136e7cbcc3a1c3ca22658e2fae01f132af7c9a",
           "sourcePath": ".muse-plugin/plugin.json"
         },
         {
           "bytes": 5379,
           "executable": false,
-          "sha256": "cc6974985df02929468478efbf287b5a1f913badf3f384a2e4255585211e5c41",
+          "sha256": "15a91f33314d5a156ed6b8fa9e243bfe85e6e9e4e60238f6e9b0e06b17640d2e",
           "sourcePath": ".opencode/INSTALL.md"
         },
         {
-          "bytes": 17617,
+          "bytes": 19346,
           "executable": false,
-          "sha256": "c979fe5a9fd6fddc9bc9730b34b25989f9d53939eed7d594c4564f6e47495f26",
+          "sha256": "e0a696ca06f0b05f9e76734ea302f0796fe747d6a79fe4910e34462822723043",
           "sourcePath": ".opencode/plugins/superpowers.js"
         },
         {
-          "bytes": 4283,
+          "bytes": 4359,
           "executable": false,
-          "sha256": "39c27000c047f8a1399a76e032e4cd239d7bdb0be168a121f46a2ac719deaae0",
+          "sha256": "59774512277ffb41b706f6ed376b27fda83c3a04045a41560f4a2307591e3939",
           "sourcePath": ".pi/extensions/superpowers.ts"
         },
         {
@@ -1170,22 +1264,16 @@
           "sourcePath": ".pre-commit-config.yaml"
         },
         {
-          "bytes": 949,
+          "bytes": 1020,
           "executable": false,
-          "sha256": "e89981610cdb3ad966c72cc49a3574d91edb625ec7ebf9287d5b5f924d17b4df",
+          "sha256": "cb4a788a2c54b06b798731aa40d929611bd6290e9c09463dad97f4f84adc6761",
           "sourcePath": ".version-bump.json"
         },
         {
-          "bytes": 8983,
+          "bytes": 9911,
           "executable": false,
-          "sha256": "28c88405f9357e01b06fb460fce2078ed0c264b5113160cff59ec6c5ee3cf74f",
+          "sha256": "3d7c31b2ed1592d0816e436a90549c8af5829627bcb663fe1c886a30f427cabe",
           "sourcePath": "AGENTS.md"
-        },
-        {
-          "bytes": 123,
-          "executable": false,
-          "sha256": "a0b90c1acaaef41f4b7d00f5ea4eab4485718b887b0895506fdf690bf5acae1f",
-          "sourcePath": "CLAUDE.md"
         },
         {
           "bytes": 13724,
@@ -1206,16 +1294,22 @@
           "sourcePath": "LICENSE"
         },
         {
-          "bytes": 14389,
+          "bytes": 14847,
           "executable": false,
-          "sha256": "04fd40756d26d5f2132ddfbc5c3c35335b02bb456197308975f9d12eaa522382",
+          "sha256": "79f29f50c735862d2e304ea547b4c9aa67d9db6909ff6fb7b5ea922d7bcbc3e7",
           "sourcePath": "README.md"
         },
         {
-          "bytes": 99916,
+          "bytes": 120808,
           "executable": false,
-          "sha256": "a28c759f43c29c5fb430e6dec8f2ff05167d41992d5d0417d2ed186655ac2196",
+          "sha256": "af121b6df7d328b0f325bdd016f31bbb59b1f23cfaf6c7f2a9ac2be8c7e0fc01",
           "sourcePath": "RELEASE-NOTES.md"
+        },
+        {
+          "bytes": 16690,
+          "executable": false,
+          "sha256": "d9eb1f1893e686de4afc7a8305d1e7a125fdf9df3741a28b2aa0999005e60a3a",
+          "sourcePath": "assets/antigravity-logo.png"
         },
         {
           "bytes": 48231,
@@ -1236,9 +1330,9 @@
           "sourcePath": "docs/README.kimi.md"
         },
         {
-          "bytes": 8758,
+          "bytes": 9090,
           "executable": false,
-          "sha256": "753e14100ecb3b31663199711316f4e10017bddebf8976672b5e164d9567882f",
+          "sha256": "7ce149e5b91bf7f55bab76732c0e054c0b7ff29dc2865b3a59a10085c793e5ae",
           "sourcePath": "docs/README.opencode.md"
         },
         {
@@ -1266,106 +1360,10 @@
           "sourcePath": "docs/plans/2026-01-17-visual-brainstorming.md"
         },
         {
-          "bytes": 51884,
+          "bytes": 52650,
           "executable": false,
-          "sha256": "0718c66a4f57c3d7179335d385296ab3ca03b936546fec408324b39ca381952b",
+          "sha256": "562a1436134babc815c11adf0379e2df00c8de0e73c362291faf495448b94f3e",
           "sourcePath": "docs/porting-to-a-new-harness.md"
-        },
-        {
-          "bytes": 8999,
-          "executable": false,
-          "sha256": "92875a4d7db7acef7737ace512ed5a6ae29ab76aff421633276a4a824c5d5cf7",
-          "sourcePath": "docs/superpowers/plans/2026-01-22-document-review-system.md"
-        },
-        {
-          "bytes": 18804,
-          "executable": false,
-          "sha256": "fbc67c4e7c5e42ff6e8e647951b749a2610ca2e13639903867258032c175bbbe",
-          "sourcePath": "docs/superpowers/plans/2026-02-19-visual-brainstorming-refactor.md"
-        },
-        {
-          "bytes": 15576,
-          "executable": false,
-          "sha256": "d1e3b19e1111cab0a113519a9d2d9e881080c5fe13c3227e6c22fa88d08dc11d",
-          "sourcePath": "docs/superpowers/plans/2026-03-11-zero-dep-brainstorm-server.md"
-        },
-        {
-          "bytes": 19177,
-          "executable": false,
-          "sha256": "28b0335e97ceea066ab2eefa9a02eea6bf30d3e580788ce462976efce13dc709",
-          "sourcePath": "docs/superpowers/plans/2026-03-23-codex-app-compatibility.md"
-        },
-        {
-          "bytes": 29210,
-          "executable": false,
-          "sha256": "98d21b8bbbee1d7359aaf65ba74a9f1313d9f5114000613301a00244a415f61f",
-          "sourcePath": "docs/superpowers/plans/2026-04-06-worktree-rototill.md"
-        },
-        {
-          "bytes": 48218,
-          "executable": false,
-          "sha256": "3b1b5c8748dde0754872181631ef8b6188d0221b2723106ab2a82d2b9290accd",
-          "sourcePath": "docs/superpowers/plans/2026-05-06-lift-drill-into-evals.md"
-        },
-        {
-          "bytes": 5748,
-          "executable": false,
-          "sha256": "887dda265dc5f61ad4a04b9d0da98c059f6d93d08ff79180afbdafa7a000d75e",
-          "sourcePath": "docs/superpowers/plans/2026-05-07-pi-extension-and-evals.md"
-        },
-        {
-          "bytes": 28766,
-          "executable": false,
-          "sha256": "1597b91dbf9f8113533c6da8410607c5ac6c47db92b043a1284fff075b037aa8",
-          "sourcePath": "docs/superpowers/plans/2026-06-09-sdd-task-scoped-review-dispatch.md"
-        },
-        {
-          "bytes": 18930,
-          "executable": false,
-          "sha256": "bf939ca1e1398f54e1950193299084836e45767cb00735342e3d7c31ff1fe31e",
-          "sourcePath": "docs/superpowers/plans/2026-06-09-visual-companion-issues.md"
-        },
-        {
-          "bytes": 23632,
-          "executable": false,
-          "sha256": "7387fa4ddbc9bf071088372802c9aed6e44b224875291d2309007d76929af2f2",
-          "sourcePath": "docs/superpowers/plans/2026-06-10-visual-companion-auth-hardening.md"
-        },
-        {
-          "bytes": 36149,
-          "executable": false,
-          "sha256": "5604d33566ba5ca9940924819892a6d3f095a8704e2705e3fcc64a23334ca2f3",
-          "sourcePath": "docs/superpowers/plans/2026-06-11-visual-companion-final-hardening-fixup.md"
-        },
-        {
-          "bytes": 48630,
-          "executable": false,
-          "sha256": "2d1b484cd2a4ead41fd5be842ccbc4c114b7b5eb52135c79190a6f756acbfd39",
-          "sourcePath": "docs/superpowers/plans/2026-07-06-sdd-plan-scoped-workspace.md"
-        },
-        {
-          "bytes": 77641,
-          "executable": false,
-          "sha256": "83189840f8591276c481187dc742f99f3e6add14eec0f7a782b5150a89024648",
-          "sourcePath": "docs/superpowers/plans/2026-07-15-sdd-fix-loop-redesign.md"
-        },
-        {
-          "bytes": 52609,
-          "executable": false,
-          "sha256": "78e7b8cd163ee78ac16a9ba9fbfffe3ae98b7711c092d75c7283bd325fdf42f7",
-          "sourcePath": "docs/superpowers/plans/2026-07-30-codex-efficiency-fixes.md"
-        },
-        {
-          "bytes": 9551,
-          "executable": false,
-          "sha256": "3a9669467c0db792fb1465ccee38e086349b8415aa7077e1d6b8633f47eab208",
-          "sourcePath": "docs/superpowers/plans/2026-08-06-hermes-version-bump-wiring.md"
-        },
-        {
-          "bytes": 76309,
-          "executable": false,
-          "sha256": "a8a57533a032af65e649a63b9f0f9a306913cc319d3638ec609befcb6c77b7fd",
-          "sourcePath": "docs/superpowers/plans/2026-08-27-diagnosing-superpowers.md"
         },
         {
           "bytes": 4723,
@@ -1482,10 +1480,22 @@
           "sourcePath": "docs/superpowers/specs/2026-08-05-hermes-version-bump-wiring-design.md"
         },
         {
-          "bytes": 27042,
+          "bytes": 27158,
           "executable": false,
-          "sha256": "da21af32ea629de17c3221f08dc4825c0f26d7bea4902f217eba9e5caf7b966d",
+          "sha256": "396a4951cda08633501deb638a77961a638560441b7fde53fb43fc1a6497d0bf",
           "sourcePath": "docs/superpowers/specs/2026-08-27-diagnosing-superpowers-design.md"
+        },
+        {
+          "bytes": 7480,
+          "executable": false,
+          "sha256": "a15a0ceb2df039469ea15b8f66d001782e1b2c1d0690c0891070ac11389870a3",
+          "sourcePath": "docs/superpowers/specs/2026-10-05-brainstorming-rebuild-design.md"
+        },
+        {
+          "bytes": 8848,
+          "executable": false,
+          "sha256": "db4b3e15709b9ce2b0c40a59c590a5f63ae551b28f6a1104df3306d1d542ab1d",
+          "sourcePath": "docs/superpowers/specs/2026-10-06-antigravity-marketplace-design.md"
         },
         {
           "bytes": 3045,
@@ -1494,15 +1504,15 @@
           "sourcePath": "docs/testing.md"
         },
         {
-          "bytes": 6579,
+          "bytes": 7658,
           "executable": false,
-          "sha256": "476cb301b99f0419ca7af197d1be8a8f777ef0e62fb9fc64a896a0e007e9d080",
+          "sha256": "6691f1a4fedfecb456550610afda3bda56ad458cf6f2200bc5249fa3cd743a94",
           "sourcePath": "docs/windows/polyglot-hooks.md"
         },
         {
           "bytes": 187,
           "executable": false,
-          "sha256": "f6178caaf68a6b85fb46057c6c804d0f0253e36c569de8572e0a4410f8c17085",
+          "sha256": "acb18fa699f7e1b313ef46df10cea32904ea3681b833d6ef068ed87fb00f39b7",
           "sourcePath": "gemini-extension.json"
         },
         {
@@ -1512,21 +1522,21 @@
           "sourcePath": "hooks/hooks-cursor.json"
         },
         {
-          "bytes": 334,
+          "bytes": 424,
           "executable": false,
-          "sha256": "47fd72cc8bedf31c72702b35b4ed7bab670294d658c4ce518330337525a3798b",
+          "sha256": "19fa1af26a0ed32bfabee6c4d744e5447ea3bdf769efceba9e268f2d9f6dc263",
           "sourcePath": "hooks/hooks.json"
         },
         {
-          "bytes": 1460,
+          "bytes": 3577,
           "executable": true,
-          "sha256": "d3d9c6199678dab2858e60509dde5e7414f13c2a2b5e48a38b1d368b6e1d6abb",
+          "sha256": "324b298bd370d6f3ea71c165e0b732d5678e5cff68d0d7f7e47c13bc2cb2559a",
           "sourcePath": "hooks/run-hook.cmd"
         },
         {
-          "bytes": 2667,
+          "bytes": 4421,
           "executable": true,
-          "sha256": "5e92229e49d7cff5e0355ab84b0bceb0d27d53c565b33210132ce6e413ee9665",
+          "sha256": "38fdeed045b28b62034a809e45602e33358573acbc23c83787d76d449cb89902",
           "sourcePath": "hooks/session-start"
         },
         {
@@ -1538,13 +1548,13 @@
         {
           "bytes": 433,
           "executable": false,
-          "sha256": "868afc1612a438852cc73a4bb27184a31a1b2837958f5b087aabadf6bb8fb21a",
+          "sha256": "49004c08be59f027bf23a500d57ab1ba6a288deb5697d3cbd743432cf4a42059",
           "sourcePath": "package.json"
         },
         {
-          "bytes": 7461,
+          "bytes": 7639,
           "executable": true,
-          "sha256": "fc96339dad5f54ffcef3393b28542dbe93ec168573c012d9c599603009e80006",
+          "sha256": "76dc971d2bb5d8b322eeb89b1d181f983b37f169a92bdf9883517fc746f657e8",
           "sourcePath": "scripts/bump-version.sh"
         },
         {
@@ -1556,20 +1566,32 @@
         {
           "bytes": 10338,
           "executable": true,
-          "sha256": "2541617b86519273428d12d18a5f7ec852ac39cfdec74622c01ce71a504bb80d",
+          "sha256": "297c6f3e7c5ee9fabe2fe39765109a7a5e79e9b19c990775025586c5263121d4",
           "sourcePath": "scripts/package-codex-plugin.sh"
         },
         {
-          "bytes": 15009,
+          "bytes": 2027,
           "executable": true,
-          "sha256": "d24c3a579f5d6759f08f8c1c9a7772caa6e937dcc124f1aae5fe0ffd1177ee24",
+          "sha256": "48a8d329a7e048f5dba229bdb688f71bea7c9feaa1f139176d693ced4eccb9da",
+          "sourcePath": "scripts/render-antigravity-logo.sh"
+        },
+        {
+          "bytes": 15097,
+          "executable": true,
+          "sha256": "68faa7e87b9df99ded0b9a1ed2e683c1007c36543593adfdbf55a9d57ab318d5",
           "sourcePath": "scripts/sync-to-codex-plugin.sh"
         },
         {
-          "bytes": 17548,
+          "bytes": 15190,
           "executable": false,
-          "sha256": "a32d2255354775aa124855aa7100cf276bea096fff4ebb3a0edf57be216e6c72",
+          "sha256": "2c9ca71f94886f9ca9f4aef055f7cafb3e1a9bdf3aeebf8f4cb547c69405d207",
           "sourcePath": "skills/brainstorming/SKILL.md"
+        },
+        {
+          "bytes": 881,
+          "executable": false,
+          "sha256": "36d51a4723d6f0a3ce5811a0ea3b3a8424f07533947e1355f5d8cb8cce40c55e",
+          "sourcePath": "skills/brainstorming/builder-check-prompt.md"
         },
         {
           "bytes": 8094,
@@ -1584,15 +1606,15 @@
           "sourcePath": "skills/brainstorming/scripts/helper.js"
         },
         {
-          "bytes": 25693,
+          "bytes": 25699,
           "executable": false,
-          "sha256": "2d2961ea8d11f56c5f4c3a1a68d22709efa5d7601a2246d8c880774e7e9e8412",
+          "sha256": "763abf96510e0b892a1141397b31aa82ef900cf87ed34dde94bc8782baf4a7ca",
           "sourcePath": "skills/brainstorming/scripts/server.cjs"
         },
         {
-          "bytes": 6908,
+          "bytes": 7315,
           "executable": true,
-          "sha256": "a4e5ae84275bcaacd2f84345afeabe59cf7b00ba080e123da7cc1fb226f12847",
+          "sha256": "314dd68dc00e8dd94c7491aca8a5f004c7fddffc161e2b07482f29f48d13659a",
           "sourcePath": "skills/brainstorming/scripts/start-server.sh"
         },
         {
@@ -1602,21 +1624,15 @@
           "sourcePath": "skills/brainstorming/scripts/stop-server.sh"
         },
         {
-          "bytes": 1747,
-          "executable": false,
-          "sha256": "95a0a195de9d984be2fffa95bab16fc8c563bc296a9cfc5e9c29cb3ece0d7457",
-          "sourcePath": "skills/brainstorming/spec-document-reviewer-prompt.md"
-        },
-        {
           "bytes": 13413,
           "executable": false,
           "sha256": "6ffcb038b53254bd31debaa15e12dcd4ff24bd63d690e0b644ac6396701cf2e2",
           "sourcePath": "skills/brainstorming/visual-companion.md"
         },
         {
-          "bytes": 6904,
+          "bytes": 6941,
           "executable": false,
-          "sha256": "5a652f8132cc901eb5ca61f89157839f87a2f20aed037fc7a2b51051bc37cd19",
+          "sha256": "3143de8695c5a2d63e8b1675f33837578076f464deb127c2ebdd0b46fceef886",
           "sourcePath": "skills/diagnosing-superpowers/SKILL.md"
         },
         {
@@ -1692,9 +1708,9 @@
           "sourcePath": "skills/diagnosing-superpowers/references/context-safety.md"
         },
         {
-          "bytes": 1644,
+          "bytes": 1636,
           "executable": false,
-          "sha256": "a656f5e15b21c7a200c39c038f5ede74b9d6ea3ceeb90f39af7e930c8d8424d6",
+          "sha256": "d26ef9197b4a6ae5159ae6d11abd162bcc624d95fc7ccf508e07b68f916a1b19",
           "sourcePath": "skills/diagnosing-superpowers/references/github-issues.md"
         },
         {
@@ -1722,9 +1738,9 @@
           "sourcePath": "skills/diagnosing-superpowers/templates/case.md"
         },
         {
-          "bytes": 1851,
+          "bytes": 2680,
           "executable": false,
-          "sha256": "8f28dbfe60602f77dda76d81815cb4e2dce7d3e2a93348890e1581be8310ac1f",
+          "sha256": "afd21779e5de5bc5adfe2f5a50a04e44ab8d50d9ad0f829243de248d6f023eed",
           "sourcePath": "skills/diagnosing-superpowers/templates/issue.md"
         },
         {
@@ -1740,21 +1756,21 @@
           "sourcePath": "skills/dispatching-parallel-agents/SKILL.md"
         },
         {
-          "bytes": 20405,
+          "bytes": 18364,
           "executable": false,
-          "sha256": "f38e8f2ddcf079f65493adc713c1fed78421dfaf5f4dbf6b3a6b2b1d95466e71",
+          "sha256": "deaf176fa179827e80f2ea3101db3ea90fdf562ebef340eba761e4687940f5f5",
           "sourcePath": "skills/executing-plans/SKILL.md"
         },
         {
-          "bytes": 1670,
+          "bytes": 1900,
           "executable": true,
-          "sha256": "f704dc216e0602f95c601b9ee1113c9a55cc1c5f6e4d149dddfba0fd3ad1c314",
+          "sha256": "ac0b5ebafc7d471507b7e94d88da77a11f187ba277c8d48fefaf8ff3e4fee50e",
           "sourcePath": "skills/executing-plans/scripts/task-done"
         },
         {
-          "bytes": 963,
+          "bytes": 1185,
           "executable": true,
-          "sha256": "f833693c8fce3700fc9f841562d80f8015cd40f652c168a3405ac3e46947a1fe",
+          "sha256": "4ae7ce3b6777c3240af786197836a6b4bbf3b0ee831c25f147c149ea8db54a21",
           "sourcePath": "skills/executing-plans/scripts/task-start"
         },
         {
@@ -1770,9 +1786,9 @@
           "sourcePath": "skills/receiving-code-review/SKILL.md"
         },
         {
-          "bytes": 2977,
+          "bytes": 2974,
           "executable": false,
-          "sha256": "cfcee1b06774e7c0517f1e09be1a11f2d5680257072723e709ddbcf7e08b795a",
+          "sha256": "2180e14a448e9410bec88e6646a2d1f0ce7fdd58de27388c1e052e929679d2bc",
           "sourcePath": "skills/requesting-code-review/SKILL.md"
         },
         {
@@ -1782,9 +1798,9 @@
           "sourcePath": "skills/requesting-code-review/code-reviewer.md"
         },
         {
-          "bytes": 32577,
+          "bytes": 19740,
           "executable": false,
-          "sha256": "8dde5589ee083fb4999106d116f01c8fdaf3116a8a9813fdedeb80329de49046",
+          "sha256": "1baf70e307bde682c462513c86116333f1f066168c6710f45145bf5f0b00828d",
           "sourcePath": "skills/subagent-driven-development/SKILL.md"
         },
         {
@@ -1794,45 +1810,87 @@
           "sourcePath": "skills/subagent-driven-development/implementer-prompt.md"
         },
         {
-          "bytes": 4761,
+          "bytes": 4833,
           "executable": false,
-          "sha256": "0828a5e9cbb12ba49f14621dd8c3953c48c0fc383e75bb5494f055ed0d6d824f",
+          "sha256": "ad54d0a10f1c2c8e656456e0a46e654af5dfe5ee6bcef63428cfd69b8dcd9311",
           "sourcePath": "skills/subagent-driven-development/re-review-prompt.md"
         },
         {
-          "bytes": 2029,
+          "bytes": 583,
+          "executable": false,
+          "sha256": "b54dc7e23dbfb90db89bcb2fb3af591aabf6a271a165fbc0da4c6f9439980eac",
+          "sourcePath": "skills/subagent-driven-development/references/batching.md"
+        },
+        {
+          "bytes": 513,
+          "executable": false,
+          "sha256": "e698713a15e0eabf1a2ab26ffe1bb04bf70c9d6d2e2060d44a0f9a1bdd4408bf",
+          "sourcePath": "skills/subagent-driven-development/references/cannot-verify.md"
+        },
+        {
+          "bytes": 2576,
+          "executable": false,
+          "sha256": "6c9e12093e46c4ad0a203bc07709c17e3470f855f1b78e55c5e7b722a012a32c",
+          "sourcePath": "skills/subagent-driven-development/references/final-review.md"
+        },
+        {
+          "bytes": 4314,
+          "executable": false,
+          "sha256": "1938ce707915efc44021e563ebc29666329e20ad861b6c50b89f305b8f4e8d8b",
+          "sourcePath": "skills/subagent-driven-development/references/fix-loop.md"
+        },
+        {
+          "bytes": 1062,
+          "executable": false,
+          "sha256": "8f759cdd4936220c38aab05b6d6c48c6df8ac8f146b0f37a6d2facbf87133c67",
+          "sourcePath": "skills/subagent-driven-development/references/handling-reports.md"
+        },
+        {
+          "bytes": 1353,
+          "executable": false,
+          "sha256": "3ea21c5fc1af1a190ac8a9d19ceb0849b47bf2ffe27b87dffcc21b6a0539776c",
+          "sourcePath": "skills/subagent-driven-development/references/preflight.md"
+        },
+        {
+          "bytes": 614,
+          "executable": false,
+          "sha256": "ff6e38bde2276faa2a7e93513086caded0ea10edbf2ec7f349a7e3b0d7c668c4",
+          "sourcePath": "skills/subagent-driven-development/references/resuming.md"
+        },
+        {
+          "bytes": 2444,
           "executable": true,
-          "sha256": "f9275175b2276b1d5fdb1bae0bedaadd2a950659b7c6f311ea37ff85e1861b1f",
+          "sha256": "aed7c6e09fc660417d28898ed975e84651cb9f18f4675141cd475edfb7037f3d",
           "sourcePath": "skills/subagent-driven-development/scripts/review-package"
         },
         {
-          "bytes": 3265,
+          "bytes": 2356,
           "executable": true,
-          "sha256": "75ca46c756ba4209ca36e0d3d65567257ceb33bc7a6775b9dad946707cb3bd7b",
+          "sha256": "6f8256a776968d394bae679572e41ce572fd45c72074b98f9a8eb8b4f160e06f",
+          "sourcePath": "skills/subagent-driven-development/scripts/sdd-repo"
+        },
+        {
+          "bytes": 4823,
+          "executable": true,
+          "sha256": "de3af5252fa595fc2000ba05cf69e06187d5c8aae9d283cced4c167ad1813061",
           "sourcePath": "skills/subagent-driven-development/scripts/sdd-workspace"
         },
         {
-          "bytes": 1322,
+          "bytes": 4769,
           "executable": true,
-          "sha256": "cc563538e09abf719b34ddf4b2fa7a65cf3b301729039dbfa923cb060f729146",
+          "sha256": "0f244a12e146393c552ba62069d3eedcc85cb3f76de67b01f4e11219e5ebbcd8",
           "sourcePath": "skills/subagent-driven-development/scripts/task-brief"
         },
         {
-          "bytes": 9031,
+          "bytes": 9175,
           "executable": false,
-          "sha256": "bfed55c8f19d0ff6ed57b0fe09127c92890e9311c6c73917129598826bf9ebe8",
+          "sha256": "61a04c2fb29907887d8babee1594f5e35ae26d461e7e584f5b7c283215165e08",
           "sourcePath": "skills/subagent-driven-development/task-reviewer-prompt.md"
         },
         {
-          "bytes": 4257,
+          "bytes": 9530,
           "executable": false,
-          "sha256": "c24733a5b1821bd6bed1fc950261f0b9f4e90097e0bbb96459d8179713730789",
-          "sourcePath": "skills/systematic-debugging/CREATION-LOG.md"
-        },
-        {
-          "bytes": 9465,
-          "executable": false,
-          "sha256": "808fc5717aa88ad65efff312b11c186294d3e6ee301afb584e2f86599b137787",
+          "sha256": "51c6435d98c83c42c96ba7c35725a0b2c376cd487fb1a4e6bd0ddbe7e33ef202",
           "sourcePath": "skills/systematic-debugging/SKILL.md"
         },
         {
@@ -1864,30 +1922,6 @@
           "executable": false,
           "sha256": "75b933b6a8c40bdb2031b10f21654395b56ec6ab6bc7b018c18d3fe57aeb7fb8",
           "sourcePath": "skills/systematic-debugging/root-cause-tracing.md"
-        },
-        {
-          "bytes": 653,
-          "executable": false,
-          "sha256": "fe2ba480d78ac0d686dc025f41c2a32a43d642bf533f91b0c6053a04d35d6486",
-          "sourcePath": "skills/systematic-debugging/test-academic.md"
-        },
-        {
-          "bytes": 1900,
-          "executable": false,
-          "sha256": "0b6a915db0054577819834c79be9eb614e97bddba10d73768e1fbe91cfed048a",
-          "sourcePath": "skills/systematic-debugging/test-pressure-1.md"
-        },
-        {
-          "bytes": 2283,
-          "executable": false,
-          "sha256": "b2030aeffba07050e8ad573ddf87486457c4a016a786bb326235bebd856f2016",
-          "sourcePath": "skills/systematic-debugging/test-pressure-2.md"
-        },
-        {
-          "bytes": 2692,
-          "executable": false,
-          "sha256": "96b50a52e2c7989c9cf20fb752c47c1e9a3a70dc362f8f7989f8f5b64dac7708",
-          "sourcePath": "skills/systematic-debugging/test-pressure-3.md"
         },
         {
           "bytes": 9578,
@@ -1962,46 +1996,64 @@
           "sourcePath": "skills/verification-before-completion/SKILL.md"
         },
         {
-          "bytes": 9092,
+          "bytes": 10335,
           "executable": false,
-          "sha256": "0bc3d36590f7b2c323ed3ec18ff77e9f8ed57af42f5680a02b11a2d20de265cf",
+          "sha256": "a6c67c1900064347c2a329990dd3c555657c51c3ec53b259a08aa01a2c26139a",
           "sourcePath": "skills/writing-plans/SKILL.md"
         },
         {
-          "bytes": 1713,
+          "bytes": 16738,
           "executable": false,
-          "sha256": "aa728b96aad603c8be28875a4305637f6c984aa81ffcadcb13e743202fa2a0c7",
-          "sourcePath": "skills/writing-plans/plan-document-reviewer-prompt.md"
-        },
-        {
-          "bytes": 26623,
-          "executable": false,
-          "sha256": "bbdfe742f853562e643a3d40d64476359d47881e39cef80a189283fa26d11ab9",
+          "sha256": "8cb3ac68c6d8c4bb46886b998b09af7989643cab8bd0e46ee86dd62e64546bbe",
           "sourcePath": "skills/writing-skills/SKILL.md"
-        },
-        {
-          "bytes": 46197,
-          "executable": false,
-          "sha256": "217629b356c09c9bd11017c9788e8fc654ca1b32c92d4a51cd490e16dd65e59a",
-          "sourcePath": "skills/writing-skills/anthropic-best-practices.md"
         },
         {
           "bytes": 5423,
           "executable": false,
           "sha256": "0b379a3415e185d3c434b3ad283d8aa132f3022c2a4f210f168865b5986bcef0",
-          "sourcePath": "skills/writing-skills/examples/CLAUDE_MD_TESTING.md"
+          "sourcePath": "skills/writing-skills/references/CLAUDE_MD_TESTING.md"
+        },
+        {
+          "bytes": 46197,
+          "executable": false,
+          "sha256": "217629b356c09c9bd11017c9788e8fc654ca1b32c92d4a51cd490e16dd65e59a",
+          "sourcePath": "skills/writing-skills/references/anthropic-best-practices.md"
+        },
+        {
+          "bytes": 2577,
+          "executable": false,
+          "sha256": "9397023e6bc85b556a57f3097371363bf03e28e755c57f403f470bcda90e0a23",
+          "sourcePath": "skills/writing-skills/references/bulletproofing.md"
+        },
+        {
+          "bytes": 7616,
+          "executable": false,
+          "sha256": "c6bbc74af3be90f693f7cbc986af6fa94e8df75f65109b52e96032587f5b92af",
+          "sourcePath": "skills/writing-skills/references/discovery.md"
+        },
+        {
+          "bytes": 1262,
+          "executable": false,
+          "sha256": "8b1f542391f274f0d33f3457ac099a3d317d6877eaa3b8d3b1ebef151b55fda7",
+          "sourcePath": "skills/writing-skills/references/flowcharts.md"
         },
         {
           "bytes": 5970,
           "executable": false,
           "sha256": "e2890a593c91370e384b42f2f67b1a6232c9e69dddea7891a0c1c46d7b20b694",
-          "sourcePath": "skills/writing-skills/graphviz-conventions.dot"
+          "sourcePath": "skills/writing-skills/references/graphviz-conventions.dot"
         },
         {
           "bytes": 5901,
           "executable": false,
           "sha256": "a51bc9bf75189ea73a27b3fb504a2fdfdb966fb1f7f1cdf03203230a216ccc03",
-          "sourcePath": "skills/writing-skills/persuasion-principles.md"
+          "sourcePath": "skills/writing-skills/references/persuasion-principles.md"
+        },
+        {
+          "bytes": 12557,
+          "executable": false,
+          "sha256": "ed8a6862c085900135962390530d9dc7637ad6d650b4324ce3b051287a5c3f22",
+          "sourcePath": "skills/writing-skills/references/testing-skills-with-subagents.md"
         },
         {
           "bytes": 4968,
@@ -2010,22 +2062,28 @@
           "sourcePath": "skills/writing-skills/render-graphs.js"
         },
         {
-          "bytes": 12558,
-          "executable": false,
-          "sha256": "c711346852c911b24a84aa161e0cff06a4cd7f4e2fa9e9c0a266cead5afcbade",
-          "sourcePath": "skills/writing-skills/testing-skills-with-subagents.md"
-        },
-        {
           "bytes": 319,
           "executable": true,
           "sha256": "76355b01132d4f27cc5545c15926eb0c3614d38db2b5d6988a2d818918d9eaf1",
           "sourcePath": "tests/antigravity/run-tests.sh"
         },
         {
-          "bytes": 2146,
+          "bytes": 1975,
           "executable": true,
-          "sha256": "8114d937d2ff960262e5d281a7e1ea2f95eb05ceb1690ac91b0db059e0c83799",
+          "sha256": "c38a501650f5ba63337514044083636998824749adb4c564431253f3cc66254c",
           "sourcePath": "tests/antigravity/test-antigravity-tools.sh"
+        },
+        {
+          "bytes": 1603,
+          "executable": true,
+          "sha256": "d7d133df78b917bf00b24c93be19f7b21e185dbcb6d475542993eb3d5c0f3cc3",
+          "sourcePath": "tests/antigravity/test-logo.sh"
+        },
+        {
+          "bytes": 4804,
+          "executable": true,
+          "sha256": "627d97c59d806a6d495e54dff5dd57447eba21d8a3293251b472898f28268c12",
+          "sourcePath": "tests/antigravity/test-plugin-manifest.sh"
         },
         {
           "bytes": 12084,
@@ -2052,9 +2110,9 @@
           "sourcePath": "tests/brainstorm-server/helper.test.js"
         },
         {
-          "bytes": 23092,
+          "bytes": 23089,
           "executable": false,
-          "sha256": "8146fc31bd814dec0e497da6dc1c9423e4352e0fb1c3cdebd1b9db42a2ac8d8e",
+          "sha256": "686e19a12c6ba9b3003f4dedf840161b05f5c42dfb87c49a6b9c8abc596f1156",
           "sourcePath": "tests/brainstorm-server/lifecycle.test.js"
         },
         {
@@ -2070,15 +2128,15 @@
           "sourcePath": "tests/brainstorm-server/package.json"
         },
         {
-          "bytes": 23860,
+          "bytes": 27226,
           "executable": false,
-          "sha256": "fd1cc628222a6fcc657461b84f85f3b50d5a9709056dc9232241f9cb4182593a",
+          "sha256": "7e98be35f51747ac54def39b17fc5de1002fdd36ecbad17c3d026ca11e5d1f90",
           "sourcePath": "tests/brainstorm-server/server.test.js"
         },
         {
-          "bytes": 3099,
+          "bytes": 4879,
           "executable": false,
-          "sha256": "fb0c928e206fbd6a0fe77e750198d71ae0c331e361b13e9a8b8742cdb22302b5",
+          "sha256": "fc32961620c79a01230631a29e50760c0cc39e08638ac42aa5341ea5106b58a2",
           "sourcePath": "tests/brainstorm-server/start-server.test.sh"
         },
         {
@@ -2118,9 +2176,9 @@
           "sourcePath": "tests/claude-code/run-skill-tests.sh"
         },
         {
-          "bytes": 4625,
+          "bytes": 10352,
           "executable": true,
-          "sha256": "65629962e5fea4144310d42025ed7c39db5954b1f6add0ebf6a29b3b8f00b2d7",
+          "sha256": "dabc5a81cc989331d27ae470bf107f691cb4412883fb4056035d55d5206a6b07",
           "sourcePath": "tests/claude-code/test-executing-plans-scripts.sh"
         },
         {
@@ -2130,9 +2188,9 @@
           "sourcePath": "tests/claude-code/test-helpers.sh"
         },
         {
-          "bytes": 14358,
+          "bytes": 35023,
           "executable": true,
-          "sha256": "81697baaa96698f0ace309c746c2b68ff5db94905ea277c842067cc807dd57be",
+          "sha256": "56fe0e161064e02ecd9dbb09b858da25731f80bab42553fce5b27e22fc9c1e29",
           "sourcePath": "tests/claude-code/test-sdd-workspace.sh"
         },
         {
@@ -2160,9 +2218,9 @@
           "sourcePath": "tests/claude-code/test-worktree-path-policy.sh"
         },
         {
-          "bytes": 24241,
+          "bytes": 26160,
           "executable": true,
-          "sha256": "0fe708303673f20089c611060714cfb86de3fc620f9e6b7820e85c4fbc46fb74",
+          "sha256": "28e801f3b4792de2593178204b0bf696c434f0ce04a050381520569c4b6176c4",
           "sourcePath": "tests/codex-plugin-sync/test-sync-to-codex-plugin.sh"
         },
         {
@@ -2172,9 +2230,9 @@
           "sourcePath": "tests/codex/test-marketplace-manifest.sh"
         },
         {
-          "bytes": 9650,
+          "bytes": 10750,
           "executable": true,
-          "sha256": "bbf76d50eac33b60d73318946bc1418a6e6c6d52cdd918f39c7b18b8eaa0b0f4",
+          "sha256": "671e0667b268947ea44d49687d0efb05ae5387621191c9122c318fc59ffc86fa",
           "sourcePath": "tests/codex/test-package-codex-plugin.sh"
         },
         {
@@ -2280,9 +2338,9 @@
           "sourcePath": "tests/hermes/__init__.py"
         },
         {
-          "bytes": 929,
+          "bytes": 1036,
           "executable": false,
-          "sha256": "daac0d99bc1848c35cf1aa85694d0dc752628acb876f552f65c15972942dd2f9",
+          "sha256": "6cf5e434b124d912e1b53b4e6c1287f72c9af8d60aa01e8b49722c98e8a41dc8",
           "sourcePath": "tests/hermes/conftest.py"
         },
         {
@@ -2292,15 +2350,21 @@
           "sourcePath": "tests/hermes/test_bootstrap.py"
         },
         {
-          "bytes": 5286,
+          "bytes": 7609,
           "executable": false,
-          "sha256": "a159fbee0e56b0ff320a85642b5b38f703ba64382d1e3de0200889598af8dfa2",
+          "sha256": "f15ef2b31a293113830a8e82441540372bf0cb3bd02ffa51ef690ec7207e5ff9",
           "sourcePath": "tests/hermes/test_plugin.py"
         },
         {
-          "bytes": 6243,
+          "bytes": 9491,
           "executable": true,
-          "sha256": "427f5464b635504ab2dc1f2bde9aa0bce348e13be451985e541099219130e92f",
+          "sha256": "af80fc5779c806ca42bf4b16f62343cedada2b0cd12693bcdcb0416b2c007b70",
+          "sourcePath": "tests/hooks/test-run-hook-cmd-windows.sh"
+        },
+        {
+          "bytes": 13993,
+          "executable": true,
+          "sha256": "23f462f38fc152d1f63b0bbe859acb88cc382adf51e7c8f9537b4e8f2e83b2af",
           "sourcePath": "tests/hooks/test-session-start.sh"
         },
         {
@@ -2316,9 +2380,9 @@
           "sourcePath": "tests/kimi/test-plugin-manifest.sh"
         },
         {
-          "bytes": 4592,
+          "bytes": 4735,
           "executable": true,
-          "sha256": "b2f2067cfefa61aec22da47686dcc7b60e4de16bca439d1f3e4631d71ad78054",
+          "sha256": "fa16ebeba28fd98adbb4c9a7572965de8e614e06de9912c287883f677114cf1c",
           "sourcePath": "tests/opencode/run-tests.sh"
         },
         {
@@ -2328,9 +2392,9 @@
           "sourcePath": "tests/opencode/setup.sh"
         },
         {
-          "bytes": 9837,
+          "bytes": 11198,
           "executable": false,
-          "sha256": "7966d45d3bfa281679c917c03704824ae9752f2e624173b598baaea961bebafa",
+          "sha256": "63c3156aebf3db49c25e97aadcff613932d6a7ceab59c66cef9ecff20f6e5019",
           "sourcePath": "tests/opencode/test-bootstrap-caching.mjs"
         },
         {
@@ -2338,6 +2402,18 @@
           "executable": true,
           "sha256": "b13d826fdae77feaf922f4009f544d0ad51ce722258dee997b252f76af70330a",
           "sourcePath": "tests/opencode/test-bootstrap-caching.sh"
+        },
+        {
+          "bytes": 3464,
+          "executable": false,
+          "sha256": "22bc8f8031787c20f291e0a4e852d9e6fbd8c7fd11931e75586433ba26134634",
+          "sourcePath": "tests/opencode/test-hook-registration.mjs"
+        },
+        {
+          "bytes": 181,
+          "executable": true,
+          "sha256": "f60323f6eab36d921d49a2312dc101752232b62e702079ab0595c6720e899b56",
+          "sourcePath": "tests/opencode/test-hook-registration.sh"
         },
         {
           "bytes": 2589,
@@ -2352,9 +2428,9 @@
           "sourcePath": "tests/opencode/test-priority.sh"
         },
         {
-          "bytes": 9235,
+          "bytes": 9854,
           "executable": false,
-          "sha256": "843f69300ee5f93f5ec9a8cedf7467427cc254f91a6d21e4b4ddc15f849c3aa1",
+          "sha256": "fc1655c45f484e6c19e738b1aec162e9b2e825a89dbe7facdd90b3a8fcbe81d7",
           "sourcePath": "tests/opencode/test-session-bootstrap.mjs"
         },
         {
@@ -2382,10 +2458,16 @@
           "sourcePath": "tests/opencode/test-tools.sh"
         },
         {
-          "bytes": 5828,
+          "bytes": 7333,
           "executable": false,
-          "sha256": "0f84e8fe4190575e907a109e3b2540a21832ddac4f1bdb76f1074489f4f605c6",
+          "sha256": "807b0d5623600d70e8fc4bd4bb8ab836d0f45003a2fd044114b076d1ba3d4af5",
           "sourcePath": "tests/pi/test-pi-extension.mjs"
+        },
+        {
+          "bytes": 2202,
+          "executable": true,
+          "sha256": "38e37aa1043a96eeaec08b6f26a4908d1088c6f740a118a6abcaf3d1b6bafd9d",
+          "sourcePath": "tests/sdd-helper-paths/test-sdd-helper-paths.sh"
         },
         {
           "bytes": 4719,
@@ -2394,33 +2476,75 @@
           "sourcePath": "tests/shell-lint/test-lint-shell.sh"
         },
         {
+          "bytes": 1062,
+          "executable": true,
+          "sha256": "4ebc2c8e396998764d55855012efa3ad38dece864b9bef137ee81b30bfc61bc6",
+          "sourcePath": "tests/skill-layout/test-no-dev-files-in-skills.sh"
+        },
+        {
+          "bytes": 1099,
+          "executable": true,
+          "sha256": "82aa688a6f17cb04006954f2c7e6894578ef13009c273fd40777f90c87d8b99a",
+          "sourcePath": "tests/skill-size/test-skill-size.sh"
+        },
+        {
+          "bytes": 4257,
+          "executable": false,
+          "sha256": "c24733a5b1821bd6bed1fc950261f0b9f4e90097e0bbb96459d8179713730789",
+          "sourcePath": "tests/systematic-debugging/pressure-scenarios/CREATION-LOG.md"
+        },
+        {
+          "bytes": 653,
+          "executable": false,
+          "sha256": "fe2ba480d78ac0d686dc025f41c2a32a43d642bf533f91b0c6053a04d35d6486",
+          "sourcePath": "tests/systematic-debugging/pressure-scenarios/test-academic.md"
+        },
+        {
+          "bytes": 1900,
+          "executable": false,
+          "sha256": "0b6a915db0054577819834c79be9eb614e97bddba10d73768e1fbe91cfed048a",
+          "sourcePath": "tests/systematic-debugging/pressure-scenarios/test-pressure-1.md"
+        },
+        {
+          "bytes": 2283,
+          "executable": false,
+          "sha256": "b2030aeffba07050e8ad573ddf87486457c4a016a786bb326235bebd856f2016",
+          "sourcePath": "tests/systematic-debugging/pressure-scenarios/test-pressure-2.md"
+        },
+        {
+          "bytes": 2692,
+          "executable": false,
+          "sha256": "96b50a52e2c7989c9cf20fb752c47c1e9a3a70dc362f8f7989f8f5b64dac7708",
+          "sourcePath": "tests/systematic-debugging/pressure-scenarios/test-pressure-3.md"
+        },
+        {
           "bytes": 2609,
           "executable": true,
           "sha256": "7c5ae1adb7c6e292b73eccba6ba442501c442aefe8c883a94c9fdd809d592cea",
           "sourcePath": "tests/systematic-debugging/test-find-polluter.sh"
         },
         {
-          "bytes": 2259,
+          "bytes": 2864,
           "executable": false,
-          "sha256": "5ee6381b450985934877a6fb3da71f769559f413419c616158cd6b79ff582ff1",
+          "sha256": "9979d56389d953449cd1bdb93017e1f9abbab5f5522e80e9b91dcd6a00baf820",
           "sourcePath": "tests/version-bump/test-bump-version.sh"
         },
         {
-          "bytes": 2512,
+          "bytes": 2660,
           "executable": true,
-          "sha256": "c977fb34ec6614400673cc3d73e9979eb5428d35e1413c50ab4b1cef47eb7b3b",
+          "sha256": "e758c2e751fcfa73ceaeac7114251d48cd7ece167ac535dd765c3f9d95a6a9a9",
           "sourcePath": "tests/writing-skills/test-render-graphs.sh"
         }
       ],
       "path": "/",
-      "scanKey": "git-sha1:3c7f2d3ef243f88d3394158983e6845e313c438b",
+      "scanKey": "git-sha1:8fddc972a73e9af7501442df0e638d8e29842b6b",
       "sourceId": "superpowers"
     }
   ],
   "schema": "urn:aihq:catalog:content:0.1.0",
   "sources": [
     {
-      "commit": "5bf4e78011075bcfc0dc295f0724994cd123ee71",
+      "commit": "22f0b463e7a5e579904dd6211a520321035526f7",
       "id": "superpowers",
       "kind": "git",
       "notices": [

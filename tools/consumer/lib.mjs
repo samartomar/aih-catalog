@@ -100,6 +100,7 @@ export function writeTree(root, tree) {
 
 export function context({ inputs, prepared }) {
   const commit = prepared.identity.data.commit;
+  const executables = new Set(prepared.executablePaths);
   const profiles = Object.fromEntries(
     Object.entries(toolProfiles).map(([id, text]) => {
       const read = readToolProfile(encoder.encode(text));
@@ -122,7 +123,11 @@ export function context({ inputs, prepared }) {
   const files = (path, sourceId) => {
     const read = readLocalSource(join(inputs, path));
     if (read.status !== "ok") throw new Error(`${path}: ${JSON.stringify(read).slice(0, 600)}`);
-    return sourceId === undefined ? read.files : read.files.map((file) => ({ ...file, sourceId }));
+    return read.files.map((file) => ({
+      ...file,
+      mode: executables.has(`${path}/${file.path}`) ? "100755" : "100644",
+      ...(sourceId === undefined ? {} : { sourceId }),
+    }));
   };
   const data = { repository: "https://github.com/samartomar/aih-catalog", commit };
   /** Recipes are written by the consumer here: none is published yet. */

@@ -111,8 +111,8 @@ export const PERSONAS = [
 export const SKILL_IDS = SKILLS.map((name) => `egm.skill.${name}`);
 export const AGENT_IDS = PERSONAS.map((name) => `egm.agent.${name}`);
 
-export function readEgm() {
-  const read = readLocalSource(EGM_ROOT);
+export function readEgm(root = EGM_ROOT) {
+  const read = readLocalSource(root);
   if (read.status !== "ok") throw new Error(JSON.stringify(read));
   return read;
 }
@@ -122,9 +122,15 @@ export function readEgm() {
  * false, reading the `egm.runtime` bundle. The plugin folder `/` is recorded as the runtime
  * allowlist plus the marketplace files.
  */
-export async function egmContent(options: { readonly bundle?: boolean } = {}) {
+export async function egmContent(
+  options: {
+    readonly bundle?: boolean;
+    readonly root?: string;
+    readonly source?: typeof EGM_SOURCE;
+  } = {},
+) {
   const bundled = options.bundle !== false;
-  const read = readEgm();
+  const read = readEgm(options.root);
   const found = findItems(read.files, { framework: "egm" });
   if (found.status !== "ok") throw new Error(JSON.stringify(found));
   const items: DiscoveredItem[] = found.items
@@ -136,7 +142,7 @@ export async function egmContent(options: { readonly bundle?: boolean } = {}) {
       ),
       ...(bundled ? { bundle: "egm.runtime" } : {}),
     }));
-  const built = await buildContent(EGM_SOURCE, read.files, items, {
+  const built = await buildContent(options.source ?? EGM_SOURCE, read.files, items, {
     framework: { id: "egm", name: "Elephant-Goldfish Model" },
     ...(bundled
       ? { bundles: [{ id: "egm.runtime", layout: "skills/<name>/", include: BUNDLE_INCLUDE }] }

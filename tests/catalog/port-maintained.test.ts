@@ -33,13 +33,13 @@ const REPORT = JSON.parse(
 
 /** The exact pins the port records; written out here, independently of the port tool. */
 const PINS = {
-  ecc: ["https://github.com/affaan-m/ECC", "5064474d4d762dc9640234a41617cccb79185cec"],
-  superpowers: ["https://github.com/obra/superpowers", "5bf4e78011075bcfc0dc295f0724994cd123ee71"],
+  ecc: ["https://github.com/affaan-m/ECC", "4adeee6732a12d1540f49a4d50a38ce8c97f9a53"],
+  superpowers: ["https://github.com/obra/superpowers", "22f0b463e7a5e579904dd6211a520321035526f7"],
   extensions: [
     "https://github.com/samartomar/aih-extensions",
-    "2481164a51ea7f9e480d51ef52f3d5cf15b017fa",
+    "c89adaad320d679c905e7122b908c1bc9c8c1904",
   ],
-  matt: ["https://github.com/mattpocock/skills", "59db609eb1e18aaf59b63284d0e52255aff0c63c"],
+  matt: ["https://github.com/mattpocock/skills", "6f7f7831a625f040a8e06a0e7954826b87ce775a"],
 } as const;
 
 function data(family: string): Content {
@@ -255,9 +255,21 @@ describe("the ported candidate data", () => {
       data(family).sources.find((entry) => entry.id === source)?.notices;
     const shaOf = (name: keyof typeof PINS, path: string) =>
       sha(readFileSync(join(FIXTURE, name, path)));
-    expect(notices("ecc", "ecc")).toEqual([
-      { sourcePath: "LICENSE", sha256: shaOf("ecc", "LICENSE"), covers: "/" },
-    ]);
+    expect(notices("ecc", "ecc")).toEqual(
+      [
+        ".agents/skills/context-and-decisions/LICENSE",
+        "LICENSE",
+        "pi/core/LICENSE",
+        "pi/core/skills/context-and-decisions/LICENSE",
+        "skills/context-and-decisions/LICENSE",
+        "skills/osint-investigation/LICENSE.txt",
+        "skills/taste-application/scripts/LICENSE",
+      ].map((sourcePath) => ({
+        sourcePath,
+        sha256: shaOf("ecc", sourcePath),
+        covers: sourcePath.includes("/") ? sourcePath.slice(0, sourcePath.lastIndexOf("/")) : "/",
+      })),
+    );
     expect(notices("extensions", "extensions")).toEqual(
       [
         "LICENSE",
@@ -676,12 +688,12 @@ describe("the port report for these families", () => {
       if (entry.disposition === "mapped")
         expect(ids.has(entry.item as string), entry.baseline.id).toBe(true);
     expect(REPORT.counts).toMatchObject({
-      mapped: 687,
+      mapped: 684,
       edition: 43,
       steering: 22,
       notice: 3,
       bundle: 1,
-      dropped: 21,
+      dropped: 24,
     });
   });
 
@@ -750,9 +762,10 @@ describe("the port report for these families", () => {
 
   it("records, per MCP item, where its exact version came from", () => {
     const entries = REPORT.dispositions as Array<Record<string, unknown> & { item?: string }>;
+    const added = REPORT.added as typeof entries;
     const pins = Object.fromEntries(
-      entries
-        .filter((entry) => entry.item?.startsWith("ecc.mcp.") && entry.disposition === "mapped")
+      [...entries.filter((entry) => entry.disposition === "mapped"), ...added]
+        .filter((entry) => entry.item?.startsWith("ecc.mcp."))
         .map((entry) => [
           entry.item,
           {
