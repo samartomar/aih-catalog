@@ -395,7 +395,12 @@ const ECC = ["https://github.com/affaan-m/ECC", "4adeee6732a12d1540f49a4d50a38ce
   await j.check("notices are written once", () => {
     assert.deepEqual(
       pathsOf(plan).filter((path) => path.startsWith(".aihq/notices/")),
-      [".aihq/notices/ecc/LICENSE"],
+      [
+        ".aihq/notices/ecc/LICENSE",
+        ".aihq/notices/ecc/skills/context-and-decisions/LICENSE",
+        ".aihq/notices/ecc/skills/osint-investigation/LICENSE.txt",
+        ".aihq/notices/ecc/skills/taste-application/scripts/LICENSE",
+      ],
     );
   });
   await j.check("references list the ecc: names", () => {
@@ -1024,10 +1029,10 @@ const RESOLVER = "aih.agent.duplicate-resolver";
     },
   );
   await j.check(
-    "all 7 skills are user-only, and the bundle-root rule is at each client's always-on place",
+    "all eight skills are user-only, and the bundle-root rule is at each client's always-on place",
     () => {
       const skills = egm.items.filter((item) => item.kind === "skill");
-      assert.equal(skills.length, 7);
+      assert.equal(skills.length, 8);
       assert.ok(skills.every((item) => item.userOnly === true));
       for (const item of skills)
         assert.ok(
@@ -1050,11 +1055,24 @@ const RESOLVER = "aih.agent.duplicate-resolver";
         assert.equal(step.scanned, false);
     },
   );
-  await j.check("references are empty and the status is ok", () => {
-    assert.deepEqual(plan.references, []);
-    assert.equal(plan.status, "ok");
+  await j.check("copy clients report the optional project index reference", () => {
+    assert.deepEqual(plan.references, [
+      {
+        clis: ["antigravity", "codex"],
+        file: "skills/egm-brainstorm/SKILL.md",
+        item: "egm.skill.egm-brainstorm",
+        kind: "path",
+        path: "docs/designs/README.md",
+      },
+    ]);
+    assert.equal(plan.status, "incomplete");
     ownership(plan);
   });
+  await j.open(
+    "copy plan completeness",
+    "The optional project index mentioned by EGM is absent from the upstream runtime allowlist.",
+    () => assert.equal(plan.status, "ok"),
+  );
   await j.check(
     "with dsh added: the same .agents layout, the rule in AGENTS.md, personas unavailable",
     () => {
@@ -1078,7 +1096,7 @@ const RESOLVER = "aih.agent.duplicate-resolver";
       assert.equal(rule.file, "AGENTS.md");
       assert.ok(rule.clis.includes("dsh"));
       const personas = withDsh.unavailable.filter((entry) => entry.cli === "dsh");
-      assert.equal(personas.length, 9);
+      assert.equal(personas.length, 10);
       assert.ok(
         personas.every(
           (entry) => entry.item.startsWith("egm.agent.") && entry.reason === "unsupported-kind",
@@ -1094,27 +1112,16 @@ const RESOLVER = "aih.agent.duplicate-resolver";
     async () => {
       const fixture = files("tests/fixtures/egm-46933754");
       const rebuilt = await egmContent(fixture, true);
-      // The fixture holds the runtime files only; the committed data adds what the whole upstream
-      // tree gives: the plugin folder's own key (the commit's root tree) and the notice of the
-      // upstream's distributions/ copy, which covers no item.
       const committed = readContent(readFileSync(join(inputs, "data/egm/content.json"))).content;
-      const trimmed = (content, notices) => ({
+      // The fixture matches the runtime bytes; the full-folder key also binds the upstream tree.
+      const trimmed = (content) => ({
         ...content,
-        sources: content.sources.map((source) => ({
-          ...source,
-          notices: source.notices.filter(
-            (notice) => notices || !notice.sourcePath.startsWith("distributions/"),
-          ),
-        })),
         plugins: (content.plugins ?? []).map(({ folderScanKey: _key, ...rest }) => rest),
       });
-      assert.equal(
-        utf8(canonical(trimmed(rebuilt.content, true))),
-        utf8(canonical(trimmed(committed, false))),
-      );
+      assert.equal(utf8(canonical(trimmed(rebuilt.content))), utf8(canonical(trimmed(committed))));
       assert.equal(
         committed.plugins[0].folderScanKey,
-        "git-sha1:1b923b12bb559dc7809ff4374b1eec50d9f5cc8e",
+        "git-sha1:327b35f4fb73dfa293c5cff9159a254ed251ee8c",
       );
       const bare = await egmContent(fixture, false);
       const without = planned(
