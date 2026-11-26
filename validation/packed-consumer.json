@@ -1,46 +1,64 @@
 {
   "candidate": {
     "package": "@aihq/catalog@0.0.0-dev.1",
-    "sourceCommit": "633e039ef5f1a7ee5c955405a565faa544aa1b7f",
+    "sourceCommit": "a6495fc3d9a34dedc58f8e53e385a8661e209aed",
     "sourceClean": true,
     "file": "aihq-catalog-0.0.0-dev.1.tgz",
-    "sha256": "bd4ba1d41f9711a6e571111f7aa6bdefe95946e4d1474d34c059ab92532b6749",
-    "integrity": "sha512-RgaGX9+XmLwTdfZru6CX5lCka26Ufme+YKINJlK5VM0dNlSHanXjqt0Nm3yzxsUO0g9HGo/iyJ7N95KKxAREMg==",
-    "bytes": 190269,
+    "sha256": "0c7cf1d4b010e2a36deee2fb403c9ff0710af8318f1eddf0a837ea48db544d77",
+    "integrity": "sha512-nx1rbbfMbMWEHGHUn7CUbO0vGB8iHPxIvtOCo33SIYf/xcFX9FE31gaXdmhMWmEvwHyWO3Q1pkiz4v2MWRY0ag==",
+    "bytes": 190287,
     "entries": 70
   },
   "scan": {
     "package": "@aihq/scan@0.0.0-dev.1",
-    "sha256": "55e207311d8939b17ed9d7e852b18904e8e2043075dab1e453f1f533405a3348"
+    "sha256": "828032528d6a195ca5ff6f2e6be9cf049ebc329461e1efa38d92ecff3f1d5e9e"
   },
   "runtime": {
-    "node": "26.12.1",
+    "node": "26.13.1",
     "npm": "11.20.0"
   },
   "inputs": {
     "data": {
       "kind": "git",
-      "commit": "633e039ef5f1a7ee5c955405a565faa544aa1b7f",
+      "commit": "a6495fc3d9a34dedc58f8e53e385a8661e209aed",
       "subpath": "data",
-      "files": 100,
-      "sha256": "16e8eff64595aa708bcf92258a5f8ebfbd6c9d17ffb1b562a23bcb78c3a4fd07",
+      "files": 106,
+      "sha256": "7b7f9e944e81cdd1572ae2190c3fc08462daca8cd9908c03aabca076303d1999",
       "skipped": 0
     },
     "port-report": {
       "kind": "git",
-      "commit": "633e039ef5f1a7ee5c955405a565faa544aa1b7f",
+      "commit": "a6495fc3d9a34dedc58f8e53e385a8661e209aed",
       "subpath": "port-report",
       "files": 4,
-      "sha256": "567aaf5cccf382a59bdf38ffe5f93e1c4c564c1bbd2b25b6821cf5b9c98b6458",
+      "sha256": "d1cc302abf0aabea8dc6a28537f61ebe931720dd93eb22f6aa304109e7b772f9",
       "skipped": 0
     },
     "tests/fixtures": {
       "kind": "git",
-      "commit": "633e039ef5f1a7ee5c955405a565faa544aa1b7f",
+      "commit": "a6495fc3d9a34dedc58f8e53e385a8661e209aed",
       "subpath": "tests/fixtures",
-      "files": 169,
-      "sha256": "e6881a0497f82fbc9830092389aa1f78931256e6c21d4e568048ae6b5f637259",
+      "files": 275,
+      "sha256": "e478bb30e6487d02359e6ede171b6bd5d059f138c352c477d0c61543ea986bd0",
       "skipped": 0
+    },
+    "upstream": {
+      "ecc": {
+        "kind": "git",
+        "repository": "https://github.com/affaan-m/ECC",
+        "commit": "4adeee6732a12d1540f49a4d50a38ce8c97f9a53",
+        "files": 4951,
+        "sha256": "8c96170ea4850c10b71b69d6f24bae22a7c59d49069200a22a6b981cbac12a18",
+        "skipped": 0
+      },
+      "superpowers": {
+        "kind": "git",
+        "repository": "https://github.com/obra/superpowers",
+        "commit": "22f0b463e7a5e579904dd6211a520321035526f7",
+        "files": 236,
+        "sha256": "94b4a82d5869ec1e14b19898bec0b5798fe897fb9c351632009deb7cf28461fa",
+        "skipped": 0
+      }
     },
     "dataCommits": {
       "before": {
@@ -53,11 +71,11 @@
     },
     "localFixtures": {
       "ownFolder": {
-        "scriptExecutable": true
+        "scriptExecutable": false
       }
     }
   },
-  "network": false,
+  "network": true,
   "basis": {
     "fixture": "synthetic files written by the journey, or pinned upstream fixture bytes",
     "candidate-data": "committed data/ at the packed commit: unadmitted candidate data, not trusted production data",
@@ -104,7 +122,7 @@
       ],
       "pending": [],
       "plans": {
-        "own-folder": "9897f1f6ffdbc74765e3c8a778dc44c581a2648c4e433f3e6a2d35e9fe5cf161"
+        "own-folder": "16df999e3f38b13ce696866b2ba6011f0c100e20cdcdaa8dad7e5a4465e4bdd4"
       }
     },
     {
@@ -132,11 +150,15 @@
         {
           "name": "with copies at user scope (copy: true) Kiro's sibling skill paths resolve and the plan is ok",
           "status": "passed"
+        },
+        {
+          "name": "upstream: each plugin step's scan key is the pinned plugin folder's",
+          "status": "passed"
         }
       ],
       "pending": [],
       "plans": {
-        "superpowers-user": "38fee19b131a312c01b4be4e660a25736441c38dbc70043ab9f38fabc44c70ed"
+        "superpowers-user": "77a184e8f7ab57caa939f3cbe1a0c4c2411e1f6c19ebd9f9c43c80488d040998"
       }
     },
     {
@@ -176,10 +198,10 @@
       ],
       "pending": [],
       "notes": [
-        "Status incomplete (the journey states no status): 78 path references, 0 unavailable item/client pairs, 0 clashes."
+        "Status incomplete (the journey states no status): 115 path references, 0 unavailable item/client pairs, 0 clashes."
       ],
       "plans": {
-        "ecc-kiro": "f3481033b79dcb9e9c3bef24719c11c2247ce6d44b0ceca14e278052a7197b35"
+        "ecc-kiro": "aad94a9efde2a7461b254764793971329d00ec2e807f77d9dcba28c9d846f8b6"
       }
     },
     {
@@ -219,6 +241,10 @@
         },
         {
           "name": "$ARGUMENTS is reworded (ECC gan-build, pinned fixture bytes)",
+          "status": "passed"
+        },
+        {
+          "name": "upstream: ECC plan's SKILL.md renders from the real pinned bytes",
           "status": "passed"
         },
         {
@@ -352,7 +378,7 @@
       "id": 11,
       "title": "EGM at project scope: local plugin, bundle layout, bundle-root rule, dsh, bundle removed",
       "basis": "candidate-data",
-      "outcome": "passed",
+      "outcome": "open",
       "checks": [
         {
           "name": "Claude gets the local plugin in .aihq/plugins/egm/ and a settings merge",
@@ -367,12 +393,18 @@
           "status": "passed"
         },
         {
-          "name": "all 7 skills are user-only, and the bundle-root rule is at each client's always-on place",
+          "name": "all eight skills are user-only, and the bundle-root rule is at each client's always-on place",
           "status": "passed"
         },
         {
-          "name": "references are empty and the status is ok",
+          "name": "copy clients report the optional project index reference",
           "status": "passed"
+        },
+        {
+          "name": "copy plan completeness",
+          "status": "open",
+          "reason": "The optional project index mentioned by EGM is absent from the upstream runtime allowlist.",
+          "detail": "Expected values to be strictly equal: 'incomplete' !== 'ok' "
         },
         {
           "name": "with dsh added: the same .agents layout, the rule in AGENTS.md, personas unavailable",
@@ -385,10 +417,10 @@
       ],
       "pending": [],
       "notes": [
-        "With dsh the plan is ok; the journey states no status for that variant (completeness does not force clients the upstream does not install on, while a selected agent a client cannot take blocks)."
+        "With dsh the plan is incomplete; the journey states no status for that variant (completeness does not force clients the upstream does not install on, while a selected agent a client cannot take blocks)."
       ],
       "plans": {
-        "egm-project": "07e0fce755250f00f582722725b4c3b7fe35572f356b63a9eb9366581c8efae5"
+        "egm-project": "27a58574ee0ca669201c4ed44514fcc38a8b261b97d5532be70a42b0554fe12c"
       }
     },
     {
@@ -426,14 +458,14 @@
         "Clean first-time installation remains unproven: the real qualification covers configured-fixture direct MCP sessions with Serena ide context and a separately prepared Python language server. Source-built wheels require caller artifact custody; consumer transport, auxiliary runtime provisioning and named-client loading are separate proof."
       ],
       "plans": {
-        "trio-linux-x64": "f6dd39335db6526f36cff0b92d7dad6a55637deb51ff49704c74c23279c08ff3"
+        "trio-linux-x64": "de204bf69a8a8000a9e2dbe7353bc7dfe9be237b05098307e8d4488d1e0bdd12"
       }
     },
     {
       "id": 13,
       "title": "Scans: scan keys equal Scan's and Git's; cut-outs; exact MCP versions; unscanned keys",
       "basis": "fixture",
-      "outcome": "pending",
+      "outcome": "passed",
       "checks": [
         {
           "name": "item, edition and bundle scan keys equal git write-tree of the same folders",
@@ -462,11 +494,13 @@
         {
           "name": "a render step shows scanned: false",
           "status": "passed"
+        },
+        {
+          "name": "upstream: checkContent re-derives all of ECC from the real pinned bytes, keys included",
+          "status": "passed"
         }
       ],
-      "pending": [
-        "Run with --network to re-derive every ECC scan key from the real upstream bytes (the offline check covers the items wholly inside the pinned fixture)."
-      ]
+      "pending": []
     },
     {
       "id": 14,
@@ -721,7 +755,6 @@
     "This packed-consumer check does not verify production scan admission; separate matching trusted-evidence verification is required.",
     "Recipe publication: no recipe is published with a real data commit; the journeys write their recipes and use the drafted ones in the port report.",
     "Extensions routes: aih-extensions declares no per-client routes, so no Extensions base recipe exists.",
-    "Registry install: @aihq/scan 0.0.0-dev.1 is not on the npm registry; consumers install the vendored tarball.",
-    "Upstream bytes: run with --network to re-derive ECC's scan keys and Superpowers' plugin key from the real pins."
+    "Registry install: @aihq/scan 0.0.0-dev.1 is not on the npm registry; consumers install the vendored tarball."
   ]
 }
