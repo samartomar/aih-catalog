@@ -128,9 +128,10 @@ members, choice groups and the data commit it was written against. `readRecipe` 
 project-basics, Anthropic's skills, web-artifacts, the AIH guide, Modern Web Guidance, pstack, gstack, the
 Elephant-Goldfish Model, code-review-graph, codebase-memory-mcp and Serena.
 `data/qualifications/` holds the qualification records by sha256. A data change is a commit,
-never a package release. All of this data is a candidate: none of its scan keys has been
-scanned and admitted yet. [The port report](port-report/report.json) gives each earlier
-Catalog item one disposition and lists the known limits.
+never a package release. This is candidate data awaiting admission. The
+[Scan coverage report](docs/scan-coverage.md) shows which exact items and editions have a
+published Scan report. [The port report](port-report/report.json) gives each earlier Catalog
+item one disposition and lists the known limits.
 
 ## Install
 
