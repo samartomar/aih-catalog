@@ -398,7 +398,9 @@ async function ecc(work) {
   for (const [event, groups] of Object.entries(hooks))
     groups.forEach((group, index) => {
       const entry = metadata[event]?.[index];
-      const fingerprint = sha256(canonicalJson({ matcher: group.matcher ?? null, hooks: group.hooks })).slice(0, 12);
+      const fingerprint = sha256(
+        canonicalJson({ matcher: group.matcher ?? null, hooks: group.hooks }),
+      ).slice(0, 12);
       if (!entry?.id || entry.fingerprint !== fingerprint)
         fail(`ECC hook metadata differs at ${event}/${index}`);
       const name = entry.id.replaceAll(":", "-");
@@ -656,8 +658,15 @@ function dispositions(results, items) {
         bundle: "extensions.references",
         note: "the checklists skills read at ../../references/ are the runtime bundle placed beside them",
       };
-    else if (!ids.has(entry.id) && ["ecc.mcp.squish", "ecc.skill.claude-devfleet", "ecc.skill.motion-ui"].includes(entry.id))
-      result = dropped(entry, "removed-upstream", "the selected ECC revision no longer declares this item");
+    else if (
+      !ids.has(entry.id) &&
+      ["ecc.mcp.squish", "ecc.skill.claude-devfleet", "ecc.skill.motion-ui"].includes(entry.id)
+    )
+      result = dropped(
+        entry,
+        "removed-upstream",
+        "the selected ECC revision no longer declares this item",
+      );
     else if (entry.id === "ecc.rule.README")
       result = dropped(entry, "not-an-item", results.ecc.dropped.get(entry.id));
     else if (family === "ecc" && kind === "skill" && path.endsWith(".kiro-variant"))
@@ -766,6 +775,9 @@ try {
       item: item.id,
       kind: item.kind,
       ...(item.fetch ? { fetch: item.fetch } : {}),
+      ...(item.kind === "mcp" && item.id.startsWith("ecc.mcp.")
+        ? mcpPin(item.id.slice("ecc.mcp.".length), item.server)
+        : {}),
     }));
   const report = {
     families: BASELINE,

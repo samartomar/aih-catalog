@@ -157,7 +157,7 @@ const same = (left, right) => assert.equal(JSON.stringify(left), JSON.stringify(
 }
 
 // ---------------------------------------------------------------------------------------------
-const SP = ["https://github.com/obra/superpowers", "5bf4e78011075bcfc0dc295f0724994cd123ee71"];
+const SP = ["https://github.com/obra/superpowers", "22f0b463e7a5e579904dd6211a520321035526f7"];
 function superpowersRecipe(routes, extra = {}) {
   const superpowers = content("superpowers");
   const entry = { source: "superpowers", path: "/", plugin: "superpowers", commit: SP[1] };
@@ -322,7 +322,7 @@ function superpowersRecipe(routes, extra = {}) {
 }
 
 // ---------------------------------------------------------------------------------------------
-const ECC = ["https://github.com/affaan-m/ECC", "5064474d4d762dc9640234a41617cccb79185cec"];
+const ECC = ["https://github.com/affaan-m/ECC", "4adeee6732a12d1540f49a4d50a38ce8c97f9a53"];
 {
   const j = journey(
     3,
@@ -451,7 +451,7 @@ const draft = (id) =>
     assert.deepEqual(step.needs, ["bun>=1.4.2"]);
     assert.equal(step.approval, "required");
     assert.equal(step.scanned, false);
-    assert.equal(step.commit, "1ea86923a86129d1f32828b36acfe6f91f17c8e6");
+    assert.equal(step.commit, "e6dd567349e85506127c2f4cf69a0392923c032c");
   });
   await j.check("status is ok: approval does not make a plan incomplete", () => {
     assert.equal(plan.status, "ok");
@@ -985,7 +985,7 @@ const RESOLVER = "aih.agent.duplicate-resolver";
           .filter((path) => path.startsWith(root))
           .map((path) => path.slice(root.length)),
       );
-      const fixture = files("tests/fixtures/egm-403d8881");
+      const fixture = files("tests/fixtures/egm-46933754");
       const adapters = fixture.filter((file) => file.path.startsWith(".claude-plugin/agents/"));
       assert.ok(adapters.length > 0);
       let seen = 0;
@@ -1092,7 +1092,7 @@ const RESOLVER = "aih.agent.duplicate-resolver";
   await j.check(
     "the fixture-built EGM content equals the committed data, and without its bundle the plan is incomplete with the paths listed",
     async () => {
-      const fixture = files("tests/fixtures/egm-403d8881");
+      const fixture = files("tests/fixtures/egm-46933754");
       const rebuilt = await egmContent(fixture, true);
       // The fixture holds the runtime files only; the committed data adds what the whole upstream
       // tree gives: the plugin folder's own key (the commit's root tree) and the notice of the
@@ -1201,7 +1201,7 @@ async function egmContent(fixture, bundled) {
     {
       kind: "git",
       repository: "https://github.com/google/elephant-goldfish-model",
-      commit: "403d8881d62022490637d740657b33f01e321ea8",
+      commit: "46933754e63c0424daa9c270d7e0734245d79560",
     },
     fixture,
     items,
@@ -2313,7 +2313,7 @@ const regression = (id, title, basis) => journey(id, title, basis);
       const step = writes(plan).find(
         (entry) => entry.render !== undefined && entry.from !== undefined,
       );
-      const egmFiles = files("tests/fixtures/egm-403d8881").map((file) => ({
+      const egmFiles = files("tests/fixtures/egm-46933754").map((file) => ({
         sourceId: "egm",
         sourcePath: file.path,
         bytes: file.bytes,

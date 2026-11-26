@@ -987,8 +987,9 @@ function withoutUnflaggedSharers(
   for (const members of group(folders, (entry) => (entry.unit as { path: string }).path)) {
     const unflagged = members.filter((member) => member.profile.userOnly === "none");
     const flagged = members.filter((member) => member.profile.userOnly !== "none");
-    if (unflagged.length === 0 || flagged.length === 0) continue;
-    const path = (members[0]?.unit as { path: string }).path;
+    const [firstFlagged] = flagged;
+    if (unflagged.length === 0 || firstFlagged === undefined) continue;
+    const path = (firstFlagged.unit as { path: string }).path;
     const by = union(flagged.map((member) => member.profile.id)).join(", ");
     for (const member of unflagged) {
       removed.add(member);

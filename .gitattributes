@@ -9,5 +9,6 @@ vendor/** binary
 data/** -text
 # Exact pinned upstream bytes for tests; their git blob ids are checked against the upstream trees.
 tests/fixtures/egm-403d8881/** -text
+tests/fixtures/egm-46933754/** -text -whitespace
 tests/fixtures/port-maintained/** -text
 tests/fixtures/port-remaining/** -text -whitespace

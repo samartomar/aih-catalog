@@ -1,259 +1,334 @@
 {
   "ecc": {
-    "commit": "5064474d4d762dc9640234a41617cccb79185cec",
+    "commit": "4adeee6732a12d1540f49a4d50a38ce8c97f9a53",
     "entries": [
       {
-        "blob": "ad84658905c1cf8114b5a08e5b6af72c7a5d8a5b",
+        "path": ".agents/skills/context-and-decisions/LICENSE",
         "mode": "100644",
-        "path": ".kiro/agents/architect.json"
+        "blob": "f1dd2c09108dde1a5f56097cee8461b3ea834499"
       },
       {
-        "blob": "32310c7c8fdb9411d6ed24ecd18cf5ca36628635",
+        "path": ".kiro/agents/architect.json",
         "mode": "100644",
-        "path": ".kiro/agents/architect.md"
+        "blob": "ad84658905c1cf8114b5a08e5b6af72c7a5d8a5b"
       },
       {
-        "blob": "fa67020f6aaf3b1d1c5697167a5462f95e95f497",
+        "path": ".kiro/agents/architect.md",
         "mode": "100644",
-        "path": ".kiro/hooks/tdd-reminder.kiro.hook"
+        "blob": "32310c7c8fdb9411d6ed24ecd18cf5ca36628635"
       },
       {
-        "blob": "cf4a2d2be1bd8036fb95adf25d9c1faa0bfd6834",
+        "path": ".kiro/hooks/tdd-reminder.kiro.hook",
         "mode": "100644",
-        "path": ".kiro/skills/api-design/SKILL.md"
+        "blob": "fa67020f6aaf3b1d1c5697167a5462f95e95f497"
       },
       {
-        "blob": "8452a19e597abac7634afb3b6f3a7754cb40d5b7",
+        "path": ".kiro/skills/api-design/SKILL.md",
         "mode": "100644",
-        "path": ".kiro/steering/python-patterns.md"
+        "blob": "cf4a2d2be1bd8036fb95adf25d9c1faa0bfd6834"
       },
       {
-        "blob": "b832b6f642312312367c07688dc7426db40a82ed",
+        "path": ".kiro/steering/python-patterns.md",
         "mode": "100644",
-        "path": "LICENSE"
+        "blob": "8452a19e597abac7634afb3b6f3a7754cb40d5b7"
       },
       {
-        "blob": "d65bea41b09b14faeb02f1dba606ce9f16933a33",
+        "path": "LICENSE",
         "mode": "100644",
-        "path": "agents/architect.md"
+        "blob": "b832b6f642312312367c07688dc7426db40a82ed"
       },
       {
-        "blob": "476b04b9d095f92dd77dcaa4cb561e0481d42a61",
+        "path": "agents/architect.md",
         "mode": "100644",
-        "path": "commands/gan-build.md"
+        "blob": "d65bea41b09b14faeb02f1dba606ce9f16933a33"
       },
       {
-        "blob": "551f7a4b4732e95937af538cc97d92f7b5d76511",
+        "path": "commands/gan-build.md",
         "mode": "100644",
-        "path": "hooks/codex-hooks.json"
+        "blob": "476b04b9d095f92dd77dcaa4cb561e0481d42a61"
       },
       {
-        "blob": "62053904e01b62cf956f3e56fb31dae9bb0ff82f",
+        "path": "hooks/codex-hooks.json",
         "mode": "100644",
-        "path": "hooks/hooks.json"
+        "blob": "1b7cbbdb9dca60f308f0dbc82f8fbe957dd628c5"
       },
       {
-        "blob": "0e885468015ac8cc6c5493bc221b42ba9b3bbd25",
+        "path": "hooks/hooks.json",
         "mode": "100644",
-        "path": "mcp-configs/mcp-servers.json"
+        "blob": "34ab6c32a3eb17e86f32b101ff0b33f27e6d2ac4"
       },
       {
-        "blob": "ba503f4c1c2758b58283274a6c2982ef2906fabd",
+        "path": "mcp-configs/mcp-servers.json",
         "mode": "100644",
-        "path": "skills/api-design/SKILL.md"
+        "blob": "f3966f170b22ba2a557445f712e96c39a81799ea"
       },
       {
-        "blob": "16e216ebf4032274244ea7f221be2c249aa64bea",
+        "path": "pi/core/LICENSE",
         "mode": "100644",
-        "path": "skills/team-builder/SKILL.md"
+        "blob": "b832b6f642312312367c07688dc7426db40a82ed"
+      },
+      {
+        "path": "pi/core/skills/context-and-decisions/LICENSE",
+        "mode": "100644",
+        "blob": "f1dd2c09108dde1a5f56097cee8461b3ea834499"
+      },
+      {
+        "path": "skills/api-design/SKILL.md",
+        "mode": "100644",
+        "blob": "655d730e64492b997bded91038c52f75398c5563"
+      },
+      {
+        "path": "skills/context-and-decisions/LICENSE",
+        "mode": "100644",
+        "blob": "f1dd2c09108dde1a5f56097cee8461b3ea834499"
+      },
+      {
+        "path": "skills/osint-investigation/LICENSE.txt",
+        "mode": "100644",
+        "blob": "92de3a9259139719271fbcebd47e775b7309c900"
+      },
+      {
+        "path": "skills/taste-application/scripts/LICENSE",
+        "mode": "100644",
+        "blob": "b832b6f642312312367c07688dc7426db40a82ed"
+      },
+      {
+        "path": "skills/team-builder/SKILL.md",
+        "mode": "100644",
+        "blob": "2de7d028b6af3e67fb88ab54b631b10fb3e779a8"
       }
     ],
     "repository": "https://github.com/affaan-m/ECC"
   },
   "extensions": {
-    "commit": "2481164a51ea7f9e480d51ef52f3d5cf15b017fa",
+    "commit": "c89adaad320d679c905e7122b908c1bc9c8c1904",
     "entries": [
       {
-        "blob": "c9b56b81ea1b19a27181ac54e365cf3cdf99805f",
+        "path": "LICENSE",
         "mode": "100644",
-        "path": "LICENSE"
+        "blob": "c9b56b81ea1b19a27181ac54e365cf3cdf99805f"
       },
       {
-        "blob": "c0c198f4a96d0fddb5b42f0999d090cf93ee6df1",
+        "path": "NOTICE.md",
         "mode": "100644",
-        "path": "NOTICE.md"
+        "blob": "c0c198f4a96d0fddb5b42f0999d090cf93ee6df1"
       },
       {
-        "blob": "efb1e4e51d12229e5d6792780f997467d4ea3697",
+        "path": "agents/security-auditor.md",
         "mode": "100644",
-        "path": "agents/security-auditor.md"
+        "blob": "efb1e4e51d12229e5d6792780f997467d4ea3697"
       },
       {
-        "blob": "c573a9f0e6563ad4d91a8a82dfcf3775958d1a43",
+        "path": "commands/ship.md",
         "mode": "100644",
-        "path": "commands/ship.md"
+        "blob": "8b6014e03a3daa2fcaec3e6afdc61fa200d94a7b"
       },
       {
-        "blob": "ed879d08d26c1a35af5e2b932ee350a59a48fc79",
+        "path": "hooks/hooks.json",
         "mode": "100644",
-        "path": "hooks/hooks.json"
+        "blob": "ed879d08d26c1a35af5e2b932ee350a59a48fc79"
       },
       {
-        "blob": "d67778ada6b9cda6227e9130da182c13e73c8b2e",
+        "path": "licenses/addyosmani-agent-skills.LICENSE",
         "mode": "100644",
-        "path": "licenses/addyosmani-agent-skills.LICENSE"
+        "blob": "d67778ada6b9cda6227e9130da182c13e73c8b2e"
       },
       {
-        "blob": "f1dd2c09108dde1a5f56097cee8461b3ea834499",
+        "path": "licenses/mattpocock-skills.LICENSE",
         "mode": "100644",
-        "path": "licenses/mattpocock-skills.LICENSE"
+        "blob": "f1dd2c09108dde1a5f56097cee8461b3ea834499"
       },
       {
-        "blob": "c8c61e5f3d5a010a0d0ecb918bfaffe6c76fca78",
+        "path": "references/accessibility-checklist.md",
         "mode": "100644",
-        "path": "references/accessibility-checklist.md"
+        "blob": "b9be59bb588e7f5a2979cd3872afb08b1a56078d"
       },
       {
-        "blob": "2924fd492d6380bf24749c540f14a5ecab5c0ce2",
+        "path": "references/definition-of-done.md",
         "mode": "100644",
-        "path": "references/definition-of-done.md"
+        "blob": "2924fd492d6380bf24749c540f14a5ecab5c0ce2"
       },
       {
-        "blob": "ad40d7aa3fca5d2091fa45be234c14aee22c3588",
+        "path": "references/observability-checklist.md",
         "mode": "100644",
-        "path": "references/observability-checklist.md"
+        "blob": "ad40d7aa3fca5d2091fa45be234c14aee22c3588"
       },
       {
-        "blob": "c364c54140431567267d335564c1cc2ccd88f612",
+        "path": "references/orchestration-patterns.md",
         "mode": "100644",
-        "path": "references/orchestration-patterns.md"
+        "blob": "c364c54140431567267d335564c1cc2ccd88f612"
       },
       {
-        "blob": "88b6f6a41be7561746c5580137a892583e5f0029",
+        "path": "references/performance-checklist.md",
         "mode": "100644",
-        "path": "references/performance-checklist.md"
+        "blob": "81f754909440211c3a925a770abccf2da6d1d0fc"
       },
       {
-        "blob": "fc5e29b92c183fa69e0952b61a99761dc48b4c0b",
+        "path": "references/security-checklist.md",
         "mode": "100644",
-        "path": "references/security-checklist.md"
+        "blob": "dbad3cc327ae035b64c762560ff779fae226ae48"
       },
       {
-        "blob": "1691ed9e3242272b03068b1680bf0a671a170776",
+        "path": "references/testing-patterns.md",
         "mode": "100644",
-        "path": "references/testing-patterns.md"
+        "blob": "36c2c58789277291b72b2d4cde62dc40d813b881"
       },
       {
-        "blob": "fa1d8acbb5f992b55b41f081837891eeb2467112",
+        "path": "skills/security-and-hardening/SKILL.md",
         "mode": "100644",
-        "path": "skills/security-and-hardening/SKILL.md"
+        "blob": "243bf950f6255ca21bc296047240cf3bafce8360"
       },
       {
-        "blob": "5b1f887a9138416870f64ba2fe21602e4a59cfa7",
+        "path": "skills/security-and-hardening/agents/openai.yaml",
         "mode": "100644",
-        "path": "skills/security-and-hardening/agents/openai.yaml"
+        "blob": "5b1f887a9138416870f64ba2fe21602e4a59cfa7"
       },
       {
-        "blob": "e5fba73c9fc029444d3c099d0a51538e90ed97c2",
+        "path": "skills/security-and-hardening/references/hardening-patterns.md",
         "mode": "100644",
-        "path": "skills/security-and-hardening/references/hardening-patterns.md"
+        "blob": "9449688ca4887e76ac7d2e0bd076b0a01bc1dd26"
+      },
+      {
+        "path": "skills/security-and-hardening/references/shared/security-checklist.md",
+        "mode": "100644",
+        "blob": "dbad3cc327ae035b64c762560ff779fae226ae48"
       }
     ],
     "repository": "https://github.com/samartomar/aih-extensions"
   },
   "matt": {
-    "commit": "59db609eb1e18aaf59b63284d0e52255aff0c63c",
+    "commit": "6f7f7831a625f040a8e06a0e7954826b87ce775a",
     "entries": [
       {
-        "blob": "f1dd2c09108dde1a5f56097cee8461b3ea834499",
+        "path": "LICENSE",
         "mode": "100644",
-        "path": "LICENSE"
+        "blob": "f1dd2c09108dde1a5f56097cee8461b3ea834499"
       },
       {
-        "blob": "01eadaa34e7c9a63a67d6dc3cce1cc81b0e49985",
+        "path": "skills/engineering/tdd/SKILL.md",
         "mode": "100644",
-        "path": "skills/engineering/tdd/SKILL.md"
+        "blob": "01eadaa34e7c9a63a67d6dc3cce1cc81b0e49985"
       },
       {
-        "blob": "651b838a7663e027b1b8884491e867f26bb9a021",
+        "path": "skills/engineering/tdd/agents/openai.yaml",
         "mode": "100644",
-        "path": "skills/engineering/tdd/agents/openai.yaml"
+        "blob": "651b838a7663e027b1b8884491e867f26bb9a021"
       },
       {
-        "blob": "71cbfee674d93244ce81d1830b930ca9a69200bd",
+        "path": "skills/engineering/tdd/mocking.md",
         "mode": "100644",
-        "path": "skills/engineering/tdd/mocking.md"
+        "blob": "71cbfee674d93244ce81d1830b930ca9a69200bd"
       },
       {
-        "blob": "7ab86479f925a1f9e8ba680af33cb3b12e015381",
+        "path": "skills/engineering/tdd/tests.md",
         "mode": "100644",
-        "path": "skills/engineering/tdd/tests.md"
+        "blob": "7ab86479f925a1f9e8ba680af33cb3b12e015381"
       }
     ],
     "repository": "https://github.com/mattpocock/skills"
   },
   "superpowers": {
-    "commit": "5bf4e78011075bcfc0dc295f0724994cd123ee71",
+    "commit": "22f0b463e7a5e579904dd6211a520321035526f7",
     "entries": [
       {
-        "blob": "abf0390320aa14406af7a520b9b0739fdda9bf08",
+        "path": "LICENSE",
         "mode": "100644",
-        "path": "LICENSE"
+        "blob": "abf0390320aa14406af7a520b9b0739fdda9bf08"
       },
       {
-        "blob": "67975137aafc8a097bdd1c2b51fea3989b8ad6c0",
+        "path": "hooks/hooks.json",
         "mode": "100644",
-        "path": "hooks/hooks.json"
+        "blob": "8b33bbe5d85ae3545a22e9e9e3ab227cb0e2295e"
       },
       {
-        "blob": "6d995da5c7d8d6c5a3cc63ddb701427f88ec2021",
+        "path": "skills/requesting-code-review/SKILL.md",
         "mode": "100644",
-        "path": "skills/requesting-code-review/SKILL.md"
+        "blob": "68d338a58ecdd8b77bfbb519b781ef223dbbb842"
       },
       {
-        "blob": "6d358b5d7d450c83cacbe450b7dbd4e673b694ad",
+        "path": "skills/requesting-code-review/code-reviewer.md",
         "mode": "100644",
-        "path": "skills/requesting-code-review/code-reviewer.md"
+        "blob": "6d358b5d7d450c83cacbe450b7dbd4e673b694ad"
       },
       {
-        "blob": "f7bbf6a01b519807ec00baf5e98522bed33f8834",
+        "path": "skills/subagent-driven-development/SKILL.md",
         "mode": "100644",
-        "path": "skills/subagent-driven-development/SKILL.md"
+        "blob": "45195787cb3f5d141af203e2fdc12f158be14522"
       },
       {
-        "blob": "5c8ecd61fba036263bf88d0af24d47125780efa0",
+        "path": "skills/subagent-driven-development/implementer-prompt.md",
         "mode": "100644",
-        "path": "skills/subagent-driven-development/implementer-prompt.md"
+        "blob": "5c8ecd61fba036263bf88d0af24d47125780efa0"
       },
       {
-        "blob": "d49c1825f01e79641ba37e5e942d1d2bbaad1a3c",
+        "path": "skills/subagent-driven-development/re-review-prompt.md",
         "mode": "100644",
-        "path": "skills/subagent-driven-development/re-review-prompt.md"
+        "blob": "eb520dfe7fc1b3d027feef4d4bf5e4abc4c1624e"
       },
       {
-        "blob": "fa7625f053dc852200ddd497662508ff1ae40bb1",
+        "path": "skills/subagent-driven-development/references/batching.md",
+        "mode": "100644",
+        "blob": "6224e4ba255ed8359d608aaa4b8af785b6fdee70"
+      },
+      {
+        "path": "skills/subagent-driven-development/references/cannot-verify.md",
+        "mode": "100644",
+        "blob": "e952f2d40c2646840f33f7856707f08828cbd46a"
+      },
+      {
+        "path": "skills/subagent-driven-development/references/final-review.md",
+        "mode": "100644",
+        "blob": "cf035464bd8b585532b2c01b5a78226ac3ba39dd"
+      },
+      {
+        "path": "skills/subagent-driven-development/references/fix-loop.md",
+        "mode": "100644",
+        "blob": "34e4a48fe16b69171e09a436857bdd57260fff58"
+      },
+      {
+        "path": "skills/subagent-driven-development/references/handling-reports.md",
+        "mode": "100644",
+        "blob": "cf91cdcddde1e051bf2fc51329197af4063b9dbc"
+      },
+      {
+        "path": "skills/subagent-driven-development/references/preflight.md",
+        "mode": "100644",
+        "blob": "170164883949e00aace6297b600b2c5a72bc6d5a"
+      },
+      {
+        "path": "skills/subagent-driven-development/references/resuming.md",
+        "mode": "100644",
+        "blob": "409b826eb8c875c51dd3799add37fcaab43b69b3"
+      },
+      {
+        "path": "skills/subagent-driven-development/scripts/review-package",
         "mode": "100755",
-        "path": "skills/subagent-driven-development/scripts/review-package"
+        "blob": "04c2b918c6289b49e716fe1faa0afc98a4e465f9"
       },
       {
-        "blob": "ff6b9839a8bc09c84291000b1e0645567ef53415",
+        "path": "skills/subagent-driven-development/scripts/sdd-repo",
         "mode": "100755",
-        "path": "skills/subagent-driven-development/scripts/sdd-workspace"
+        "blob": "b1756b975cf7df470bd4f8b8a0ed9e24f3d64c5f"
       },
       {
-        "blob": "b49fc546c85e1d6f6c8b523d6c887c55d98ed989",
+        "path": "skills/subagent-driven-development/scripts/sdd-workspace",
         "mode": "100755",
-        "path": "skills/subagent-driven-development/scripts/task-brief"
+        "blob": "ca3ac3b087fed24e460a249b6686910ea4ef5a95"
       },
       {
-        "blob": "5c619bc510440b7bf156e78c4dfc60f198963cf0",
-        "mode": "100644",
-        "path": "skills/subagent-driven-development/task-reviewer-prompt.md"
+        "path": "skills/subagent-driven-development/scripts/task-brief",
+        "mode": "100755",
+        "blob": "a490211ad85b3236de038df27261395ac107befc"
       },
       {
-        "blob": "1381dacb3516b94382dd6ec736ede21ee8ede2b3",
+        "path": "skills/subagent-driven-development/task-reviewer-prompt.md",
         "mode": "100644",
-        "path": "skills/using-git-worktrees/SKILL.md"
+        "blob": "4cf7860a45d386800fc3eaa6f346210146f3c397"
+      },
+      {
+        "path": "skills/using-git-worktrees/SKILL.md",
+        "mode": "100644",
+        "blob": "1381dacb3516b94382dd6ec736ede21ee8ede2b3"
       }
     ],
     "repository": "https://github.com/obra/superpowers"

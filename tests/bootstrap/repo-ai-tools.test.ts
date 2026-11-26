@@ -63,7 +63,7 @@ describe("aih-supported repository AI bootstrap", () => {
     expect(workflow).toContain(
       "- uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1\n        with:\n          persist-credentials: false",
     );
-    expect(workflow).toContain("actions/setup-node@820762786026740c76f36085b0efc47a31fe5020");
+    expect(workflow).toContain("actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1");
     expect(workflow).not.toContain("repo:init");
   });
 
@@ -332,47 +332,50 @@ describe("aih-supported repository AI bootstrap", () => {
     '[ mcp_servers . "code-review-graph" . env ]',
     '[mcp_servers."code-review-\\u0067raph"]',
     "[mcp_servers]",
-  ])("refuses client collision %s before acquisition and preserves deliberate hook policy", (header) => {
-    const fixture = mkdtempSync(join(tmpdir(), "catalog-bootstrap-"));
-    try {
-      mkdirSync(join(fixture, "tools"));
-      cpSync(join(root, "tools/repo-ai-tools.mjs"), join(fixture, "tools/repo-ai-tools.mjs"));
-      cpSync(join(root, "tools/repo-ai-tools"), join(fixture, "tools/repo-ai-tools"), {
-        recursive: true,
-      });
-      mkdirSync(join(fixture, ".codex"));
-      const config = `${header}\ncommand = "owned-by-someone-else"\n`;
-      writeFileSync(join(fixture, ".codex/config.toml"), config);
-      execFileSync("git", ["init", "-q", fixture]);
-      execFileSync("git", ["-C", fixture, "config", "core.hooksPath", "deliberate-hooks"]);
-      const result = spawnSync(
-        process.execPath,
-        ["tools/repo-ai-tools.mjs", "setup-codex", "--tool", "code-review-graph"],
-        {
-          cwd: fixture,
-          encoding: "utf8",
-          env: {
-            ...process.env,
-            PATH: "",
-            AIH_SUPPORTED_REPO_AI_TOOLS_HOME: join(fixture, "cache"),
+  ])(
+    "refuses client collision %s before acquisition and preserves deliberate hook policy",
+    (header) => {
+      const fixture = mkdtempSync(join(tmpdir(), "catalog-bootstrap-"));
+      try {
+        mkdirSync(join(fixture, "tools"));
+        cpSync(join(root, "tools/repo-ai-tools.mjs"), join(fixture, "tools/repo-ai-tools.mjs"));
+        cpSync(join(root, "tools/repo-ai-tools"), join(fixture, "tools/repo-ai-tools"), {
+          recursive: true,
+        });
+        mkdirSync(join(fixture, ".codex"));
+        const config = `${header}\ncommand = "owned-by-someone-else"\n`;
+        writeFileSync(join(fixture, ".codex/config.toml"), config);
+        execFileSync("git", ["init", "-q", fixture]);
+        execFileSync("git", ["-C", fixture, "config", "core.hooksPath", "deliberate-hooks"]);
+        const result = spawnSync(
+          process.execPath,
+          ["tools/repo-ai-tools.mjs", "setup-codex", "--tool", "code-review-graph"],
+          {
+            cwd: fixture,
+            encoding: "utf8",
+            env: {
+              ...process.env,
+              PATH: "",
+              AIH_SUPPORTED_REPO_AI_TOOLS_HOME: join(fixture, "cache"),
+            },
           },
-        },
-      );
-      expect(result.status).toBe(1);
-      expect(result.stderr).toContain("already owns");
-      expect(readFileSync(join(fixture, ".codex/config.toml"), "utf8")).toBe(config);
-      expect(
-        execFileSync("git", ["-C", fixture, "config", "core.hooksPath"], {
-          encoding: "utf8",
-        }).trim(),
-      ).toBe("deliberate-hooks");
-      expect(
-        spawnSync("git", ["-C", fixture, "status", "--porcelain"], { encoding: "utf8" }).stdout,
-      ).not.toContain("cache");
-    } finally {
-      rmSync(fixture, { recursive: true, force: true });
-    }
-  });
+        );
+        expect(result.status).toBe(1);
+        expect(result.stderr).toContain("already owns");
+        expect(readFileSync(join(fixture, ".codex/config.toml"), "utf8")).toBe(config);
+        expect(
+          execFileSync("git", ["-C", fixture, "config", "core.hooksPath"], {
+            encoding: "utf8",
+          }).trim(),
+        ).toBe("deliberate-hooks");
+        expect(
+          spawnSync("git", ["-C", fixture, "status", "--porcelain"], { encoding: "utf8" }).stdout,
+        ).not.toContain("cache");
+      } finally {
+        rmSync(fixture, { recursive: true, force: true });
+      }
+    },
+  );
 
   it.skipIf(process.platform === "win32")(
     "sets up only graph projection with stand-in installers in a disposable repository",
