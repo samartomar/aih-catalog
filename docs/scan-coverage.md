@@ -1,6 +1,6 @@
 # Catalog Scan coverage
 
-**961 of 1,069 Catalog versions have a published scan. 108 await one.**
+**971 of 1,069 Catalog versions have a published scan. 98 await one.**
 
 This snapshot covers 960 items across 14 families, including client editions, runtime bundles and plugin folders. See the [sources and refresh instructions](#sources-and-refresh).
 
@@ -14,11 +14,11 @@ Items and editions that share the same files, paths and modes count as one versi
 
 | Family | Items | Versions | Published | Pending | AI setups with qualifications |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| **All families** | 960 | 1,069 | 961 | 108 | 3 |
-| [Anthropic skills](#family-anthropic) | 18 | 24 | 14 | 10 | 0 |
+| **All families** | 960 | 1,069 | 971 | 98 | 3 |
+| [Anthropic skills](#family-anthropic) | 18 | 24 | 15 | 9 | 0 |
 | [codebase-memory-mcp](#family-cbm) | 2 | 1 | 1 | 0 | 1 |
 | [code-review-graph](#family-crg) | 9 | 8 | 8 | 0 | 1 |
-| [ECC](#family-ecc) | 698 | 775 | 736 | 39 | 0 |
+| [ECC](#family-ecc) | 698 | 775 | 744 | 31 | 0 |
 | [Elephant-Goldfish Model](#family-egm) | 18 | 21 | 18 | 3 | 0 |
 | [AIH Extensions](#family-extensions) | 66 | 67 | 59 | 8 | 0 |
 | [gstack](#family-gstack) | 61 | 61 | 25 | 36 | 0 |
@@ -28,7 +28,7 @@ Items and editions that share the same files, paths and modes count as one versi
 | [pstack](#family-pstack) | 61 | 83 | 80 | 3 | 0 |
 | [Serena](#family-serena) | 2 | 1 | 1 | 0 | 1 |
 | [Superpowers](#family-superpowers) | 17 | 18 | 12 | 6 | 0 |
-| [Web artifacts](#family-web-artifacts) | 1 | 1 | 0 | 1 | 0 |
+| [Web artifacts](#family-web-artifacts) | 1 | 1 | 1 | 0 | 0 |
 
 ## Look up an item or edition
 
@@ -45,7 +45,7 @@ Choose a family and search for the item's name. Each date links to the release f
 | brand-guidelines | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | canvas-design | Skill | AI · CAUTION · Complete ([Nov 4, 2026][release-1]) |
 | discernment-nudge | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| doc-coauthoring · upstream-only | Skill | No published scan yet |
+| doc-coauthoring · upstream-only | Skill | Static · SAFE · Complete ([Nov 26, 2026][release-4]) |
 | docx | Skill | No published scan yet |
 | frontend-design | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | internal-comms | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
@@ -525,7 +525,7 @@ Choose a family and search for the item's name. Each date links to the release f
 | build-fix | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | bun-runtime | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | canary-watch | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
-| carrier-relationship-management · upstream-only | Skill | No published scan yet |
+| carrier-relationship-management · upstream-only | Skill | Static · SAFE · Complete ([Nov 26, 2026][release-4]) |
 | change-impact | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | checkpoint | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | cisco-ios-patterns | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
@@ -571,7 +571,7 @@ Choose a family and search for the item's name. Each date links to the release f
 | crosspost | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | csharp-testing | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | customer-billing-ops | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| customs-trade-compliance · upstream-only | Skill | No published scan yet |
+| customs-trade-compliance · upstream-only | Skill | Static · SAFE · Complete ([Nov 26, 2026][release-4]) |
 | dart-flutter-patterns | Skill | No published scan yet |
 | dashboard-builder | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | data-scraper-agent | Skill | No published scan yet |
@@ -609,7 +609,7 @@ Choose a family and search for the item's name. Each date links to the release f
 | ecc-recipes | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | ecc-tools-cost-audit | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | email-ops | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| energy-procurement · upstream-only | Skill | No published scan yet |
+| energy-procurement · upstream-only | Skill | Static · SAFE · Complete ([Nov 26, 2026][release-4]) |
 | enterprise-agent-ops | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | epic-claim | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | epic-decompose | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
@@ -685,7 +685,7 @@ Choose a family and search for the item's name. Each date links to the release f
 | instinct-import | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | instinct-status | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | intent-driven-development | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
-| inventory-demand-planning · upstream-only | Skill | No published scan yet |
+| inventory-demand-planning · upstream-only | Skill | Static · CAUTION · Complete ([Nov 26, 2026][release-4]) |
 | investor-materials | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | investor-outreach | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | ios-icon-gen | Skill | AI · CAUTION · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
@@ -726,7 +726,7 @@ Choose a family and search for the item's name. Each date links to the release f
 | liquid-glass-design | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | living-docs-governance | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | llm-trading-agent-security | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| logistics-exception-management · upstream-only | Skill | No published scan yet |
+| logistics-exception-management · upstream-only | Skill | Static · SAFE · Complete ([Nov 26, 2026][release-4]) |
 | loop-design-check | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | loop-start | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | loop-status | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
@@ -799,7 +799,7 @@ Choose a family and search for the item's name. Each date links to the release f
 | product-capability | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | product-lens | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | production-audit | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| production-scheduling · upstream-only | Skill | No published scan yet |
+| production-scheduling · upstream-only | Skill | Static · SAFE · Complete ([Nov 26, 2026][release-4]) |
 | project-flow-ops | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | project-init | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | projects | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
@@ -820,7 +820,7 @@ Choose a family and search for the item's name. Each date links to the release f
 | pytorch-patterns | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | pytorch-patterns | Kiro edition | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | quality-gate | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
-| quality-nonconformance · upstream-only | Skill | No published scan yet |
+| quality-nonconformance · upstream-only | Skill | Static · SAFE · Complete ([Nov 26, 2026][release-4]) |
 | quarkus-patterns | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | quarkus-security | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | quarkus-tdd | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1]) |
@@ -902,7 +902,7 @@ Choose a family and search for the item's name. Each date links to the release f
 | swiftui-patterns | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | taste | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | taste-application | Skill | No published scan yet |
-| taste-distillation | Skill | No published scan yet |
+| taste-distillation | Skill | Static · DO NOT INSTALL · Complete ([Nov 26, 2026][release-4]) |
 | tasteforge-video | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
 | tdd-workflow | Skill | No published scan yet |
 | tdd-workflow | Kiro edition | AI · CAUTION · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
@@ -1312,7 +1312,7 @@ Choose a family and search for the item's name. Each date links to the release f
 
 | Name | Type | Published scans |
 | --- | --- | --- |
-| web-artifacts-builder-modern | Skill | No published scan yet |
+| web-artifacts-builder-modern | Skill | Static · SAFE · Complete ([Nov 26, 2026][release-4]) |
 
 ## Sources and refresh
 
@@ -1320,6 +1320,7 @@ Choose a family and search for the item's name. Each date links to the release f
 - [Nov 4, 2026][release-1] (`scan-catalog-results-20261104-e935f39b9f3148a5`). Index SHA-256 `8f26f56299fdcb8ab449f5f045a81e8d445a5bc7cb4a1e5ac7fc1ee23192eb27`.
 - [Nov 25, 2026][release-2] (`scan-catalog-results-20261125-static-r2-4c41927d737cbb61`). Index SHA-256 `3dbccb92bfc9a8d66c4d5162cb612750cf784da5690cc49ff6b2dc2865b3787f`.
 - [Nov 26, 2026][release-3] (`scan-catalog-results-20261126-ai-r1-d49d470d4176a239`). Index SHA-256 `5bb4c3f2370101db3f825942ee6f1aa8c8bd78d83db64e783867fb8780c0bb93`.
+- [Nov 26, 2026][release-4] (`scan-catalog-results-20261126-static-r1-30f45461de2c9123`). Index SHA-256 `e00c040c52031d32d066554d542b5243abd333741237f67cb9b7048104128ea1`.
 
 The generator checks SHA-256 for each downloaded index, archive and summary. It matches summaries by exact Scan key and shows the newest revision for each scan type. For signature verification and more on what a rating or completeness means, see [Scan's instructions](https://github.com/samartomar/aih-scan#signing-and-verification).
 
@@ -1337,9 +1338,11 @@ To reproduce this snapshot, run the same generator with the exact revision and r
 node tools/catalog-scan-coverage.mjs --catalog 3c1d0dbc50581bee0a682acb1c2183df94f7a2b8 \
   --release scan-catalog-results-20261104-e935f39b9f3148a5 \
   --release scan-catalog-results-20261125-static-r2-4c41927d737cbb61 \
-  --release scan-catalog-results-20261126-ai-r1-d49d470d4176a239
+  --release scan-catalog-results-20261126-ai-r1-d49d470d4176a239 \
+  --release scan-catalog-results-20261126-static-r1-30f45461de2c9123
 ```
 
 [release-1]: https://github.com/samartomar/aih-scan/releases/tag/scan-catalog-results-20261104-e935f39b9f3148a5
 [release-2]: https://github.com/samartomar/aih-scan/releases/tag/scan-catalog-results-20261125-static-r2-4c41927d737cbb61
 [release-3]: https://github.com/samartomar/aih-scan/releases/tag/scan-catalog-results-20261126-ai-r1-d49d470d4176a239
+[release-4]: https://github.com/samartomar/aih-scan/releases/tag/scan-catalog-results-20261126-static-r1-30f45461de2c9123
