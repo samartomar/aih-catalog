@@ -125,7 +125,7 @@ members, choice groups and the data commit it was written against. `readRecipe` 
 ## Data
 
 `data/<framework>/content.json` holds the content of ECC, Superpowers, Extensions,
-project-basics, Anthropic's skills, web-artifacts, the AIH guide, pstack, gstack, the
+project-basics, Anthropic's skills, web-artifacts, the AIH guide, Modern Web Guidance, pstack, gstack, the
 Elephant-Goldfish Model, code-review-graph, codebase-memory-mcp and Serena.
 `data/qualifications/` holds the qualification records by sha256. A data change is a commit,
 never a package release. All of this data is a candidate: none of its scan keys has been
@@ -146,6 +146,13 @@ npm install --ignore-scripts ./aihq-scan-0.0.0-dev.1.tgz ./aihq-catalog-0.0.0-de
 
 Catalog uses only `scanKeyOf` from `@aihq/scan/contracts`, so content scan keys and Scan's
 own keys are the same Git tree hash.
+
+The [Modern Web Guidance draft](port-report/remaining.json) lists Google Chrome's two
+skills as unchecked options on the items route. Catalog resolves their local guides and
+references from the exact upstream Git revision. The upstream `modern-web-guidance`
+skill also describes a separate runtime command using `modern-web-guidance@latest`,
+whose npm version is chosen at execution time. The data records no plugin host setup or
+approval to run that command.
 
 ## Contributing
 

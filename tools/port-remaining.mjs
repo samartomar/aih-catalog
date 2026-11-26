@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Ports the remaining content families (Anthropic, web-artifacts, guide, pstack, gstack and EGM)
+// Ports the remaining content families, including Chrome Modern Web Guidance,
 // through the ordinary producer, as `port-maintained.mjs` does for the maintained ones: each
 // upstream is fetched at its exact pin with `fetchSource` (no hooks, no lifecycle scripts,
 // nothing executed), `findItems` proposes the items, the authored facts below add editions,
@@ -51,6 +51,10 @@ const PINS = {
   guide: {
     repository: "https://github.com/samartomar/aih-extensions",
     commit: "c89adaad320d679c905e7122b908c1bc9c8c1904",
+  },
+  "modern-web-guidance": {
+    repository: "https://github.com/GoogleChrome/modern-web-guidance",
+    commit: "2b4aa13a72dd47cd135b06ce5abfccd92e19b24f",
   },
   pstack: {
     repository: "https://github.com/cursor/plugins",
@@ -270,6 +274,24 @@ async function guide(work) {
     framework: { id: "guide", name: "AIH Guide" },
   });
   return { built, files, extraFiles: [] };
+}
+
+async function modernWebGuidance(work) {
+  const family = "modern-web-guidance";
+  const fetched = await fetchPinned(family, work);
+  const skills = ["skills/chrome-extensions/", "skills/modern-web-guidance/"];
+  const files = fetched.files.filter((file) => file.path === "LICENSE" || under(skills)(file));
+  const found = discover(files, family, family, skills);
+  const ids = found.items.map((item) => item.id).sort();
+  if (ids.join(",") !== `${family}.skill.chrome-extensions,${family}.skill.modern-web-guidance`)
+    fail("Chrome Modern Web Guidance must discover both pinned skills");
+  const noticeId = "modern-web-guidance-notice";
+  const attribution = authored(family, noticeId);
+  const built = await build({ kind: "git", ...PINS[family] }, files, found.items, {
+    framework: { id: family, name: "Google Chrome Modern Web Guidance" },
+    sources: [{ id: noticeId, source: { kind: "authored" }, files: attribution, noticesFor: ids }],
+  });
+  return { built, files, extraFiles: attribution.map((file) => ({ ...file, sourceId: noticeId })) };
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -568,6 +590,23 @@ const NOT_PORTED = [
       "the guide's build inputs and its generation record; the generated agent files and the manual are the items",
   },
   {
+    family: "modern-web-guidance",
+    paths: [
+      ".agents/",
+      ".claude-plugin/",
+      ".codex-plugin/",
+      ".cursor-plugin/",
+      ".grok-plugin/",
+      "gemini-extension.json",
+      "kimi.plugin.json",
+      "package.json",
+      "plugin.json",
+      "policies/",
+    ],
+    reason:
+      "host plugin configuration, launcher metadata and policies are outside the two skill folders offered for optional discovery",
+  },
+  {
     family: "pstack",
     paths: ["automations/"],
     reason:
@@ -716,6 +755,7 @@ function chosen(results, recipe, ids, optional = []) {
 
 function recipes(results) {
   const pin = (name) => ({ repository: PINS[name].repository, commit: PINS[name].commit });
+  const modernWebGuidanceIds = NAMES(results["modern-web-guidance"].built);
   // Claude installs through a pinned marketplace the plan writes and names itself.
   const anthropicPlugin = (plugin) => ({
     source: "anthropic",
@@ -758,6 +798,18 @@ function recipes(results) {
       NAMES(results.guide.built),
       // No shipped profile has a place for documents yet.
       ["guide.document.manual"],
+    ),
+    "modern-web-guidance-base": chosen(
+      results,
+      {
+        id: "modern-web-guidance-base",
+        kind: "base",
+        framework: "modern-web-guidance",
+        content: pin("modern-web-guidance"),
+        routes: {},
+      },
+      modernWebGuidanceIds,
+      modernWebGuidanceIds,
     ),
     "pstack-base": chosen(
       results,
@@ -837,6 +889,7 @@ try {
     anthropic: await anthropic(work),
     "web-artifacts": await webArtifacts(),
     guide: await guide(work),
+    "modern-web-guidance": await modernWebGuidance(work),
     pstack: await pstack(work),
     gstack: await gstack(work),
     egm: await egm(work),
@@ -883,7 +936,7 @@ try {
     baseline: {
       measured: "urn:aihq:catalog:release:1.7.0",
       relation:
-        "none of these families' items is in the measured 777-item baseline (ECC, Superpowers, Extensions and project-basics, all disposed in port-report/maintained.json). Their earlier items live in older release documents, disposed below; pstack, gstack and EGM are new families with no earlier items",
+        "none of these families' items is in the measured 777-item baseline (ECC, Superpowers, Extensions and project-basics, all disposed in port-report/maintained.json). Their earlier items live in older release documents, disposed below; Modern Web Guidance, pstack, gstack and EGM are new families with no earlier items",
       earlier: Object.fromEntries(
         Object.entries(RELEASES).map(([family, file]) => [
           family,

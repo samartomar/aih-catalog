@@ -509,7 +509,7 @@ describe("the remaining-port report", () => {
       notice: 3,
       dropped: 22,
       upstreamOnly: 1,
-      contentItems: 161,
+      contentItems: 163,
     });
     const byId = new Map(
       REPORT.dispositions.map((entry: { earlier: { id: string } }) => [entry.earlier.id, entry]),

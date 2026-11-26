@@ -1,0 +1,1953 @@
+{
+  "framework": {
+    "id": "modern-web-guidance",
+    "name": "Google Chrome Modern Web Guidance"
+  },
+  "items": [
+    {
+      "arguments": false,
+      "behaviourSha256": "b613a9857551f62665e78909097ee13ee6d6c68e0854b5a09c1418a2e7cb1721",
+      "contentSha256": "2cc213fc71042fa7196693bcc6a163b682a7f70eb78d0250f11c3c7240398e8d",
+      "description": "Build and publish Chrome Extensions using Manifest V3 best practices. Use this skill whenever the user asks to create, modify, debug, or understand Chrome browser extensions, add-ons, or anything involving the Chrome Extensions API. Trigger on mentions of: 'Chrome extension', 'browser extension', 'manifest.json', 'content script', 'service worker' (in browser context), 'popup' (in browser extension context), 'side panel', 'chrome.* API', 'declarativeNetRequest', 'omnibox', 'context menu' (in extension context), 'userScripts', 'user script', 'script manager', or any request to build functionality that integrates with the Chrome browser UI. Also trigger for publishing to the Chrome Web Store: 'publish extension', preparing an extension for publishing, responding to a review rejection, writing permission justifications, or drafting a privacy policy.\n",
+      "files": [
+        {
+          "bytes": 26456,
+          "executable": false,
+          "role": "content",
+          "sha256": "c67d9e4ba9da93ed0da8b0147235e5890aa24e659548f65b7765c5af0a470c3f",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/chrome-extensions/SKILL.md"
+        },
+        {
+          "bytes": 2188,
+          "executable": false,
+          "role": "content",
+          "sha256": "0c34c9b231f3d767b6961de6d1e87c4ca9535a4f6c2ed4dfe60bb48b73626254",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/chrome-extensions/references/extensions/api-calling.md"
+        },
+        {
+          "bytes": 4036,
+          "executable": false,
+          "role": "content",
+          "sha256": "0a79f08a39a1835b7b7b7bf95e05cd33c4e4691efe6b75b1c59057260101fbd0",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/chrome-extensions/references/extensions/auth-identity.md"
+        },
+        {
+          "bytes": 3506,
+          "executable": false,
+          "role": "content",
+          "sha256": "9439394dc38f49ba1147cde2508741f16825f8659c2c97925b71abe6af104d6c",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/chrome-extensions/references/extensions/content-scripts.md"
+        },
+        {
+          "bytes": 1844,
+          "executable": false,
+          "role": "content",
+          "sha256": "c69c6d409e7a1adb00786541f3a857e0770867fb23bb7aa6bb76ed35fffb850b",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/chrome-extensions/references/extensions/context-menus.md"
+        },
+        {
+          "bytes": 4810,
+          "executable": false,
+          "role": "content",
+          "sha256": "3169a8f2f636a912212cbd12636a58337b1df07b333ea5818aec6eea50398228",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/chrome-extensions/references/extensions/csp-sandbox.md"
+        },
+        {
+          "bytes": 2794,
+          "executable": false,
+          "role": "content",
+          "sha256": "4b986713921da1a1e12dd68da5ee8684e43b8a084f323cced503bcb8dc8b8b03",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/chrome-extensions/references/extensions/declarative-net-request.md"
+        },
+        {
+          "bytes": 2889,
+          "executable": false,
+          "role": "content",
+          "sha256": "816bd0e240a6814713b59f045461c6c24e54502b302425abe463c34f932babf7",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/chrome-extensions/references/extensions/devtools.md"
+        },
+        {
+          "bytes": 2756,
+          "executable": false,
+          "role": "content",
+          "sha256": "a996281d5482fa145a7912c92f71fe4eb582a0e91e674f9fef02379aecb0fce3",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/chrome-extensions/references/extensions/icons.md"
+        },
+        {
+          "bytes": 4805,
+          "executable": false,
+          "role": "content",
+          "sha256": "c6bddb3c51c0b0f36d302e7dfde9558dea5eb5febccda315e911119a6e08cea3",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/chrome-extensions/references/extensions/media-capture.md"
+        },
+        {
+          "bytes": 4214,
+          "executable": false,
+          "role": "content",
+          "sha256": "d4c4d84caa6761a5afb31f013ac780c2db157f3a14a23b6c0070730141dbf254",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/chrome-extensions/references/extensions/message-passing.md"
+        },
+        {
+          "bytes": 1819,
+          "executable": false,
+          "role": "content",
+          "sha256": "e310ccccc673bb4cb4c4ed42a8eb821af30e271145ee06db79f62649def4bd5c",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/chrome-extensions/references/extensions/omnibox.md"
+        },
+        {
+          "bytes": 4641,
+          "executable": false,
+          "role": "content",
+          "sha256": "b9d248c90380a31d171429b6bb1c007f897647acb83f83c98e0018260d6ae299",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/chrome-extensions/references/extensions/permissions.md"
+        },
+        {
+          "bytes": 2378,
+          "executable": false,
+          "role": "content",
+          "sha256": "2a9567e5b431910702542707a09357f2031969238bda7807155dbecb1a317fb4",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/chrome-extensions/references/extensions/popup-ui.md"
+        },
+        {
+          "bytes": 3835,
+          "executable": false,
+          "role": "content",
+          "sha256": "f376c73354ec804dc00dc1e14d0fec8f19da79f5d7c141bd5a6b40d6e49e0330",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/chrome-extensions/references/extensions/prompt-api.md"
+        },
+        {
+          "bytes": 4591,
+          "executable": false,
+          "role": "content",
+          "sha256": "6149ec9e5a1185486ba7157d631a24525b41377d4d2c4af13058ea2f6e2715d1",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/chrome-extensions/references/extensions/service-worker.md"
+        },
+        {
+          "bytes": 4480,
+          "executable": false,
+          "role": "content",
+          "sha256": "7e6b68b9aff6532495b8d89af097bb3c0f72b3a329c92a598be3ca50a43ed15c",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/chrome-extensions/references/extensions/side-panel.md"
+        },
+        {
+          "bytes": 1965,
+          "executable": false,
+          "role": "content",
+          "sha256": "208736186cdc606d4d98efe64ea17f1087f13755415360d59035879e7580dde2",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/chrome-extensions/references/extensions/storage.md"
+        },
+        {
+          "bytes": 3756,
+          "executable": false,
+          "role": "content",
+          "sha256": "f16f568aaa5015985a6fc03c748f2f85ab66284e510ed0e782f637f3ae492622",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/chrome-extensions/references/extensions/tab-management.md"
+        },
+        {
+          "bytes": 9414,
+          "executable": false,
+          "role": "content",
+          "sha256": "9f77cbd366392ad64be07bb566104c79ff6eb0fbc2b3629495376bc7e23cd83d",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/chrome-extensions/references/extensions/user-scripts.md"
+        },
+        {
+          "bytes": 5786,
+          "executable": false,
+          "role": "content",
+          "sha256": "52aad75138110ffe1b4d21aa1abe702ad796b7627fbb027a482d939c30b29e1b",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/chrome-extensions/references/webstore/chromewebstore-template.md"
+        },
+        {
+          "bytes": 4247,
+          "executable": false,
+          "role": "content",
+          "sha256": "70dda79e2d5e2d574b10c0121c2f9ea7ab6d644229af570d93c69042f2ef3f98",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/chrome-extensions/references/webstore/privacy-policy.md"
+        },
+        {
+          "bytes": 7074,
+          "executable": false,
+          "role": "content",
+          "sha256": "5d13e2a60b823f82411ec97c75736aa1395dc387e1354c0c05b52a109c22c45f",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/chrome-extensions/references/webstore/review-checklist.md"
+        },
+        {
+          "bytes": 8033,
+          "executable": false,
+          "role": "content",
+          "sha256": "394978cc316486da9a35a30344e380bf072db7d25b54f89a9f285d98660fafb0",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/chrome-extensions/references/webstore/store-listing.md"
+        }
+      ],
+      "id": "modern-web-guidance.skill.chrome-extensions",
+      "kind": "skill",
+      "name": "chrome-extensions",
+      "scanKey": "git-sha1:70ae21f9bbccb4d97c2748dffcc227f9ed07c6cf",
+      "userOnly": false
+    },
+    {
+      "arguments": false,
+      "behaviourSha256": "6eeb74773a86b9cff8143358bfad8144f700f4f4fc07f342e2cb135675a9c701",
+      "contentSha256": "867ba13710bd5cfd94b2253409d0bec246e6473a9f19f287d75335017cd62f13",
+      "description": "Search tool for modern web development best practices. MANDATORY: Execute FIRST for all HTML/CSS and clientside JS tasks. Do NOT skip — web APIs evolve rapidly and training weights contain obsolete patterns.\nTrigger immediately for: modals/dialogs/popovers, tables, dark mode, anchor positioning, container queries, view transitions, scroll-driven animations, parallax/reveals, forms, validation, autofill, accessibility, custom selects, scrollbars, CWV (LCP, INP, CLS), content-visibility, fetch priority, image optimization, security, passkeys, HTML sanitization, web components, dates/timezones, built-in AI, WebAssembly, standard HTML/CSS/DOM in frameworks, etc.\nDO NOT trigger for: backend (SQL, ORMs, API routes), infra/scripts (CI/CD, Docker, Actions, Python/Go, Git), or tooling/trivial (Vite, tsconfig, ESLint, tests, copy/renames, 3P docs), etc.\n",
+      "files": [
+        {
+          "bytes": 9807,
+          "executable": false,
+          "role": "content",
+          "sha256": "4bbd5a56220b3560cd76a665d0aa21c8db5acb1b51088e47463eb068d9f6317d",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/SKILL.md"
+        },
+        {
+          "bytes": 51700,
+          "executable": false,
+          "role": "content",
+          "sha256": "752d3998044bbcdd2736262906ba0951fd6e334efeb52ebf1f8f54cbb6e21217",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/accessibility/accessibility.md"
+        },
+        {
+          "bytes": 13642,
+          "executable": false,
+          "role": "content",
+          "sha256": "82b0bc7b4a67cc1aa7d9ddfbbc5c1289560e851bad7597f3fff6db5964ace3c7",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/accessibility/accessible-error-announcement.md"
+        },
+        {
+          "bytes": 2215,
+          "executable": false,
+          "role": "content",
+          "sha256": "41f549013461d609d9077250527515422c72acfc8a8743b45442797426baad4b",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/accessibility/accessible-generated-content.md"
+        },
+        {
+          "bytes": 7224,
+          "executable": false,
+          "role": "content",
+          "sha256": "c6bc60d7b68cb2723dee1ac1cc6b5801bf2fec1b1957c7751a36e05030e38904",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/accessibility/respect-os-text-scale.md"
+        },
+        {
+          "bytes": 3663,
+          "executable": false,
+          "role": "content",
+          "sha256": "75acb2235f39a5df396ace784ce91aad6ba8d0d4743d5c87c9b4ceda09b49fcf",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/built-in-ai/language-detection.md"
+        },
+        {
+          "bytes": 19418,
+          "executable": false,
+          "role": "content",
+          "sha256": "9edc06cac36c7c6940832678d8f715b7ae199bb1f6811189fbe52962dd5f3830",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/built-in-ai/language-model.md"
+        },
+        {
+          "bytes": 19418,
+          "executable": false,
+          "role": "content",
+          "sha256": "9edc06cac36c7c6940832678d8f715b7ae199bb1f6811189fbe52962dd5f3830",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/built-in-ai/prompt-api.md"
+        },
+        {
+          "bytes": 6360,
+          "executable": false,
+          "role": "content",
+          "sha256": "e867bb8c563bfff29442644debd851762deaa09fdcbc69c458238d6e0fee523c",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/built-in-ai/summarizer.md"
+        },
+        {
+          "bytes": 7657,
+          "executable": false,
+          "role": "content",
+          "sha256": "31f95e20234b6b5e44e878dbfa15d66887afc9d8b581777713c4f455465974b5",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/built-in-ai/translator.md"
+        },
+        {
+          "bytes": 5809,
+          "executable": false,
+          "role": "content",
+          "sha256": "aec9a5b2ef6dbd742d94f0d39c173c9586d25c87410d54d97217acfd218886c7",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/css/animate-to-intrinsic-sizes.md"
+        },
+        {
+          "bytes": 5775,
+          "executable": false,
+          "role": "content",
+          "sha256": "ec27ce4152550f5bdecf49ec759ce761f6398f705ef40d179114d1007c189627",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/css/atrule-support-conditionals.md"
+        },
+        {
+          "bytes": 10671,
+          "executable": false,
+          "role": "content",
+          "sha256": "f5f951be8a6a3199048e67bb8ace9abaebaf8d82287b0eee2a4e20d162bf8d23",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/css/calculate-with-intrinsic-sizes.md"
+        },
+        {
+          "bytes": 4969,
+          "executable": false,
+          "role": "content",
+          "sha256": "003e92ac56029dbf40925e5dc01a6b0362ebaaebae6996755d2c35a6b5dafd3e",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/css/child-state-based-styling.md"
+        },
+        {
+          "bytes": 5341,
+          "executable": false,
+          "role": "content",
+          "sha256": "e2f89c713bf0959898ff9d3d83f606a69b248abf572da25f47ba68db02aac3e1",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/css/content-based-styling.md"
+        },
+        {
+          "bytes": 21844,
+          "executable": false,
+          "role": "content",
+          "sha256": "1a1ad52e86158182ddb5f79bf46f64bd419ea15a18627cda3df159d25146d5f5",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/css/css-layout.md"
+        },
+        {
+          "bytes": 12546,
+          "executable": false,
+          "role": "content",
+          "sha256": "1a32fb79887417cb93874ff03d02f2e00deff1e88a531c140bb2c61186aaae79",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/css/css.md"
+        },
+        {
+          "bytes": 5922,
+          "executable": false,
+          "role": "content",
+          "sha256": "b01a7c7f3acbe3dac8ecb0e5f46301cc4ca13a6e5cb25d93ca96a59a798fa906",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/css/design-token-reactivity.md"
+        },
+        {
+          "bytes": 3689,
+          "executable": false,
+          "role": "content",
+          "sha256": "2aeec9f0bc264365b952180594780a3e9e5d8263232791e8220f0d7f7876d712",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/css/dynamic-sibling-styling.md"
+        },
+        {
+          "bytes": 3317,
+          "executable": false,
+          "role": "content",
+          "sha256": "8b86dfa13f3b8971ed345b758d488c2130b4ff0a6d05f8b71a9308610f962509",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/css/fluid-scaling.md"
+        },
+        {
+          "bytes": 3693,
+          "executable": false,
+          "role": "content",
+          "sha256": "5dea4d563fe07b39b820feda8683fa25bfa7948a1c6d1ce9de417fb050e2d374",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/css/individual-transform-properties.md"
+        },
+        {
+          "bytes": 8248,
+          "executable": false,
+          "role": "content",
+          "sha256": "db3cb3c57960e7ce4c170b5719ea877c8fc41c07fe79a730ff7838e18da1ce2e",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/css/overflow-clipping-control.md"
+        },
+        {
+          "bytes": 4011,
+          "executable": false,
+          "role": "content",
+          "sha256": "08250d9f19b128548e317ea95e63f8ed967916e2ffac99edcb161e3002660814",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/css/reduce-style-repetition.md"
+        },
+        {
+          "bytes": 1885,
+          "executable": false,
+          "role": "content",
+          "sha256": "4bd7f40d677cbaeaebddac90aa2b23a81701ef6c2215b689148906f8d4d2da8f",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/css/responsive-design.md"
+        },
+        {
+          "bytes": 3650,
+          "executable": false,
+          "role": "content",
+          "sha256": "e26e044839fdf4c62b430438378e27bbac9e91c4527fcb6a4b3d5fa505c11a14",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/css/selector-atrule-combinations.md"
+        },
+        {
+          "bytes": 2993,
+          "executable": false,
+          "role": "content",
+          "sha256": "18605ef97e5cd22604ce07be958176ad700c17ac7387790ddeff78ddbce1b7b1",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/css/size-aware-styling.md"
+        },
+        {
+          "bytes": 13964,
+          "executable": false,
+          "role": "content",
+          "sha256": "ae79167408e3b708c7c75b67922329e6ffbb7913b8b34185535c585946d27275",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/css/style-parent-with-has.md"
+        },
+        {
+          "bytes": 5270,
+          "executable": false,
+          "role": "content",
+          "sha256": "515b34e7a6f9174fb4a6bbcc6a9af39d1e78d10adecdceb22f56b6b9bc1516d6",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/css/usage-aware-component-variations.md"
+        },
+        {
+          "bytes": 8748,
+          "executable": false,
+          "role": "content",
+          "sha256": "ece2590624c8e3e4ef8e3142adfa0e49df7e4face93a299066971f2d473dd2e4",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/forms/animated-select-picker.md"
+        },
+        {
+          "bytes": 5009,
+          "executable": false,
+          "role": "content",
+          "sha256": "e815c4090a0492773536581db3f4592beba42c8a902596df24d0327cf50e6759",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/forms/autofill-address-form.md"
+        },
+        {
+          "bytes": 3628,
+          "executable": false,
+          "role": "content",
+          "sha256": "2bb8fe8ea0028bcc5fe38b0932c57415d294f94036b8d769d1afe9344be29c55",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/forms/autofill-highlight-inputs.md"
+        },
+        {
+          "bytes": 9970,
+          "executable": false,
+          "role": "content",
+          "sha256": "67a7bb1c11b4d92384d8ab3fb65386bb02507682243ad5d8e16761314222789f",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/forms/autofill-payment-form.md"
+        },
+        {
+          "bytes": 10767,
+          "executable": false,
+          "role": "content",
+          "sha256": "c5a0dffe9ea99f3aa4798e40f2bc5df6d6b89b149ebe39f9900bf285f2b1000b",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/forms/autofill-sign-in-form.md"
+        },
+        {
+          "bytes": 11865,
+          "executable": false,
+          "role": "content",
+          "sha256": "ffeec44068317c566fc97966b744849af174a21fc90ae4ee53ced268afacf55a",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/forms/autofill-sign-up-form.md"
+        },
+        {
+          "bytes": 8564,
+          "executable": false,
+          "role": "content",
+          "sha256": "865f0f3e50b19c03f284fe9876a02051c223e6eb2c0b4c2197994bb0b30bfd48",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/forms/brand-consistent-forms.md"
+        },
+        {
+          "bytes": 5785,
+          "executable": false,
+          "role": "content",
+          "sha256": "668c499fd8ff48c6b758e1995caf21468a8b832d71e41055dd0922db7787dcd5",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/forms/branded-select-styling.md"
+        },
+        {
+          "bytes": 8000,
+          "executable": false,
+          "role": "content",
+          "sha256": "698a394e930ff5402e303849f110f3b827a7712ed766521f96850e87f92c8837",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/forms/custom-select-picker-layouts.md"
+        },
+        {
+          "bytes": 6042,
+          "executable": false,
+          "role": "content",
+          "sha256": "34f5d124e79b3c438a3ae8541e9974186c628f03ece91a588d19506d1865b502",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/forms/form-fields-automatically-fit-contents.md"
+        },
+        {
+          "bytes": 19384,
+          "executable": false,
+          "role": "content",
+          "sha256": "520189142652662313fd4107ee20232cddc89f33a9e99dedb8d789275367f9c3",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/forms/forms.md"
+        },
+        {
+          "bytes": 6440,
+          "executable": false,
+          "role": "content",
+          "sha256": "aa23bca5b8217e00fe1033741d473e1548e140ba4863a5ae7ac7f2c02132430c",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/forms/ime-safe-enter-submit.md"
+        },
+        {
+          "bytes": 14251,
+          "executable": false,
+          "role": "content",
+          "sha256": "ca405c5cd6f67740d92701780c3967c4d27b7bba41f2ff5a6361350feaefecab",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/forms/required-field-feedback.md"
+        },
+        {
+          "bytes": 10728,
+          "executable": false,
+          "role": "content",
+          "sha256": "a1bc156f539a4537a2c1c9a185d65c7eb9bae55f0a1fe670e0f68aa779ad36ae",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/forms/rich-media-picker.md"
+        },
+        {
+          "bytes": 13181,
+          "executable": false,
+          "role": "content",
+          "sha256": "9a1ee8b7111daaf6dc17bec3c6e7c27397d3616e9c5309d64dcefd11c876e83a",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/forms/select-menu-interaction.md"
+        },
+        {
+          "bytes": 6885,
+          "executable": false,
+          "role": "content",
+          "sha256": "1ee48919f3566a852bbf2b2e737444ee8d124d89e2fd3451e303c99cd40851a7",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/forms/slider.md"
+        },
+        {
+          "bytes": 12806,
+          "executable": false,
+          "role": "content",
+          "sha256": "fb464bcddd10e89b3fead8fa54cadc911f3f64dc6bc2d4491756f11d301767c9",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/forms/sms-otp-form.md"
+        },
+        {
+          "bytes": 2689,
+          "executable": false,
+          "role": "content",
+          "sha256": "5672a65984dec3f24fa4eb32c3eed494c2c4d38dc06c4fa71366065f89a638fd",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/forms/switch.md"
+        },
+        {
+          "bytes": 17625,
+          "executable": false,
+          "role": "content",
+          "sha256": "82a6c3f553225e8d4122ef7d2dba83f0254224943420722ec38032c13b19d6d7",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/forms/validate-input-after-interaction.md"
+        },
+        {
+          "bytes": 5239,
+          "executable": false,
+          "role": "content",
+          "sha256": "352e79a510212b4c1db3b15f1c0c0622d3b9ccd046b5344661e0a4ff49970b10",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/html/accessible-web-components.md"
+        },
+        {
+          "bytes": 12508,
+          "executable": false,
+          "role": "content",
+          "sha256": "4466622b5123418a5260bf8898c91b502fe2b8f4b1417ffb8ce2db9c7d2d9ae3",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/html/custom-elements.md"
+        },
+        {
+          "bytes": 5012,
+          "executable": false,
+          "role": "content",
+          "sha256": "fcd42a21af01cbbe9fcd39130715c13f2bde96267b2face085cfa23259771748",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/html/form-associated-custom-elements.md"
+        },
+        {
+          "bytes": 21320,
+          "executable": false,
+          "role": "content",
+          "sha256": "dc036032af7cb0d3e9869722fa143708539b90893ff83efdbaff43541be652b4",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/html/html.md"
+        },
+        {
+          "bytes": 3679,
+          "executable": false,
+          "role": "content",
+          "sha256": "f2ca79f7f06265f8ac0cbdcb63301dc6b844c113a45e2f3f26c0411bcc49c06b",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/html/prerendering-custom-elements.md"
+        },
+        {
+          "bytes": 3922,
+          "executable": false,
+          "role": "content",
+          "sha256": "d1fc2affdc23b2747735b0a0c5d4cdc0539d35e9ae25b8aa35deb9bb457746f6",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/html/shadow-dom.md"
+        },
+        {
+          "bytes": 8891,
+          "executable": false,
+          "role": "content",
+          "sha256": "4f7091c06baafc5121bcc384e129a7dad9ba705f58c87ae2903dd769d555d8a7",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/html/styling-web-components.md"
+        },
+        {
+          "bytes": 6804,
+          "executable": false,
+          "role": "content",
+          "sha256": "461bda02f56ff44a855180aca8780869b82c3eb9d47cab3efd86a1c3bdfe015e",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/html/web-components.md"
+        },
+        {
+          "bytes": 8465,
+          "executable": false,
+          "role": "content",
+          "sha256": "866733a5e75eb70bfbf57b3529c22f0b27c63bdd6f9a6f3a2b8714d139b61ec7",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/js/calculate-event-differentials.md"
+        },
+        {
+          "bytes": 9882,
+          "executable": false,
+          "role": "content",
+          "sha256": "3a1039daa207f3192a530e609a08a5aa575528178160f75c7dc20de9e906db53",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/js/capture-location-agnostic-data.md"
+        },
+        {
+          "bytes": 4045,
+          "executable": false,
+          "role": "content",
+          "sha256": "9cd071b748235939c90490752555df5a8c14ac9a3f9f9820b7f15ab060e1ce9a",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/js/coordinate-global-events.md"
+        },
+        {
+          "bytes": 30395,
+          "executable": false,
+          "role": "content",
+          "sha256": "54dffd0bd882f296f7a4b6f5cb0c6045e09ec011987e32f2c93dc61ab269c961",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/js/js.md"
+        },
+        {
+          "bytes": 6708,
+          "executable": false,
+          "role": "content",
+          "sha256": "d3ce6cd029606786c215fb19c4971858a03c2c57fa269fcea5598c6cbaa66f2d",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/js/sort-high-precision-timestamps.md"
+        },
+        {
+          "bytes": 5988,
+          "executable": false,
+          "role": "content",
+          "sha256": "5bb6d639330117efe1b9b6b8ced7d93c1a1443cfe86e013ac764465016244aae",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/js/support-global-calendar-systems.md"
+        },
+        {
+          "bytes": 6594,
+          "executable": false,
+          "role": "content",
+          "sha256": "4233400a2e90fdb93ecc5de90a947b561fac0cf16eb1284007ed7c2e23117c72",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/performance/batch-analytics-events.md"
+        },
+        {
+          "bytes": 3190,
+          "executable": false,
+          "role": "content",
+          "sha256": "f59316388b8bf1e1a5ac2e655ad3231195de98c71caa5e0da3702ed88f1c0d35",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/performance/break-up-long-tasks.md"
+        },
+        {
+          "bytes": 2978,
+          "executable": false,
+          "role": "content",
+          "sha256": "867b01937c2c2734a5165174e712e2d6fcf8f40895e0b8ba752aea4c53654e4d",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/performance/calculate-total-foreground-time.md"
+        },
+        {
+          "bytes": 5419,
+          "executable": false,
+          "role": "content",
+          "sha256": "dbbae1b3a60a26c9ad041e87fe7ebdd19ea2faaebb885a6f996a5c77175e362d",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/performance/conditional-async-dependencies.md"
+        },
+        {
+          "bytes": 6418,
+          "executable": false,
+          "role": "content",
+          "sha256": "99f4e9b7b376b7be9c9acd22c04ec66d8bb8b50677a31d212c394d84f74adae9",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/performance/defer-rendering-heavy-content.md"
+        },
+        {
+          "bytes": 3367,
+          "executable": false,
+          "role": "content",
+          "sha256": "f7e93312844a9da5f81d2092072f326a5b6041606f9945992781b01ee83e38ac",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/performance/defer-work-until-scroll-ends.md"
+        },
+        {
+          "bytes": 2918,
+          "executable": false,
+          "role": "content",
+          "sha256": "5537b241966ff8a8e9ce99232ed715d887aad8db72965ca77965a328ebc41ab1",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/performance/deliver-optimized-decorative-images.md"
+        },
+        {
+          "bytes": 1870,
+          "executable": false,
+          "role": "content",
+          "sha256": "14836fc6fc94567c2451ef427c11c381a71b1d348ae57f23b4082eceb9773b12",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/performance/deprioritize-background-fetches.md"
+        },
+        {
+          "bytes": 4675,
+          "executable": false,
+          "role": "content",
+          "sha256": "0b25ee2c2c22ea9de9122ec7dada3374573bc0f91c002ef74129e44eedb2aa8c",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/performance/detect-initial-visibility-state.md"
+        },
+        {
+          "bytes": 5141,
+          "executable": false,
+          "role": "content",
+          "sha256": "81b62df212b562faa35210d8e05a64265ae0a58ac10f16d52dc854408de0cb42",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/performance/efficient-background-processing.md"
+        },
+        {
+          "bytes": 3733,
+          "executable": false,
+          "role": "content",
+          "sha256": "c8a397c7fb5c41a09e3d52ad8af1988b7c89ee45795a6f45df00efe3ade91a85",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/performance/faster-spa-view-transitions.md"
+        },
+        {
+          "bytes": 8671,
+          "executable": false,
+          "role": "content",
+          "sha256": "6b12c61733a35960a52c3a16e35d634f991e5ec1e9117f1d41bff8c2caf173db",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/performance/flicker-free-client-side-ab-testing.md"
+        },
+        {
+          "bytes": 5842,
+          "executable": false,
+          "role": "content",
+          "sha256": "d0867403f262e8eabd35452a49321b451ea84e6200d236be5cc957168021d172",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/performance/full-session-analytics.md"
+        },
+        {
+          "bytes": 4333,
+          "executable": false,
+          "role": "content",
+          "sha256": "7b70e9b8e3bcd1cbf142b9242388888888fc922eee9bcad85a01d1a035d70620",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/performance/identify-heavy-scripts.md"
+        },
+        {
+          "bytes": 8912,
+          "executable": false,
+          "role": "content",
+          "sha256": "2a2a4c8ce12872a62de18690022b00655cc89ca201dd8d2058b65d81b95fa138",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/performance/identify-inp-causes.md"
+        },
+        {
+          "bytes": 7337,
+          "executable": false,
+          "role": "content",
+          "sha256": "64747264bc23cf01e46c542097b2975cf94c2aabc2c878147297b7ea01d07b55",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/performance/improve-next-page-load-performance.md"
+        },
+        {
+          "bytes": 11508,
+          "executable": false,
+          "role": "content",
+          "sha256": "65c00b9da9b93482a2bb7f09c165693e655493e846b2fb3de0c806b3773b203f",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/performance/interaction-paint-timing.md"
+        },
+        {
+          "bytes": 3432,
+          "executable": false,
+          "role": "content",
+          "sha256": "32519cb50656ec3188565cf934826f483c1f1ef3075547dc04414f1908deafc3",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/performance/interactions-in-complex-layouts.md"
+        },
+        {
+          "bytes": 9789,
+          "executable": false,
+          "role": "content",
+          "sha256": "c0e4753df3153663faa3ecad330dec3cd8d4d18ddf9cff1edb71b4ca13c9e9f1",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/performance/lazy-load-video-and-audio.md"
+        },
+        {
+          "bytes": 4592,
+          "executable": false,
+          "role": "content",
+          "sha256": "4f1345b87b2e96b3e97185082cd1f38b8fc06f5a2e98f5c66062aa88ed00bc46",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/performance/optimize-image-priority.md"
+        },
+        {
+          "bytes": 3357,
+          "executable": false,
+          "role": "content",
+          "sha256": "5239d1bb2718a2698a5288b069018af1cf40385c2a2d997e7ab9d7b49c892bf1",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/performance/optimize-preload-priority.md"
+        },
+        {
+          "bytes": 2650,
+          "executable": false,
+          "role": "content",
+          "sha256": "a3b6af33195d56febe9ca9490af06e420b0d3c62f37d9cf3594f89233d5ab41a",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/performance/optimize-script-priority.md"
+        },
+        {
+          "bytes": 12520,
+          "executable": false,
+          "role": "content",
+          "sha256": "63d94e3c8a026b0eb1795598e86eb483d7d1580826575311b16ca69e4a57fe4c",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/performance/out-of-order-html-streaming.md"
+        },
+        {
+          "bytes": 21115,
+          "executable": false,
+          "role": "content",
+          "sha256": "0dde03667a73cb67e56994b7737d33af90ffabb57b594d35a99da2fba2cca273",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/performance/performance.md"
+        },
+        {
+          "bytes": 2378,
+          "executable": false,
+          "role": "content",
+          "sha256": "05375d370b54f814e07ce0232f0909ee2a937e03d1a53f7004620dc9e9916fb8",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/performance/resolution-optimized-pseudo-elements.md"
+        },
+        {
+          "bytes": 3866,
+          "executable": false,
+          "role": "content",
+          "sha256": "89729b3d10964d3fd25e632a41af23ccd477119c32cc2a727a7051cedc8c0895",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/performance/schedule-tasks-by-priority.md"
+        },
+        {
+          "bytes": 11213,
+          "executable": false,
+          "role": "content",
+          "sha256": "0abfb8bbaa1766cd9a986cdf925b05dda21fd7b0d5cf46d52335572cc481e28d",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/privacy/privacy.md"
+        },
+        {
+          "bytes": 15335,
+          "executable": false,
+          "role": "content",
+          "sha256": "b9045822a9ba5b62f56035f3a5978b4f3fd8b296d88b3630607c1a71652b86db",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/pwa/install-web-app.md"
+        },
+        {
+          "bytes": 3700,
+          "executable": false,
+          "role": "content",
+          "sha256": "39419f5c9d856f61bd7690b523233107fb4d6c56288b334e15f2ac64b54c54e9",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/pwa/migrate-web-app-origin.md"
+        },
+        {
+          "bytes": 15165,
+          "executable": false,
+          "role": "content",
+          "sha256": "1a086e41d3ebde97688db8ccd1184ca93b7b2d22140fdeb7fd199b7edc357c4a",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/security/client-side-encryption.md"
+        },
+        {
+          "bytes": 10172,
+          "executable": false,
+          "role": "content",
+          "sha256": "70a97e0adc0c6b6edd3633538b31d145b2107eeb263900de4f91c83e272bdca0",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/security/digital-signatures.md"
+        },
+        {
+          "bytes": 12618,
+          "executable": false,
+          "role": "content",
+          "sha256": "be2f670b85f5ff246671f7b22f1afe9b18c8f0cfb01af0c407e86a1b12687db8",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/security/local-network-access.md"
+        },
+        {
+          "bytes": 12033,
+          "executable": false,
+          "role": "content",
+          "sha256": "96a0ec4e8242ba1b71544d393dc4c03022c6159b476561cd6206b67dead8d63c",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/security/passkey-authentication.md"
+        },
+        {
+          "bytes": 8040,
+          "executable": false,
+          "role": "content",
+          "sha256": "9f2b1008c469129de63899ef33ce1864d220fdf25e2e6688883a1474f457cc2b",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/security/passkey-conditional-create.md"
+        },
+        {
+          "bytes": 17759,
+          "executable": false,
+          "role": "content",
+          "sha256": "f2e48785a414f495ae1227a3772783e36f86529d03c828ca0fedd6fd3c7cd5e1",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/security/passkey-management.md"
+        },
+        {
+          "bytes": 6512,
+          "executable": false,
+          "role": "content",
+          "sha256": "8f3216220c08732f0b3eeb607d9b3e185c7b07500f3ea7ab272fae4d2be8e7db",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/security/passkey-reauthentication.md"
+        },
+        {
+          "bytes": 10583,
+          "executable": false,
+          "role": "content",
+          "sha256": "d1036912a432a7678c3887eab871eda4406a564c501490de9e115809945e07ca",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/security/passkey-registration.md"
+        },
+        {
+          "bytes": 4973,
+          "executable": false,
+          "role": "content",
+          "sha256": "a6535a72edf617fac23d2bbee66a28ccbd130a1d35fa90bfc6686de1e31843fb",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/security/passkeys.md"
+        },
+        {
+          "bytes": 17882,
+          "executable": false,
+          "role": "content",
+          "sha256": "c701ca886234ec43f91a24fbee450a9a3f5dae2b9581f89e48246f4baa82f909",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/security/quick-sign-ins.md"
+        },
+        {
+          "bytes": 13539,
+          "executable": false,
+          "role": "content",
+          "sha256": "9d857d904cf35040ebaa369c5eb98bf1726a88bea4e319d2562415ddabd17165",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/security/restrict-outbound-connections.md"
+        },
+        {
+          "bytes": 5745,
+          "executable": false,
+          "role": "content",
+          "sha256": "e5fe91dd410e4df88c7fb229b132e33407ef412ed26a05894b51cfcd8a4ae5ef",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/security/sanitize-untrusted-html.md"
+        },
+        {
+          "bytes": 14841,
+          "executable": false,
+          "role": "content",
+          "sha256": "fb62fe3352ee0bb72d73bb8c0e47f251d6d2e676ce359fa56a90212cedb99f71",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/security/secure-external-subresources.md"
+        },
+        {
+          "bytes": 33485,
+          "executable": false,
+          "role": "content",
+          "sha256": "7bed60cf0b80753fa7bce93a6b6a0df703da0662eeb16fe7cd1dbb86cc96d050",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/security/security.md"
+        },
+        {
+          "bytes": 7437,
+          "executable": false,
+          "role": "content",
+          "sha256": "3b3268a10597554e3f4235cd49bc850d07b8a8e7c19fbfffb290736e512b8af5",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/security/trusted-types.md"
+        },
+        {
+          "bytes": 13018,
+          "executable": false,
+          "role": "content",
+          "sha256": "26fdd6e817eb891f60750400c574c34a946ba8330c4e2a83820d0f9ee32111f7",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/security/validate-origins.md"
+        },
+        {
+          "bytes": 14874,
+          "executable": false,
+          "role": "content",
+          "sha256": "215ea066291eddc6c0fcd3846c08596ea85df6761000dac46e0c1a52048fb058",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/security/verify-email-ownership.md"
+        },
+        {
+          "bytes": 10358,
+          "executable": false,
+          "role": "content",
+          "sha256": "40d50d25208732d99ed46ebd632a058544b01504131a64716a0f9ff9a7a1621a",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/ui-atoms/carousel-slide-effects.md"
+        },
+        {
+          "bytes": 9737,
+          "executable": false,
+          "role": "content",
+          "sha256": "ef4217e0d0bba4fa5c986543d8c8b4fe5c8997f15ec24373ca1157b2a70b2d3f",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/ui-atoms/component-specific-light-dark-theme.md"
+        },
+        {
+          "bytes": 18343,
+          "executable": false,
+          "role": "content",
+          "sha256": "2a2af02010b388de90e707b5ecf8f70fa78b5ea67e2c9c063183222515de0eee",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/ui-atoms/icons.md"
+        },
+        {
+          "bytes": 8653,
+          "executable": false,
+          "role": "content",
+          "sha256": "ac99d1d5f743ef35009930b01c90979d2db10cfd57444ae302c42c8600d75430",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/ui-atoms/position-aware-tooltips.md"
+        },
+        {
+          "bytes": 5137,
+          "executable": false,
+          "role": "content",
+          "sha256": "5d32443019753701784cb76e3b673174071b6495e7353e5b818503ac2c94d0b5",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/ui-atoms/pull-to-reveal.md"
+        },
+        {
+          "bytes": 4556,
+          "executable": false,
+          "role": "content",
+          "sha256": "b1b1c84034398b83cda29a04fbd152c94aced38b11151791b3eb1c9d05af7666",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/ui-atoms/responsive-table.md"
+        },
+        {
+          "bytes": 4349,
+          "executable": false,
+          "role": "content",
+          "sha256": "1c3361ee7a9dce6f11e7cbe22725013a1237ef015969f1faca1f2268aa869128",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/ui-atoms/scroll-position-aware-elements.md"
+        },
+        {
+          "bytes": 6774,
+          "executable": false,
+          "role": "content",
+          "sha256": "9dd9ed62c88f99c930671dd5ec1a8aaf42ab509adc21d9d57bf16cf7dacd0faa",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/ui-atoms/scroll-progress-indicator.md"
+        },
+        {
+          "bytes": 12224,
+          "executable": false,
+          "role": "content",
+          "sha256": "bb1c84eeeed46024bfff8bdaae60797e283f565c2f38970cfaaca727e4b20357",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/ui-atoms/scrollability-affordance-hints.md"
+        },
+        {
+          "bytes": 7191,
+          "executable": false,
+          "role": "content",
+          "sha256": "e5e78dae57b0ff09ced03fa348b2f79dd026dd6dec41915c501446afd0820031",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/ui-atoms/shrinking-header-on-scroll.md"
+        },
+        {
+          "bytes": 16466,
+          "executable": false,
+          "role": "content",
+          "sha256": "498cb6dd8f5d5a2dfaf2e0b5076cf314834228d6ef98d04e86ed3c229f8f796c",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/ui-atoms/single-line-overflow.md"
+        },
+        {
+          "bytes": 6885,
+          "executable": false,
+          "role": "content",
+          "sha256": "712fc6c6902c89161518eda7fbf2846ccc2826f133fcfb4d32312547a188d4b3",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/ui-atoms/state-aware-sticky-headers.md"
+        },
+        {
+          "bytes": 10380,
+          "executable": false,
+          "role": "content",
+          "sha256": "89c78f4e780d1257c00499ba2e2be018c9473a296d789f670bdfd5202c5751c1",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/ui-atoms/viewport-aware-dropdowns.md"
+        },
+        {
+          "bytes": 9427,
+          "executable": false,
+          "role": "content",
+          "sha256": "c1bf693ba5eb1ac7a912be1d46f921d5ba38ea9b79011121661a12cd6841f9d5",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/ui-behaviors/2d-panning.md"
+        },
+        {
+          "bytes": 4080,
+          "executable": false,
+          "role": "content",
+          "sha256": "998330309644fe042dbe33d12d3ad5719ebe2ea8b13b5c1be31fa5a82f1ff854",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/ui-behaviors/anchor-positioning-tab-underline.md"
+        },
+        {
+          "bytes": 7840,
+          "executable": false,
+          "role": "content",
+          "sha256": "2bf30ba88fa7d1fbdc3f7c2e3898bb0d37ea0a938912b8e34ed04de5ac485948",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/ui-behaviors/animate-element-entry-exit.md"
+        },
+        {
+          "bytes": 11135,
+          "executable": false,
+          "role": "content",
+          "sha256": "911ca37ebf6bc0b3ba99d9bf727332fd8bfdfd5d21cc459f2a752b42ed33c82c",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/ui-behaviors/animate-to-from-top-layer.md"
+        },
+        {
+          "bytes": 7678,
+          "executable": false,
+          "role": "content",
+          "sha256": "b5fb101bb1ccb6aad294014e4aaa074f3bcdf9131ce22a1f7b83a3a2184896f7",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/ui-behaviors/carousel-snap-highlights.md"
+        },
+        {
+          "bytes": 14282,
+          "executable": false,
+          "role": "content",
+          "sha256": "44d41ffd57747c9195eff4bdead8284cde55fe606a49d4a29268dd7fce8d9f4d",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/ui-behaviors/consistent-cross-document-transitions.md"
+        },
+        {
+          "bytes": 4555,
+          "executable": false,
+          "role": "content",
+          "sha256": "139ebe0cdf97343631b5cc1ab5f4b29a22c65f94f2d6f794e4646dddef1f077b",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/ui-behaviors/cross-document-transitions.md"
+        },
+        {
+          "bytes": 8609,
+          "executable": false,
+          "role": "content",
+          "sha256": "a878d578d492203d13436a8c82a8b52ec727b109d6edb8dd9d2a58017f7c7265",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/ui-behaviors/custom-button-actions.md"
+        },
+        {
+          "bytes": 8594,
+          "executable": false,
+          "role": "content",
+          "sha256": "5b9aaf8e7334b62a96111a4d407007de882e5abdcba1fe44dedb3da1aea84c30",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/ui-behaviors/declarative-dialog-popover-control.md"
+        },
+        {
+          "bytes": 5225,
+          "executable": false,
+          "role": "content",
+          "sha256": "0a584ec619b1688a7245b688c54f682c8acc93009a9376dc9281636c8f381e8f",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/ui-behaviors/directional-navigation-transitions.md"
+        },
+        {
+          "bytes": 17181,
+          "executable": false,
+          "role": "content",
+          "sha256": "622f59e07e15344f44401cb16e1f77ac3cfc7608513880c406754a3f6db29fd1",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/ui-behaviors/drag-and-drop.md"
+        },
+        {
+          "bytes": 7033,
+          "executable": false,
+          "role": "content",
+          "sha256": "6cc18565c696f15e1ee613e8cc5c04a22be00954f3a0cc1c0f561c9f6ae2030d",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/ui-behaviors/drag.md"
+        },
+        {
+          "bytes": 4729,
+          "executable": false,
+          "role": "content",
+          "sha256": "2c4c49375ff98a206e3849a753ca53562c56efbc7a550d9e5f2b01e1cfbb08b6",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/ui-behaviors/dynamic-sibling-animations.md"
+        },
+        {
+          "bytes": 7149,
+          "executable": false,
+          "role": "content",
+          "sha256": "60eb7cf5f0095565b216f71dd9218c16e0960134a7e2ad63d1316e896bc44f2e",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/ui-behaviors/dynamic-sort.md"
+        },
+        {
+          "bytes": 6365,
+          "executable": false,
+          "role": "content",
+          "sha256": "a559459cf88a35382775f2c80f61701687639fb531ad4ac02ba6b51d46b451df",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/ui-behaviors/group-element-transitions.md"
+        },
+        {
+          "bytes": 6525,
+          "executable": false,
+          "role": "content",
+          "sha256": "5d769ceba3ede009799820c5a2fed9656ca06c6ed7038ef85afbf40fcb3d402d",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/ui-behaviors/highlight-text-ranges.md"
+        },
+        {
+          "bytes": 5846,
+          "executable": false,
+          "role": "content",
+          "sha256": "370ce4169b73a5bc745786dbb2455456c86d43421464a6f7e29cc9135cc730d0",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/ui-behaviors/interactive-content-reveal.md"
+        },
+        {
+          "bytes": 5775,
+          "executable": false,
+          "role": "content",
+          "sha256": "ab16aa5f77cdd9f3f777509025b743ec5cab9b0500b3fb11f385946f34890a5b",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/ui-behaviors/interest-triggered-action-previews.md"
+        },
+        {
+          "bytes": 20823,
+          "executable": false,
+          "role": "content",
+          "sha256": "3caff3875911ca08927940c02a6bb5bd8906150bfdb4d5421fcbea3eef534291",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/ui-behaviors/interest-triggered-tooltips.md"
+        },
+        {
+          "bytes": 4244,
+          "executable": false,
+          "role": "content",
+          "sha256": "7e0a059f72fd761aa2173f13cda52e3e3a6d624e586ebf27b9b0cf5be4ac2e44",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/ui-behaviors/light-dismiss-a-dialog.md"
+        },
+        {
+          "bytes": 7787,
+          "executable": false,
+          "role": "content",
+          "sha256": "332a13a46a95bcea8f20385f95c19c0eda49aeeb613c29acdde4f11a9ce76824",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/ui-behaviors/motion.md"
+        },
+        {
+          "bytes": 3851,
+          "executable": false,
+          "role": "content",
+          "sha256": "98442d73f34e865e9b4faaf86fc3fe8468e4452851641815e761c97ac4bae130",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/ui-behaviors/move-dom-element-without-losing-state.md"
+        },
+        {
+          "bytes": 9753,
+          "executable": false,
+          "role": "content",
+          "sha256": "2f464df489cf7289c980c3ade5ff620afb5afecf546e0d8be093ff791067b9a1",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/ui-behaviors/parallax-scroll-effects.md"
+        },
+        {
+          "bytes": 2345,
+          "executable": false,
+          "role": "content",
+          "sha256": "bb1610227b1098fc30a4ee28adfc1e943a6f2ade9b97ff991aed2ffcef3a27e6",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/ui-behaviors/persistent-top-layer-ui.md"
+        },
+        {
+          "bytes": 5954,
+          "executable": false,
+          "role": "content",
+          "sha256": "b1bbe494a75fdf31e36af25d7f37b7af01250394e2b317c3f0f8b517ef51f040",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/ui-behaviors/physics-based-easing.md"
+        },
+        {
+          "bytes": 3480,
+          "executable": false,
+          "role": "content",
+          "sha256": "7562a746db5c6c7c4f5e93a5711015b997ae4015455245e43f008caed61e6e0c",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/ui-behaviors/platform-controls-dismiss-dialog.md"
+        },
+        {
+          "bytes": 5089,
+          "executable": false,
+          "role": "content",
+          "sha256": "33ef136d35c34a4fc1b6ab3e1f64dd523910cb734e3cd0e4790d135b106c5d2c",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/ui-behaviors/prevent-page-scroll-under-modal-dialog.md"
+        },
+        {
+          "bytes": 8485,
+          "executable": false,
+          "role": "content",
+          "sha256": "2bc5e0af24ad534d4b3ae336aa2afd229da1eb3951101c19ad6c08ac09a974b5",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/ui-behaviors/same-document-transitions.md"
+        },
+        {
+          "bytes": 12024,
+          "executable": false,
+          "role": "content",
+          "sha256": "44352258d7b5e0852f78367045d771d270e733246a7732bb7aa56a29d8924744",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/ui-behaviors/scoped-component-transitions.md"
+        },
+        {
+          "bytes": 7630,
+          "executable": false,
+          "role": "content",
+          "sha256": "82dbce83a4618efd43bc1be822cc1350fac6f7805b5c9a5bab5995e350fb8d12",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/ui-behaviors/scroll-completion-effects.md"
+        },
+        {
+          "bytes": 10057,
+          "executable": false,
+          "role": "content",
+          "sha256": "b33f4197dd98525635e6ecb652a405415658db361001aa421743cea311a0cdb4",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/ui-behaviors/scroll-entry-exit-effects.md"
+        },
+        {
+          "bytes": 10987,
+          "executable": false,
+          "role": "content",
+          "sha256": "8f73828d38765ca3ec8949e5f154c009173341e52edf7f2f5976c938fd6309d6",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/ui-behaviors/scroll-snap-realtime-feedback.md"
+        },
+        {
+          "bytes": 5546,
+          "executable": false,
+          "role": "content",
+          "sha256": "f24bedcaab8ea76dcc5b074cee58683d404287fd8fbaf2014914f18f878f0288",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/ui-behaviors/scroll-snap-state-sync.md"
+        },
+        {
+          "bytes": 3439,
+          "executable": false,
+          "role": "content",
+          "sha256": "bec608e66898110683dceaeedcdf1cecb16d1dce9495fec4842c5ad016d7c4fe",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/ui-behaviors/scroll-target-on-load.md"
+        },
+        {
+          "bytes": 9013,
+          "executable": false,
+          "role": "content",
+          "sha256": "7f3a25a84f74a1e31f5a3d9fc1fb93d4b80a24b4e822b59614ed9433f114032d",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/ui-behaviors/scrollytelling.md"
+        },
+        {
+          "bytes": 6967,
+          "executable": false,
+          "role": "content",
+          "sha256": "d0f1c0d1e354a485c076d210f3164c97d7e4db9dc4e1bbd8ce9ca45d667a8734",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/ui-behaviors/search-hidden-content.md"
+        },
+        {
+          "bytes": 8747,
+          "executable": false,
+          "role": "content",
+          "sha256": "2cc292e189691ffffc20bd0f39dff3fea21df73ec3592ac4748f1b7f2023e956",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/ui-behaviors/sortable-table.md"
+        },
+        {
+          "bytes": 6937,
+          "executable": false,
+          "role": "content",
+          "sha256": "edbc7cc716299a9acc810ebfc3fa9607e82aa9ca0d2b832c87890173a612fc67",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/ui-behaviors/spatial-navigation.md"
+        },
+        {
+          "bytes": 34703,
+          "executable": false,
+          "role": "content",
+          "sha256": "9b258a1f9f1233fc88266b512d7bae7048ccc6eff94422762878b49a166511ad",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/ui-behaviors/swipe-to-remove.md"
+        },
+        {
+          "bytes": 14518,
+          "executable": false,
+          "role": "content",
+          "sha256": "65d3df7c32c33c3891aaef887b4f72e5eb2cdb19c7ecb47dad17549ac559055e",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/ui-behaviors/swipe-to-reveal.md"
+        },
+        {
+          "bytes": 15102,
+          "executable": false,
+          "role": "content",
+          "sha256": "3c0bcd860dd992e7ce41877572d061e3b40d846fa2c98b07fecb2624916cde98",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/ui-components/accordion.md"
+        },
+        {
+          "bytes": 16461,
+          "executable": false,
+          "role": "content",
+          "sha256": "86f23750e8aadd583563a8e349a4d0908076233176fbee7319e8b5b8f4c0b6e1",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/ui-components/app-menus.md"
+        },
+        {
+          "bytes": 12640,
+          "executable": false,
+          "role": "content",
+          "sha256": "13fda9a780e85f3bfc3e5922f5f6ec4938eaa16bbdda4b8b0c45a6f0ad2347f7",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/ui-components/breadcrumbs.md"
+        },
+        {
+          "bytes": 8413,
+          "executable": false,
+          "role": "content",
+          "sha256": "18099aaca072463e69ad356a1bc4840002d566d4c13e3fa615e0bb899924d3e5",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/ui-components/card.md"
+        },
+        {
+          "bytes": 19827,
+          "executable": false,
+          "role": "content",
+          "sha256": "284773a2f0447de1f59424fc6220d7bf12f1025193fe7b305779fe89af184b42",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/ui-components/carousel.md"
+        },
+        {
+          "bytes": 5878,
+          "executable": false,
+          "role": "content",
+          "sha256": "fd04484f6aef1fd550488d6d6bc9473f09bfc29aa30a37ff10a809b4950c5a76",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/ui-components/checkbox.md"
+        },
+        {
+          "bytes": 11407,
+          "executable": false,
+          "role": "content",
+          "sha256": "173bbcacc2e73d75e3e5c52f4b476efcc0f7a135c66abc9d336ae5d2f9c785f4",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/ui-components/context-menu.md"
+        },
+        {
+          "bytes": 15398,
+          "executable": false,
+          "role": "content",
+          "sha256": "a581ca7716f3df749df61afe3e16dfbe25672df7947b0ff2544b809a02eceefe",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/ui-components/copy-button.md"
+        },
+        {
+          "bytes": 9388,
+          "executable": false,
+          "role": "content",
+          "sha256": "2a99ef825c4a67a75c2b48f8c1e364bdcc59e5ab2ef0345688a8515b44856211",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/ui-components/dark-mode-toggle.md"
+        },
+        {
+          "bytes": 12892,
+          "executable": false,
+          "role": "content",
+          "sha256": "6b9b93da102dac325684b4e7caf75cbc1787cff7ba031aa55b5e28b15c097b59",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/ui-components/dialog.md"
+        },
+        {
+          "bytes": 22090,
+          "executable": false,
+          "role": "content",
+          "sha256": "a7830e3d96585695fb23f67f26c8ccd174054ca69f92fd081360750f2c4c4f73",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/ui-components/hovercard.md"
+        },
+        {
+          "bytes": 31972,
+          "executable": false,
+          "role": "content",
+          "sha256": "6e2ea7f882a5245424f71b48603a3995af101638743d67834c332e447fed274e",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/ui-components/menu.md"
+        },
+        {
+          "bytes": 18544,
+          "executable": false,
+          "role": "content",
+          "sha256": "159c343744e6624f9bbde55751f199e2283fad41642e60f558b49a11ea4579a4",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/ui-components/navbar.md"
+        },
+        {
+          "bytes": 20826,
+          "executable": false,
+          "role": "content",
+          "sha256": "94597ab44b89e25feb43be3696bca5e420334c25bc236b3f2eed7f39d614dc56",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/ui-components/navigation-drawer.md"
+        },
+        {
+          "bytes": 11728,
+          "executable": false,
+          "role": "content",
+          "sha256": "fc58b7a19bc7b255e48705610313b8a34a60980dbd9d9bf1118354b2f3901936",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/ui-components/persistent-app-tours.md"
+        },
+        {
+          "bytes": 14315,
+          "executable": false,
+          "role": "content",
+          "sha256": "32ce8883bead7c682b4c70c50db67ad205f54d66e5686597a638f9396103360e",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/ui-components/persistent-toast-notifications.md"
+        },
+        {
+          "bytes": 7212,
+          "executable": false,
+          "role": "content",
+          "sha256": "74024b26be275efdbdbe3650f0d04b398bba039e058ff6db5237fc6eea488c3e",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/ui-components/progress-ring.md"
+        },
+        {
+          "bytes": 10867,
+          "executable": false,
+          "role": "content",
+          "sha256": "50e3067565662bd56f75b36704982c0c122d5759b00878e502334935a995fc54",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/ui-components/progress.md"
+        },
+        {
+          "bytes": 7036,
+          "executable": false,
+          "role": "content",
+          "sha256": "a83db4a958107003caf33d95ffb041e5003855560e7339215526f3120c7f2b19",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/ui-components/scrollspy.md"
+        },
+        {
+          "bytes": 6025,
+          "executable": false,
+          "role": "content",
+          "sha256": "f138ff2df179d3f6e89b48cb75a4724ce853ecd2b874101190f635b64d24c0a8",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/ui-components/spinner.md"
+        },
+        {
+          "bytes": 37348,
+          "executable": false,
+          "role": "content",
+          "sha256": "7f85fed871903386daca946372d60f34e413a13a4e1f1bd6c8b3a2337dda26fc",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/ui-components/stack-drill-down.md"
+        },
+        {
+          "bytes": 22204,
+          "executable": false,
+          "role": "content",
+          "sha256": "9621168dd25f18a89e2018d18de4af5ef7658f8074d0b3247415bc28b4470ae8",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/ui-components/tabs.md"
+        },
+        {
+          "bytes": 22506,
+          "executable": false,
+          "role": "content",
+          "sha256": "086ab97289edfbb4ccfdf9ea802a94010d999eb825ccb1244598968a0fa38171",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/ui-components/toolbar.md"
+        },
+        {
+          "bytes": 8668,
+          "executable": false,
+          "role": "content",
+          "sha256": "e3563ff87ccd13851566ddf46c4e36aaa1dd3020f32aa465f46a1905bbdc8c55",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/user-experience/content-first-noise-reduction.md"
+        },
+        {
+          "bytes": 7706,
+          "executable": false,
+          "role": "content",
+          "sha256": "1c9272bca00eb838397061ff4cdfa6fa3833aead68415cb03340d594e8d6ce23",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/user-experience/form-factor-adaptation.md"
+        },
+        {
+          "bytes": 10174,
+          "executable": false,
+          "role": "content",
+          "sha256": "b440e6a4f118a2a92f342c19abd077db242766cee84b2528f0d65f72b7eb5ab3",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/user-experience/natural-interactions.md"
+        },
+        {
+          "bytes": 3993,
+          "executable": false,
+          "role": "content",
+          "sha256": "77ad439049922b3721cee88302395654536c8918f8db5086c211739e4db58446",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/visual-design/adapt-scrollbar-to-contrast-preferences.md"
+        },
+        {
+          "bytes": 13434,
+          "executable": false,
+          "role": "content",
+          "sha256": "46c13d09d47b7e17e8c3f3c8d45e92152fc2f7465cf92b628403368821a163d7",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/visual-design/apply-webgl-shaders.md"
+        },
+        {
+          "bytes": 4231,
+          "executable": false,
+          "role": "content",
+          "sha256": "1276ba601bb6c69f2197bb0d50e645017f6cd5825ac63bd579a528944eebd845",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/visual-design/browser-ui-theming.md"
+        },
+        {
+          "bytes": 4843,
+          "executable": false,
+          "role": "content",
+          "sha256": "4a6051491fddc3c9b7c2f88affb3a9b15ac4ff815bf8b271aa1b6f4757965b67",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/visual-design/color.md"
+        },
+        {
+          "bytes": 3592,
+          "executable": false,
+          "role": "content",
+          "sha256": "dad784ec45a78656fe6eb3f4be32132f50d6517dd25b087ece2b7b9dcaa6de36",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/visual-design/complex-shapes.md"
+        },
+        {
+          "bytes": 7263,
+          "executable": false,
+          "role": "content",
+          "sha256": "85a8d26a47550aa89cd62809dd3e1a84d360adc69fe246d81a10a86f86499927",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/visual-design/contrast-color.md"
+        },
+        {
+          "bytes": 16762,
+          "executable": false,
+          "role": "content",
+          "sha256": "8cbd1811e61cba144b013c7dc6197d2c518378996aab4595904ae7837c47e82c",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/visual-design/custom-text-decorations.md"
+        },
+        {
+          "bytes": 3298,
+          "executable": false,
+          "role": "content",
+          "sha256": "0da9848aeb53787a1ad062298df38e93ab7d6b1783cf6d5db8a841dfb37a30ab",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/visual-design/customize-scrollbar-color-and-thickness.md"
+        },
+        {
+          "bytes": 17517,
+          "executable": false,
+          "role": "content",
+          "sha256": "888869fa83f3966365090c1c152febac416a9ca53f3132e05f18206676e97ccd",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/visual-design/dark-mode.md"
+        },
+        {
+          "bytes": 6541,
+          "executable": false,
+          "role": "content",
+          "sha256": "fa9f42daf7fb423d51c8e957c41aab2f05805d219788788e313a24601a197539",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/visual-design/equal-width-text-lines.md"
+        },
+        {
+          "bytes": 17583,
+          "executable": false,
+          "role": "content",
+          "sha256": "99d619561dd93d230b1466abb5f5978dea8b0b31404e2812347b9f4098a484f5",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/visual-design/export-html-media-from-canvas.md"
+        },
+        {
+          "bytes": 20105,
+          "executable": false,
+          "role": "content",
+          "sha256": "3cd9d993befe6a612165d6d1c32211a779f705cbd3190358fa12ce6303d71312",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/visual-design/expose-canvas-content-to-browser-features.md"
+        },
+        {
+          "bytes": 5209,
+          "executable": false,
+          "role": "content",
+          "sha256": "dbcab13d1498b7790694953939db201468034ce67bcb9826f9c9b6536d74a9ae",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/visual-design/improve-text-layout-and-legibility.md"
+        },
+        {
+          "bytes": 19599,
+          "executable": false,
+          "role": "content",
+          "sha256": "c0bb3ee4c5d443647c6efdb5f68c6e760a791374e983feacabc53494aa5f9bd3",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/visual-design/interactive-content-in-3d-scenes.md"
+        },
+        {
+          "bytes": 4872,
+          "executable": false,
+          "role": "content",
+          "sha256": "c7061a6c41065d52c26b9ad29d1ec4a48edde43e70af2f97a24252840efa56b4",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/visual-design/precise-text-alignment.md"
+        },
+        {
+          "bytes": 7311,
+          "executable": false,
+          "role": "content",
+          "sha256": "6de1c4d19bb48b2eb9b14c7708cdf69ab51e33203b41fef7bae90c1b0ee7a569",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/visual-design/shaped-cutouts.md"
+        },
+        {
+          "bytes": 6021,
+          "executable": false,
+          "role": "content",
+          "sha256": "8c6b8dd82906109522e63d493e21e9a89ecd84fb615060506fda3188492989a7",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/visual-design/teaser.md"
+        },
+        {
+          "bytes": 3678,
+          "executable": false,
+          "role": "content",
+          "sha256": "f72047c1af0828ba0def676c58900bdc8ba3f9f3205507852172af00eadfc828",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/visual-design/typography.md"
+        },
+        {
+          "bytes": 4907,
+          "executable": false,
+          "role": "content",
+          "sha256": "35a88c1127379a32d1f9e106d2fb6fd22f0fb462ebf7f8b8c6e4237203283a54",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/visual-design/visual-effects.md"
+        },
+        {
+          "bytes": 2978,
+          "executable": false,
+          "role": "content",
+          "sha256": "5abff774ec3f29204e47fa64c29923a7ecaf33968ed8df4d644ccccf85f0369e",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/visual-design/visually-stable-font-fallbacks.md"
+        },
+        {
+          "bytes": 2914,
+          "executable": false,
+          "role": "content",
+          "sha256": "be0e8769f8da79e5ba7758354fbd5ddbda4996fe9240bb25808fbfab1bb36f1e",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/visual-design/visually-stable-mixed-fonts.md"
+        },
+        {
+          "bytes": 3814,
+          "executable": false,
+          "role": "content",
+          "sha256": "a7607a7d1144fd2883898219e96a13e6276305fecac26a66df9e9f7eb134a39b",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/visual-design/visually-texture-content.md"
+        },
+        {
+          "bytes": 8186,
+          "executable": false,
+          "role": "content",
+          "sha256": "9ba5e21faea9a9eb80b7620ea2779ed3ff313976bd0ad31659506b6989f5c97a",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/wasm/cpp-on-the-web.md"
+        },
+        {
+          "bytes": 6382,
+          "executable": false,
+          "role": "content",
+          "sha256": "85e2320343299cd20ed511be1b9dc9fa4d44b9fcf822e3351f2ef24f62d49b05",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/webmcp/agentic-forms.md"
+        },
+        {
+          "bytes": 26408,
+          "executable": false,
+          "role": "content",
+          "sha256": "bef5b816376264a7ca56e3fac88ddb97ae5b763e011faccee686d64dd13a1fd7",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/webmcp/agentic-javascript-tools.md"
+        },
+        {
+          "bytes": 4369,
+          "executable": false,
+          "role": "content",
+          "sha256": "ed20a7cb5bb400b186e234ec0f4ffa0d923ded078447777ff42499cce902afa9",
+          "sourceId": "modern-web-guidance",
+          "sourcePath": "skills/modern-web-guidance/guides/webmcp/webmcp.md"
+        }
+      ],
+      "id": "modern-web-guidance.skill.modern-web-guidance",
+      "kind": "skill",
+      "name": "modern-web-guidance",
+      "scanKey": "git-sha1:94cd548883b7cd735ee0d2bdd723c68a212a0933",
+      "userOnly": false
+    }
+  ],
+  "schema": "urn:aihq:catalog:content:0.1.0",
+  "sources": [
+    {
+      "commit": "2b4aa13a72dd47cd135b06ce5abfccd92e19b24f",
+      "id": "modern-web-guidance",
+      "kind": "git",
+      "notices": [
+        {
+          "covers": "/",
+          "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+          "sourcePath": "LICENSE"
+        }
+      ],
+      "repository": "https://github.com/GoogleChrome/modern-web-guidance"
+    },
+    {
+      "id": "modern-web-guidance-notice",
+      "kind": "authored",
+      "notices": [
+        {
+          "covers": "/",
+          "sha256": "a06da2972094c67fbbd22e0e1e9a50e248a0c014fffa712e07da7c6599c811a0",
+          "sourcePath": "NOTICE.md"
+        }
+      ],
+      "noticesFor": [
+        "modern-web-guidance.skill.chrome-extensions",
+        "modern-web-guidance.skill.modern-web-guidance"
+      ]
+    }
+  ]
+}
