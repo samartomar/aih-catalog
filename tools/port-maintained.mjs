@@ -15,6 +15,7 @@
 import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, relative } from "node:path";
+import { canonicalJson } from "../dist/catalog/internal/json.js";
 import { fetchSource, readLocalSource } from "../dist/catalog/node.js";
 import { buildContent, checkContent } from "../dist/catalog/producer.js";
 import { findItems } from "../dist/catalog/source.js";
@@ -25,6 +26,7 @@ import {
   fileMap,
   portTool,
   root,
+  sha256,
   textOf,
   under,
 } from "./lib/port.mjs";
@@ -40,19 +42,19 @@ const check = process.argv.includes("--check");
 const PINS = {
   ecc: {
     repository: "https://github.com/affaan-m/ECC",
-    commit: "5064474d4d762dc9640234a41617cccb79185cec",
+    commit: "4adeee6732a12d1540f49a4d50a38ce8c97f9a53",
   },
   superpowers: {
     repository: "https://github.com/obra/superpowers",
-    commit: "5bf4e78011075bcfc0dc295f0724994cd123ee71",
+    commit: "22f0b463e7a5e579904dd6211a520321035526f7",
   },
   extensions: {
     repository: "https://github.com/samartomar/aih-extensions",
-    commit: "2481164a51ea7f9e480d51ef52f3d5cf15b017fa",
+    commit: "c89adaad320d679c905e7122b908c1bc9c8c1904",
   },
   matt: {
     repository: "https://github.com/mattpocock/skills",
-    commit: "59db609eb1e18aaf59b63284d0e52255aff0c63c",
+    commit: "6f7f7831a625f040a8e06a0e7954826b87ce775a",
   },
 };
 
@@ -77,7 +79,6 @@ const MCP_VERSIONS = {
   "omega-memory": "1.5.20",
   playwright: "0.0.83",
   "sequential-thinking": "2.0.0",
-  squish: "1.9.0",
   supabase: "0.14.0",
 };
 
@@ -390,12 +391,17 @@ async function ecc(work) {
   // Claude hooks: each group of ECC's hooks/hooks.json, cut out as its own one-entry file, with
   // Claude's edition the same entry; ECC's Codex hook is the Codex edition of session-start.
   const hooks = JSON.parse(textOf(kiro("hooks/hooks.json"))).hooks;
+  const metadata = JSON.parse(textOf(kiro("hooks/hooks.metadata.json"))).entries;
   const shared = kiro("hooks/hooks.json");
   const cut = (file, pointer, as, extra = {}) =>
     discoveredFile("ecc", file, { cut: { pointer, as, ...extra } });
   for (const [event, groups] of Object.entries(hooks))
     groups.forEach((group, index) => {
-      const name = String(group.id).replaceAll(":", "-");
+      const entry = metadata[event]?.[index];
+      const fingerprint = sha256(canonicalJson({ matcher: group.matcher ?? null, hooks: group.hooks })).slice(0, 12);
+      if (!entry?.id || entry.fingerprint !== fingerprint)
+        fail(`ECC hook metadata differs at ${event}/${index}`);
+      const name = entry.id.replaceAll(":", "-");
       const pointer = `/hooks/${event}/${index}`;
       byId.set(`ecc.hook.${name}`, {
         id: `ecc.hook.${name}`,
@@ -650,6 +656,8 @@ function dispositions(results, items) {
         bundle: "extensions.references",
         note: "the checklists skills read at ../../references/ are the runtime bundle placed beside them",
       };
+    else if (!ids.has(entry.id) && ["ecc.mcp.squish", "ecc.skill.claude-devfleet", "ecc.skill.motion-ui"].includes(entry.id))
+      result = dropped(entry, "removed-upstream", "the selected ECC revision no longer declares this item");
     else if (entry.id === "ecc.rule.README")
       result = dropped(entry, "not-an-item", results.ecc.dropped.get(entry.id));
     else if (family === "ecc" && kind === "skill" && path.endsWith(".kiro-variant"))

@@ -33,21 +33,27 @@
           "sourcePath": "agents/implementation_readiness.md"
         },
         {
+          "bytes": 7355,
+          "executable": false,
+          "sha256": "e766638298dfa42859172df62d1c0a4faa9ade143bcfc92837b5843a684e1da4",
+          "sourcePath": "agents/inventive_catalyst.md"
+        },
+        {
           "bytes": 3954,
           "executable": false,
           "sha256": "f0d4fe6faee4e388366b7d653fe353a9b09f45ca1bf5dae29280e351cda7da87",
           "sourcePath": "agents/structural.md"
         },
         {
-          "bytes": 4023,
+          "bytes": 4879,
           "executable": false,
-          "sha256": "9d0d59d7fac7ee479f9beea22d28b8ea20b6fea0215e06bd292a14eb2bb3b692",
+          "sha256": "9330780622baaef8dc683ea78efb3ff8e4583e3dde7ab6092b84df50e8c9ea58",
           "sourcePath": "agents/style.md"
         },
         {
-          "bytes": 4450,
+          "bytes": 4860,
           "executable": false,
-          "sha256": "402e661fa44684ce51246575d169f65003981846f318cf13cf124c8895b4ccab",
+          "sha256": "44d1288c03ec829acafd8af0226ce1d0603f4cf04e9f8438b5b36a451be8f8b6",
           "sourcePath": "agents/synthesizer.md"
         },
         {
@@ -63,15 +69,15 @@
           "sourcePath": "docs/assets/readme-header.svg"
         },
         {
-          "bytes": 9395,
+          "bytes": 10489,
           "executable": false,
-          "sha256": "cbc51e603740134e5890fe645f3d516c03674598be43733c53411c920f445cc1",
+          "sha256": "7c8be13c296e582467dec6141a18387168ffc1e32d4e0ece4c29b2af5c631350",
           "sourcePath": "docs/claude.md"
         },
         {
-          "bytes": 6104,
+          "bytes": 7230,
           "executable": false,
-          "sha256": "a7390390c233ece29a2ee7508a8d328b6b4ee200f649417c097687c76f014ad0",
+          "sha256": "91be58251456904c2542ee1299d1096b569cbc08afdcf24c671eb09b32d09bfc",
           "sourcePath": "docs/codex.md"
         },
         {
@@ -81,15 +87,15 @@
           "sourcePath": "docs/faq.md"
         },
         {
-          "bytes": 6652,
+          "bytes": 9826,
           "executable": false,
-          "sha256": "e45d171e4bc306fcb87a426f2608a9ed46a3ca329d67fd5c11a0d944865a57c7",
+          "sha256": "a8456d2e7c3458d56e8ef4232e08a23934a1a22647a2df9066f02eb07ca85dda",
           "sourcePath": "docs/getting_started.md"
         },
         {
-          "bytes": 9544,
+          "bytes": 15099,
           "executable": false,
-          "sha256": "d1e24628833a5f081285c1494d28422b30f17000aadf8b3c291cdae025eaadd6",
+          "sha256": "f2b1f49dcff0ff2884471d2ec2278fbbb980ee4b24d39a82c52e26fae2aeac71",
           "sourcePath": "docs/harnesses.md"
         },
         {
@@ -105,9 +111,9 @@
           "sourcePath": "docs/privacy.md"
         },
         {
-          "bytes": 3676,
+          "bytes": 4275,
           "executable": false,
-          "sha256": "d5dbaf5638079ce63a01517078760618688cf00913287a5163f2855b0a4ad05d",
+          "sha256": "4e4be91d5da7e62d36f3aaffd438f9a4915323564e9b95eb3c02eaa7bd11a7af",
           "sourcePath": "docs/releases.md"
         },
         {
@@ -117,9 +123,9 @@
           "sourcePath": "resources/README.md"
         },
         {
-          "bytes": 1489,
+          "bytes": 1659,
           "executable": false,
-          "sha256": "b3e4960fd884fde880a41da782fc73342fe232769e5835a4470b3c8c517644c4",
+          "sha256": "8e9821e7bfd7c074dd1cec7ba02e3ea09a3fd32e35b91a1463a37c1ee3b9d6a4",
           "sourcePath": "resources/document_standards/feature-spec-standard.md"
         },
         {
@@ -129,9 +135,9 @@
           "sourcePath": "resources/document_standards/heilmeier-standard.md"
         },
         {
-          "bytes": 1379,
+          "bytes": 1654,
           "executable": false,
-          "sha256": "ed0d2a085eac0fd9581d504a2ec0df2a92d6b2538636a22b16e0b1370fba6dbb",
+          "sha256": "49ef3a44228a14c774ec606477293be6467b232a9e4af9e031a3cad64ed87642",
           "sourcePath": "resources/document_standards/implementation-readiness-standard.md"
         },
         {
@@ -147,15 +153,15 @@
           "sourcePath": "resources/document_standards/zoom-out-standard.md"
         },
         {
-          "bytes": 2348,
+          "bytes": 7831,
           "executable": false,
-          "sha256": "06f0ee648efa2fefd79081d01f32c4930d709fa709df42d06a287f97a8582179",
+          "sha256": "268462ff295605a350435221f009f863b1bef352a1bfdcd8278692af17ba31f9",
           "sourcePath": "resources/execution_instructions.md"
         }
       ],
       "id": "egm.runtime",
       "layout": "skills/<name>/",
-      "scanKey": "git-sha1:1100f01bcdedb01899dbf51c2dcb73c79b266fa0",
+      "scanKey": "git-sha1:c23c36c74e5bac71422bfabc4c2d09d6793421de",
       "sourceId": "egm"
     }
   ],
@@ -168,7 +174,7 @@
       "agent": {
         "prompt": "agents/bootstrap_orchestrator.md"
       },
-      "behaviourSha256": "6757f3dba3e63d1a583e61b5539655b54cf44866303fd358b66d7c375443bf13",
+      "behaviourSha256": "188087a7051c39bc8d0528d82f4f71adde757e01b27627602af4f1ee4b4b56f1",
       "bundle": "egm.runtime",
       "contentSha256": "2aa143f42b8508539058b370f1ae0733f2ae67b34df827401cbd97f1af48e434",
       "description": "Orchestrates directory README documentation, partitions subtrees, and coordinates worker subagents.",
@@ -191,7 +197,7 @@
       "agent": {
         "prompt": "agents/codebase_details.md"
       },
-      "behaviourSha256": "9b1bf9cfcc9d12c0e0e25b30b4c9337775122ad6c777b21b73135eadeaafb09e",
+      "behaviourSha256": "0894eee09bfe1e9fbe95cd3d8eade80f9d258b79d813da1e1fba395fb6a29b7f",
       "bundle": "egm.runtime",
       "contentSha256": "f911a3a9b19197a552170440aadaa28330f62f6d3db5ece26e4d9a7e52e076c9",
       "description": "Pedantic Technical Quality Auditor verifying that documentation accurately and exhaustively matches actual codebase implementation and existing library reuse opportunities.",
@@ -214,7 +220,7 @@
       "agent": {
         "prompt": "agents/comprehension.md"
       },
-      "behaviourSha256": "fda91e8a019a41dbe8bcac533056b33e13909b511f205840bea597571f5c9538",
+      "behaviourSha256": "377e8430d3b5366ba73cdba2cfee19ffd08c40a57cf79adf7cd400518d22b9b7",
       "bundle": "egm.runtime",
       "contentSha256": "0fbf19006b4d2e98c7c947d1036c5236484a7f26e1d8563dbe074aba1f109d4a",
       "description": "Naive Reader persona auditing documents with zero assumed institutional knowledge, flagging undefined terms, acronyms, and comprehension gaps.",
@@ -237,7 +243,7 @@
       "agent": {
         "prompt": "agents/design_critic.md"
       },
-      "behaviourSha256": "9049a4bf23600fb7bce4a19ef6354716853602f5b765e8c52b50119554964ce4",
+      "behaviourSha256": "31401b7069b6abdafbc4fc6c797ba0baf21c78b9bf52cb4cdf5fbcf396ffd76e",
       "bundle": "egm.runtime",
       "contentSha256": "2960c870be919b583328a640250c23b513899526153799f29599fc1ffc3ac5b3",
       "description": "Hostile Design Critic persona focused on system architecture, scalability, infrastructure economics, and unmitigated risks.",
@@ -260,7 +266,7 @@
       "agent": {
         "prompt": "agents/implementation_readiness.md"
       },
-      "behaviourSha256": "9c73f44248ab395dcd1c1328094742855424a47f406d29d93e5694613f60f706",
+      "behaviourSha256": "05d7c8ab33e104dc803505e3f2918061cfc536f22b12d4e2af98ff6a583ad6e5",
       "bundle": "egm.runtime",
       "contentSha256": "3b1b5b0a6f9469ad57f1cc3797b864cdb770e38b45c23ec27f3b68dfb3b00e45",
       "description": "Pragmatic Tech Lead persona verifying that implementation plans contain unambiguous, fully actionable execution instructions without leaving design decisions to the implementer.",
@@ -281,9 +287,32 @@
     },
     {
       "agent": {
+        "prompt": "agents/inventive_catalyst.md"
+      },
+      "behaviourSha256": "f7e4ec7a22d5c787c8c1d2eb5a9c6eaf8a789b6363757dff1634634602a2c656",
+      "bundle": "egm.runtime",
+      "contentSha256": "9ff89b9122249f1dce19943285e81420fa749487cd15f5bed60f14237ac06e39",
+      "description": "Inventive problem-solving Goldfish persona applying TRIZ principles to identify and eliminate system-level contradictions without compromise.",
+      "files": [
+        {
+          "bytes": 7355,
+          "executable": false,
+          "role": "content",
+          "sha256": "e766638298dfa42859172df62d1c0a4faa9ade143bcfc92837b5843a684e1da4",
+          "sourceId": "egm",
+          "sourcePath": "agents/inventive_catalyst.md"
+        }
+      ],
+      "id": "egm.agent.inventive_catalyst",
+      "kind": "agent",
+      "name": "egm-inventive-catalyst",
+      "scanKey": "git-sha1:9f340167e48b686025e539ff2cff73302198e247"
+    },
+    {
+      "agent": {
         "prompt": "agents/structural.md"
       },
-      "behaviourSha256": "19c38b95bcda954844d26315bc877984e36a93313d4165eb867ecfde1af0dd14",
+      "behaviourSha256": "8a4e243b4ab935f29791d1b27b3c982cf7baa2471d7882793632cedcc3b5551c",
       "bundle": "egm.runtime",
       "contentSha256": "88ab3f0957a21890df2138cbf590ed806b47082ff73a0583336072e3c0c82474",
       "description": "Structural Layout Validator and Document Architect persona focused on symmetry, heading hierarchy, formatting, and template compliance.",
@@ -306,16 +335,16 @@
       "agent": {
         "prompt": "agents/style.md"
       },
-      "behaviourSha256": "08fd8ec0a6cd993cd5e08ea57611d120123f28027811b4b9321c9b81de5e3b0b",
+      "behaviourSha256": "af98028d3201ab3121f4066552e489862111a7dc05e4cf1c0127b5ac7f23efc2",
       "bundle": "egm.runtime",
-      "contentSha256": "2dcb8f9687a47b9531d31f40529cb4ba67cdc87e659d9554a01c4f24a608de2f",
+      "contentSha256": "dc4a54a85340d0d0385c3b8073bf837f8012ab1184bad2e2c82922b8fc073456",
       "description": "Technical Copy Editor persona focused on clarity, precision, brevity, objective framing, and stripping fluff.",
       "files": [
         {
-          "bytes": 4023,
+          "bytes": 4879,
           "executable": false,
           "role": "content",
-          "sha256": "9d0d59d7fac7ee479f9beea22d28b8ea20b6fea0215e06bd292a14eb2bb3b692",
+          "sha256": "9330780622baaef8dc683ea78efb3ff8e4583e3dde7ab6092b84df50e8c9ea58",
           "sourceId": "egm",
           "sourcePath": "agents/style.md"
         }
@@ -323,22 +352,22 @@
       "id": "egm.agent.style",
       "kind": "agent",
       "name": "egm-style",
-      "scanKey": "git-sha1:45699d9666e0483c73853fa0e5d3f02de19b9c78"
+      "scanKey": "git-sha1:a20868f93a70d26de134c1315e2b900f594affc0"
     },
     {
       "agent": {
         "prompt": "agents/synthesizer.md"
       },
-      "behaviourSha256": "6b43269c377fbe0cf9d04c6aa17b7338a154d69d0178fed4805cf5011a2b990d",
+      "behaviourSha256": "bb92621f95d3c2e6310292da5a9a8df93e3542a20c29a7c5bb80e19bab505d88",
       "bundle": "egm.runtime",
-      "contentSha256": "aa5eb1f7fec39a3ac0ee95e17cec63f6163a0a81155c8bd7c28453c40a32d6f3",
+      "contentSha256": "b2a97946ae62747667bb650d34291843e64e5b2430cba5e4971d1aec789be256",
       "description": "Intermediate Swarm Compiler and Aggregator coordinating parallel Goldfish reviewers, deduplicating findings, and compiling deliverable reports.",
       "files": [
         {
-          "bytes": 4450,
+          "bytes": 4860,
           "executable": false,
           "role": "content",
-          "sha256": "402e661fa44684ce51246575d169f65003981846f318cf13cf124c8895b4ccab",
+          "sha256": "44d1288c03ec829acafd8af0226ce1d0603f4cf04e9f8438b5b36a451be8f8b6",
           "sourceId": "egm",
           "sourcePath": "agents/synthesizer.md"
         }
@@ -346,13 +375,13 @@
       "id": "egm.agent.synthesizer",
       "kind": "agent",
       "name": "egm-synthesizer",
-      "scanKey": "git-sha1:3b5c730b1c9c51731c37a31984665f49d7fda11a"
+      "scanKey": "git-sha1:93d0c43e9d8ebeb4b17d35a5979a1753b89d0ce7"
     },
     {
       "agent": {
         "prompt": "agents/zoom_out.md"
       },
-      "behaviourSha256": "0ecbd2bdac614ca1459dbcd7a39d22a12e649fd882fc6a7585a3945c600e2493",
+      "behaviourSha256": "6e516a018c44e11aca0bd637bd92706823ab13017630c984b1404935cd06d2f7",
       "bundle": "egm.runtime",
       "contentSha256": "b7b047243154eb8efa40f501aa5199efda55f6945d3c5fc42dbbeb332e931757",
       "description": "Skeptical Architect persona focused on high-altitude simplicity, minimalism, YAGNI, and codebase reuse.",
@@ -379,16 +408,16 @@
     },
     {
       "arguments": false,
-      "behaviourSha256": "82bb0ec010a1de5241c9c4dedf0c3e794d973c98ea2401af6eddfbeed329534c",
+      "behaviourSha256": "d997c9d0d6b6d3b86ea7b6cc5fd8fd21e21329ee8816af47c183649df26fe9da",
       "bundle": "egm.runtime",
-      "contentSha256": "10781341df728084a70970dc96060e44f8695e4ef2909f899f414469523d74eb",
+      "contentSha256": "52938fb0ef0b089f3addf8afd46e07f72d9b5ca8026d4a45d7603458267b8b38",
       "description": "Bootstrap directory README.md files across a repository subtree.",
       "files": [
         {
-          "bytes": 23767,
+          "bytes": 12900,
           "executable": false,
           "role": "content",
-          "sha256": "ac86aae69c782b67ebb96d1dae5bcef675745e3f57cca99196038bb5e350fc4c",
+          "sha256": "f52d9984fbc71f1d6f866a1bc5a4e579799ed1ad1a7e945640ded2f14c4c31e5",
           "sourceId": "egm",
           "sourcePath": "skills/egm-bootstrap/SKILL.md"
         },
@@ -444,23 +473,31 @@
         {
           "path": "docs/harnesses.md",
           "sourcePath": "skills/egm-bootstrap/SKILL.md"
+        },
+        {
+          "path": "resources/execution_instructions.md",
+          "sourcePath": "skills/egm-bootstrap/SKILL.md"
+        },
+        {
+          "path": "skills/egm-drift-report/SKILL.md",
+          "sourcePath": "skills/egm-bootstrap/SKILL.md"
         }
       ],
-      "scanKey": "git-sha1:e8b64e4047b92e45debf4e6295b157a43bb972d6",
+      "scanKey": "git-sha1:c41ca36bcacc1f2073e8215fcd27c7096ede4bca",
       "userOnly": true
     },
     {
       "arguments": false,
-      "behaviourSha256": "9dea85bbc89dfbcf09923899e26be70064737688114f129f8b69cd94a2d0e8cf",
+      "behaviourSha256": "5bd28e67f0736c9ad678d23b3c7b15a3dbcf4ebe50c4c1bc4848765a6b137b0a",
       "bundle": "egm.runtime",
-      "contentSha256": "f17d3cc4626e7e651f4a57d26ea863bca3e997a9c99ec929e0b2666046fbafa6",
-      "description": "Interactive ideation and brainstorming skill for the Elephant & Goldfish Model (EGM). Helps turn half-baked concepts into structured hypotheses via clarifying questions, review, and iterative refinement. Produces an RFC summary for human review or more detailed design with /egm-draft.",
+      "contentSha256": "bc52db9984e9b232a7dea7f3e6238945ffd701cd6a9f5b8beb2a883159f82089",
+      "description": "Interactive ideation and brainstorming skill for the Elephant & Goldfish Model (EGM). Helps turn half-baked concepts into structured hypotheses via clarifying questions, review, and iterative refinement. Produces an RFC summary for human review or more detailed design with egm-draft.",
       "files": [
         {
-          "bytes": 14202,
+          "bytes": 15284,
           "executable": false,
           "role": "content",
-          "sha256": "fb594315b47dca4bbea878fc77cec42a1a3ef8c75a8b903b1812260391a13ed9",
+          "sha256": "91818ced884e88573251354e2133f5463ad40e3db93147641fedc5b6229f4400",
           "sourceId": "egm",
           "sourcePath": "skills/egm-brainstorm/SKILL.md"
         },
@@ -498,25 +535,29 @@
           "sourcePath": "skills/egm-brainstorm/SKILL.md"
         },
         {
+          "path": "docs/designs/README.md",
+          "sourcePath": "skills/egm-brainstorm/SKILL.md"
+        },
+        {
           "path": "docs/harnesses.md",
           "sourcePath": "skills/egm-brainstorm/SKILL.md"
         }
       ],
-      "scanKey": "git-sha1:4c98e0a81a0361dd6bbc2d6b54d62885fb9d9762",
+      "scanKey": "git-sha1:b63d7e40a5cf63d8fd2d9e6491f741c1f7931810",
       "userOnly": true
     },
     {
       "arguments": false,
-      "behaviourSha256": "79c38523d53e3cafdc5eaa02a88de399cf0b6752fc184af39f47c9757766fa44",
+      "behaviourSha256": "b8a6a04b6ab2fcbcae936d5386667eaf6b07a935b512ebfcfe0fcf031f75c95e",
       "bundle": "egm.runtime",
-      "contentSha256": "2574a9614823a9d24f73393ac1839dfdc8aa90e771b18185af2c000fc782756c",
+      "contentSha256": "b23830a6db1a5e2d8454ae99128d6910783b20eaa9a2591f6ffec7ccfc72052c",
       "description": "Drafts a design document section-by-section using the concepts brief from egm-brainstorm (or user notes). This is the second step in the Elephant-Goldfish (EGM) feature flow. Use when you are ready to write a design doc after aligning on requirements + solution.",
       "files": [
         {
-          "bytes": 16770,
+          "bytes": 17578,
           "executable": false,
           "role": "content",
-          "sha256": "7908cb6d6b9ab82fef416211988ab9abd6681d4c783b2c31b1a8c40f97009ab0",
+          "sha256": "4e8dbe707a1dccbbb73c9d4a7d3e93548a8569fa3b2b09f3d59b5699d10364bc",
           "sourceId": "egm",
           "sourcePath": "skills/egm-draft/SKILL.md"
         },
@@ -537,10 +578,10 @@
           "sourcePath": "skills/egm-draft/assets/icon.svg"
         },
         {
-          "bytes": 5288,
+          "bytes": 5432,
           "executable": false,
           "role": "content",
-          "sha256": "eb8e580e4de6be88da33fdbe662d1b39a0fa7a13378d2dd240f82eb712684e0d",
+          "sha256": "309246562d1ffd801b3a2cd81f5cbc767d36f7530046f6ac681b6db40c6c7965",
           "sourceId": "egm",
           "sourcePath": "skills/egm-draft/references/design_doc.md"
         }
@@ -562,12 +603,12 @@
           "sourcePath": "skills/egm-draft/SKILL.md"
         }
       ],
-      "scanKey": "git-sha1:121ce52eff217f59a2322d8d3cd54b35c09c1034",
+      "scanKey": "git-sha1:738b61a0ebb2bc0f36431f0ab9bc5f2237cf0727",
       "userOnly": true
     },
     {
       "arguments": false,
-      "behaviourSha256": "674c1e347dedfa0f73af4e7cb8b19ed07f8131fffb7f6e61ae13b0d8eae6c813",
+      "behaviourSha256": "9ffcca39ccf6655ffac7e9240a1cc5ab44a2355a4022edb65394fe17473443d6",
       "bundle": "egm.runtime",
       "contentSha256": "98ce5ec405ed6166aa09fd15a996ce249d862d7c6edff6ff07fc8511c8f7e361",
       "description": "Runs drift detection on all design documents to check for document and code consistency. Produces an actionable report with differences. Use when the user asks to detect drift or check for consistency across all design documents or READMEs in a directory.",
@@ -615,16 +656,64 @@
     },
     {
       "arguments": false,
-      "behaviourSha256": "e36b9a55264a796adc3c935feeeee62d0a5e892f9b8e79dcc060087f8ba4707e",
+      "behaviourSha256": "661dd970e4100607e8ac2cd69f9b66792b886166b4e93ad6abf6d51974fd038b",
       "bundle": "egm.runtime",
-      "contentSha256": "94e5eb80a86f5e29c57d22ba3a60eb2aaee22ec11acbc156e68aec62880f819e",
+      "contentSha256": "9ffeb6a50a8cbbdfa4edb7a5a1207ba5db03ff0516a461ac9a8a3f3c5a566202",
+      "description": "Executes a lightweight 5-step EGM (Elephant-Goldfish-Model) protocol for small, rapid iterations, specification revisions, code refactors, and bug fixes. Use when the user invokes /egm-lite, issues a phase command (checklist, exec, review, goldfish), or resolves a subagent review response. Don't use for large multi-component features requiring a formal design doc (use egm-brainstorm).",
+      "files": [
+        {
+          "bytes": 24446,
+          "executable": false,
+          "role": "content",
+          "sha256": "753e3aa8b4e578bfb55c8761ce00943d2b341ec92c0474c75acfd269ddbe14d1",
+          "sourceId": "egm",
+          "sourcePath": "skills/egm-lite/SKILL.md"
+        },
+        {
+          "bytes": 194,
+          "executable": false,
+          "role": "content",
+          "sha256": "f01b6d29d142a293ba3c4966e6894f892e29b47ff96e694bd37f3bc26ef9ac09",
+          "sourceId": "egm",
+          "sourcePath": "skills/egm-lite/agents/openai.yaml"
+        },
+        {
+          "bytes": 477,
+          "executable": false,
+          "role": "content",
+          "sha256": "ca4569a1b5a8bd9eef3ab4f48acc26ce88c154eb2c420cd2ced70b5026d64d90",
+          "sourceId": "egm",
+          "sourcePath": "skills/egm-lite/assets/icon.svg"
+        }
+      ],
+      "id": "egm.skill.egm-lite",
+      "kind": "skill",
+      "name": "egm-lite",
+      "pathReferences": [
+        {
+          "path": "docs/claude.md",
+          "sourcePath": "skills/egm-lite/SKILL.md"
+        },
+        {
+          "path": "docs/codex.md",
+          "sourcePath": "skills/egm-lite/SKILL.md"
+        }
+      ],
+      "scanKey": "git-sha1:9457ad9d9c8a52c0b004541866db587bf4316b6b",
+      "userOnly": true
+    },
+    {
+      "arguments": false,
+      "behaviourSha256": "d13b6879d97772b09f3509ab48ffbc41e4aa5036f311805b8389a0eb8138d775",
+      "bundle": "egm.runtime",
+      "contentSha256": "f8634932a20692bfdbba5518d6d9ef17e898b3e1fcfdf489c55ae8faf9aba9ea",
       "description": "The Elephant resolution skill. Ingests flat deficiency reports from concurrent Goldfish reviewers, applies automated fixes for PROPOSE FIX items via UI multiple-choice gates, and presents interactive negotiation/re-sync checkpoints.",
       "files": [
         {
-          "bytes": 8539,
+          "bytes": 8541,
           "executable": false,
           "role": "content",
-          "sha256": "6bb1909b42b815e074bd486c6244b56eef8d61669abb3302c764a16be05af472",
+          "sha256": "fe12b8712f88b51780d817e6c8f0ac5e7a29961ee111d0fd19bfc2f738d2f531",
           "sourceId": "egm",
           "sourcePath": "skills/egm-resolve/SKILL.md"
         },
@@ -658,21 +747,21 @@
           "sourcePath": "skills/egm-resolve/SKILL.md"
         }
       ],
-      "scanKey": "git-sha1:d600d41e598eb7d7c54d8d9b5566553b3837e945",
+      "scanKey": "git-sha1:74c82d2a52a4b183d1f046127b0312d454d6c43e",
       "userOnly": true
     },
     {
       "arguments": false,
-      "behaviourSha256": "dfeab22c4bdcebb526a65ce34af09833bd69be7de4f411dd0a0a2e3fffe70f0d",
+      "behaviourSha256": "97e9e0d60b2ad3adfef61dcade08151aacd10f9193b121617dad55ae10a8fde6",
       "bundle": "egm.runtime",
-      "contentSha256": "fa6c06db8bf82583e37011fd43d4eb2095c28af24a5f0643fde4f120ec00e092",
+      "contentSha256": "7a027b8ae82474bb57198b10f23987411c08f9968bdd4a0af3eaba73083857dc",
       "description": "Orchestrates the EGM Goldfish Review Protocol. Used as part of the EGM process to perform design document reviews. Executes five review phases: Initial Zoom Out Review, Comprehension Review, Design Critique, Intermediate Zoom Out Review, and Implementation Readiness.",
       "files": [
         {
-          "bytes": 22497,
+          "bytes": 13420,
           "executable": false,
           "role": "content",
-          "sha256": "5e96e3b586a086c7c87b4f0185303a49adc9486028134d258827e9bbfb89e986",
+          "sha256": "97504ffb02193bb8405d609565cc6134f10708149334b45137bbc9d82ceec4ce",
           "sourceId": "egm",
           "sourcePath": "skills/egm-review/SKILL.md"
         },
@@ -702,6 +791,10 @@
           "sourcePath": "skills/egm-review/SKILL.md"
         },
         {
+          "path": "agents/inventive_catalyst.md",
+          "sourcePath": "skills/egm-review/SKILL.md"
+        },
+        {
           "path": "agents/zoom_out.md",
           "sourcePath": "skills/egm-review/SKILL.md"
         },
@@ -718,25 +811,33 @@
           "sourcePath": "skills/egm-review/SKILL.md"
         },
         {
-          "path": "resources/document_standards/zoom-out-standard.md",
+          "path": "resources/execution_instructions.md",
+          "sourcePath": "skills/egm-review/SKILL.md"
+        },
+        {
+          "path": "skills/egm-resolve/SKILL.md",
+          "sourcePath": "skills/egm-review/SKILL.md"
+        },
+        {
+          "path": "skills/egm-review-loop/SKILL.md",
           "sourcePath": "skills/egm-review/SKILL.md"
         }
       ],
-      "scanKey": "git-sha1:ba907597dd4a58cc5ff2045f899b0a754e972456",
+      "scanKey": "git-sha1:3c148d5d74ffa0421c6fe54e1fd0ec8e2412c715",
       "userOnly": true
     },
     {
       "arguments": false,
-      "behaviourSha256": "290ddfa32b912f24a8e5db0f3db17bccfe9ea9908a272dbc0d163fb60ddbe2eb",
+      "behaviourSha256": "fc829312fa15dd4dad8477b5056f1b9316234f4bc88891b78874d1a417830a86",
       "bundle": "egm.runtime",
-      "contentSha256": "75e3f96c6dd8ee5cdaa549f5beea4df9d24faf26146cfffb0b83ce56d7e9d98e",
+      "contentSha256": "acb1b7fe56e04e2242feceb6eadf102fbca41557002053cf5eb0b171ea4ecb78",
       "description": "Executes the Antagonistic-Review process from the Elephant-Goldfish Model (EGM) via an automated multi-agent review loop to audit documents against qualitative standards and structural templates, and automatically apply approved fixes. Use when reviewing design docs, READMEs, feature specifications, implementation plans, or verifying document completeness and tone.",
       "files": [
         {
-          "bytes": 9770,
+          "bytes": 10325,
           "executable": false,
           "role": "content",
-          "sha256": "d99803ad5bf99900e9548491f6ad1ab58a9488bbf7af79f67ead033bb48b7023",
+          "sha256": "844b174055d32a7394f1096964a289987272109fff531a080fc9c3c9acef26fa",
           "sourceId": "egm",
           "sourcePath": "skills/egm-review-loop/SKILL.md"
         },
@@ -786,7 +887,7 @@
           "sourcePath": "skills/egm-review-loop/SKILL.md"
         }
       ],
-      "scanKey": "git-sha1:c175babdc804400eea068eb95357bb2c01966382",
+      "scanKey": "git-sha1:dec215a584f2f9d00a2b62edd5bc210ec218dee1",
       "userOnly": true
     }
   ],
@@ -830,6 +931,12 @@
           "sourcePath": ".claude-plugin/agents/implementation_readiness.md"
         },
         {
+          "bytes": 687,
+          "executable": false,
+          "sha256": "09e1c9a9b859da67623f1ce3bf4836eaebcab9ee0e490f84938e9f868669870c",
+          "sourcePath": ".claude-plugin/agents/inventive_catalyst.md"
+        },
+        {
           "bytes": 639,
           "executable": false,
           "sha256": "33237f2b2147903a270fae5b649cf638444fc9cf1109964b46db152bef3a5f90",
@@ -842,9 +949,9 @@
           "sourcePath": ".claude-plugin/agents/style.md"
         },
         {
-          "bytes": 767,
+          "bytes": 1214,
           "executable": false,
-          "sha256": "e6f053a5d6b289592e7bb7b56d8ebae7f9b5080db6430c9f484fc9a40f4c7dfd",
+          "sha256": "91f93f5023467dec7a4c85a2d0761db457b55aa25076b8de356eaa1481b42706",
           "sourcePath": ".claude-plugin/agents/synthesizer.md"
         },
         {
@@ -860,21 +967,21 @@
           "sourcePath": ".claude-plugin/icon.png"
         },
         {
-          "bytes": 218,
+          "bytes": 352,
           "executable": false,
-          "sha256": "67d06ca2817ee672c8ad603c3fa15c4aa22f33a78b312879eda84e7ad042ba9d",
+          "sha256": "026a571170345e1c4d1d2a6aecd2c9d5036a2ac9f5d2ce61cb60ccff956e9494",
           "sourcePath": ".claude-plugin/marketplace.json"
         },
         {
-          "bytes": 1281,
+          "bytes": 1302,
           "executable": false,
-          "sha256": "b57b690c962e00bac6979e3788083a9c8120dc09beaac49b2abff1991d0ab4cc",
+          "sha256": "c293a6b23b39886db490fc59700f51ba65354f72c47e3a7465bdf40421e5bb72",
           "sourcePath": ".claude-plugin/plugin.json"
         },
         {
-          "bytes": 1337,
+          "bytes": 1778,
           "executable": false,
-          "sha256": "3ab8abb44a4d13f8c390309fba14683593952c37ef9ced4e5ea7c1fa8afac070",
+          "sha256": "00857f0b0d51a7680db0e6b70fea909244e8d8ee4831831811d15ae73a3b9f1c",
           "sourcePath": ".codex-plugin/plugin.json"
         },
         {
@@ -884,9 +991,9 @@
           "sourcePath": "LICENSE"
         },
         {
-          "bytes": 7976,
+          "bytes": 9933,
           "executable": false,
-          "sha256": "085d23cb5a89aa92946396a10241c24b2f53f2b97e7fd26b55853e879c667fd2",
+          "sha256": "2bd6e36f3f4fa64fffaf61dbef3b8fae9b8fe97bdba76c8d0f01cd75f85621c8",
           "sourcePath": "README.md"
         },
         {
@@ -920,21 +1027,27 @@
           "sourcePath": "agents/implementation_readiness.md"
         },
         {
+          "bytes": 7355,
+          "executable": false,
+          "sha256": "e766638298dfa42859172df62d1c0a4faa9ade143bcfc92837b5843a684e1da4",
+          "sourcePath": "agents/inventive_catalyst.md"
+        },
+        {
           "bytes": 3954,
           "executable": false,
           "sha256": "f0d4fe6faee4e388366b7d653fe353a9b09f45ca1bf5dae29280e351cda7da87",
           "sourcePath": "agents/structural.md"
         },
         {
-          "bytes": 4023,
+          "bytes": 4879,
           "executable": false,
-          "sha256": "9d0d59d7fac7ee479f9beea22d28b8ea20b6fea0215e06bd292a14eb2bb3b692",
+          "sha256": "9330780622baaef8dc683ea78efb3ff8e4583e3dde7ab6092b84df50e8c9ea58",
           "sourcePath": "agents/style.md"
         },
         {
-          "bytes": 4450,
+          "bytes": 4860,
           "executable": false,
-          "sha256": "402e661fa44684ce51246575d169f65003981846f318cf13cf124c8895b4ccab",
+          "sha256": "44d1288c03ec829acafd8af0226ce1d0603f4cf04e9f8438b5b36a451be8f8b6",
           "sourcePath": "agents/synthesizer.md"
         },
         {
@@ -956,15 +1069,15 @@
           "sourcePath": "docs/assets/readme-header.svg"
         },
         {
-          "bytes": 9395,
+          "bytes": 10489,
           "executable": false,
-          "sha256": "cbc51e603740134e5890fe645f3d516c03674598be43733c53411c920f445cc1",
+          "sha256": "7c8be13c296e582467dec6141a18387168ffc1e32d4e0ece4c29b2af5c631350",
           "sourcePath": "docs/claude.md"
         },
         {
-          "bytes": 6104,
+          "bytes": 7230,
           "executable": false,
-          "sha256": "a7390390c233ece29a2ee7508a8d328b6b4ee200f649417c097687c76f014ad0",
+          "sha256": "91be58251456904c2542ee1299d1096b569cbc08afdcf24c671eb09b32d09bfc",
           "sourcePath": "docs/codex.md"
         },
         {
@@ -974,15 +1087,15 @@
           "sourcePath": "docs/faq.md"
         },
         {
-          "bytes": 6652,
+          "bytes": 9826,
           "executable": false,
-          "sha256": "e45d171e4bc306fcb87a426f2608a9ed46a3ca329d67fd5c11a0d944865a57c7",
+          "sha256": "a8456d2e7c3458d56e8ef4232e08a23934a1a22647a2df9066f02eb07ca85dda",
           "sourcePath": "docs/getting_started.md"
         },
         {
-          "bytes": 9544,
+          "bytes": 15099,
           "executable": false,
-          "sha256": "d1e24628833a5f081285c1494d28422b30f17000aadf8b3c291cdae025eaadd6",
+          "sha256": "f2b1f49dcff0ff2884471d2ec2278fbbb980ee4b24d39a82c52e26fae2aeac71",
           "sourcePath": "docs/harnesses.md"
         },
         {
@@ -998,15 +1111,15 @@
           "sourcePath": "docs/privacy.md"
         },
         {
-          "bytes": 3676,
+          "bytes": 4275,
           "executable": false,
-          "sha256": "d5dbaf5638079ce63a01517078760618688cf00913287a5163f2855b0a4ad05d",
+          "sha256": "4e4be91d5da7e62d36f3aaffd438f9a4915323564e9b95eb3c02eaa7bd11a7af",
           "sourcePath": "docs/releases.md"
         },
         {
-          "bytes": 1424,
+          "bytes": 1958,
           "executable": false,
-          "sha256": "227c4a9e4c337c6f43941287af5e6a09e6a247372ec6b98cca03f8ac0cf166e7",
+          "sha256": "a2bf6305031cca9fd84cc79bd22dff426a34945703c76b9c72f9cb38d0825d3e",
           "sourcePath": "plugin.json"
         },
         {
@@ -1016,9 +1129,9 @@
           "sourcePath": "resources/README.md"
         },
         {
-          "bytes": 1489,
+          "bytes": 1659,
           "executable": false,
-          "sha256": "b3e4960fd884fde880a41da782fc73342fe232769e5835a4470b3c8c517644c4",
+          "sha256": "8e9821e7bfd7c074dd1cec7ba02e3ea09a3fd32e35b91a1463a37c1ee3b9d6a4",
           "sourcePath": "resources/document_standards/feature-spec-standard.md"
         },
         {
@@ -1028,9 +1141,9 @@
           "sourcePath": "resources/document_standards/heilmeier-standard.md"
         },
         {
-          "bytes": 1379,
+          "bytes": 1654,
           "executable": false,
-          "sha256": "ed0d2a085eac0fd9581d504a2ec0df2a92d6b2538636a22b16e0b1370fba6dbb",
+          "sha256": "49ef3a44228a14c774ec606477293be6467b232a9e4af9e031a3cad64ed87642",
           "sourcePath": "resources/document_standards/implementation-readiness-standard.md"
         },
         {
@@ -1046,15 +1159,15 @@
           "sourcePath": "resources/document_standards/zoom-out-standard.md"
         },
         {
-          "bytes": 2348,
+          "bytes": 7831,
           "executable": false,
-          "sha256": "06f0ee648efa2fefd79081d01f32c4930d709fa709df42d06a287f97a8582179",
+          "sha256": "268462ff295605a350435221f009f863b1bef352a1bfdcd8278692af17ba31f9",
           "sourcePath": "resources/execution_instructions.md"
         },
         {
-          "bytes": 23767,
+          "bytes": 12900,
           "executable": false,
-          "sha256": "ac86aae69c782b67ebb96d1dae5bcef675745e3f57cca99196038bb5e350fc4c",
+          "sha256": "f52d9984fbc71f1d6f866a1bc5a4e579799ed1ad1a7e945640ded2f14c4c31e5",
           "sourcePath": "skills/egm-bootstrap/SKILL.md"
         },
         {
@@ -1082,9 +1195,9 @@
           "sourcePath": "skills/egm-bootstrap/references/worker-return.schema.json"
         },
         {
-          "bytes": 14202,
+          "bytes": 15284,
           "executable": false,
-          "sha256": "fb594315b47dca4bbea878fc77cec42a1a3ef8c75a8b903b1812260391a13ed9",
+          "sha256": "91818ced884e88573251354e2133f5463ad40e3db93147641fedc5b6229f4400",
           "sourcePath": "skills/egm-brainstorm/SKILL.md"
         },
         {
@@ -1100,9 +1213,9 @@
           "sourcePath": "skills/egm-brainstorm/assets/icon.svg"
         },
         {
-          "bytes": 16770,
+          "bytes": 17578,
           "executable": false,
-          "sha256": "7908cb6d6b9ab82fef416211988ab9abd6681d4c783b2c31b1a8c40f97009ab0",
+          "sha256": "4e8dbe707a1dccbbb73c9d4a7d3e93548a8569fa3b2b09f3d59b5699d10364bc",
           "sourcePath": "skills/egm-draft/SKILL.md"
         },
         {
@@ -1118,9 +1231,9 @@
           "sourcePath": "skills/egm-draft/assets/icon.svg"
         },
         {
-          "bytes": 5288,
+          "bytes": 5432,
           "executable": false,
-          "sha256": "eb8e580e4de6be88da33fdbe662d1b39a0fa7a13378d2dd240f82eb712684e0d",
+          "sha256": "309246562d1ffd801b3a2cd81f5cbc767d36f7530046f6ac681b6db40c6c7965",
           "sourcePath": "skills/egm-draft/references/design_doc.md"
         },
         {
@@ -1142,9 +1255,27 @@
           "sourcePath": "skills/egm-drift-report/assets/icon.svg"
         },
         {
-          "bytes": 8539,
+          "bytes": 24446,
           "executable": false,
-          "sha256": "6bb1909b42b815e074bd486c6244b56eef8d61669abb3302c764a16be05af472",
+          "sha256": "753e3aa8b4e578bfb55c8761ce00943d2b341ec92c0474c75acfd269ddbe14d1",
+          "sourcePath": "skills/egm-lite/SKILL.md"
+        },
+        {
+          "bytes": 194,
+          "executable": false,
+          "sha256": "f01b6d29d142a293ba3c4966e6894f892e29b47ff96e694bd37f3bc26ef9ac09",
+          "sourcePath": "skills/egm-lite/agents/openai.yaml"
+        },
+        {
+          "bytes": 477,
+          "executable": false,
+          "sha256": "ca4569a1b5a8bd9eef3ab4f48acc26ce88c154eb2c420cd2ced70b5026d64d90",
+          "sourcePath": "skills/egm-lite/assets/icon.svg"
+        },
+        {
+          "bytes": 8541,
+          "executable": false,
+          "sha256": "fe12b8712f88b51780d817e6c8f0ac5e7a29961ee111d0fd19bfc2f738d2f531",
           "sourcePath": "skills/egm-resolve/SKILL.md"
         },
         {
@@ -1160,9 +1291,9 @@
           "sourcePath": "skills/egm-resolve/assets/icon.svg"
         },
         {
-          "bytes": 9770,
+          "bytes": 10325,
           "executable": false,
-          "sha256": "d99803ad5bf99900e9548491f6ad1ab58a9488bbf7af79f67ead033bb48b7023",
+          "sha256": "844b174055d32a7394f1096964a289987272109fff531a080fc9c3c9acef26fa",
           "sourcePath": "skills/egm-review-loop/SKILL.md"
         },
         {
@@ -1178,9 +1309,9 @@
           "sourcePath": "skills/egm-review-loop/assets/icon.svg"
         },
         {
-          "bytes": 22497,
+          "bytes": 13420,
           "executable": false,
-          "sha256": "5e96e3b586a086c7c87b4f0185303a49adc9486028134d258827e9bbfb89e986",
+          "sha256": "97504ffb02193bb8405d609565cc6134f10708149334b45137bbc9d82ceec4ce",
           "sourcePath": "skills/egm-review/SKILL.md"
         },
         {
@@ -1196,7 +1327,7 @@
           "sourcePath": "skills/egm-review/assets/icon.svg"
         }
       ],
-      "folderScanKey": "git-sha1:1b923b12bb559dc7809ff4374b1eec50d9f5cc8e",
+      "folderScanKey": "git-sha1:327b35f4fb73dfa293c5cff9159a254ed251ee8c",
       "include": [
         ".agents/plugins/marketplace.json",
         ".claude-plugin/agents/*.md",
@@ -1230,14 +1361,14 @@
         "skills/*/references/*.md"
       ],
       "path": "/",
-      "scanKey": "git-sha1:ab3af1a40e4c8c271a217c2e706a44a285b4feb6",
+      "scanKey": "git-sha1:236997cf020f877ebdd7344b9a6bd7694d642d2b",
       "sourceId": "egm"
     }
   ],
   "schema": "urn:aihq:catalog:content:0.1.0",
   "sources": [
     {
-      "commit": "403d8881d62022490637d740657b33f01e321ea8",
+      "commit": "46933754e63c0424daa9c270d7e0734245d79560",
       "id": "egm",
       "kind": "git",
       "notices": [
@@ -1245,11 +1376,6 @@
           "covers": "/",
           "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
           "sourcePath": "LICENSE"
-        },
-        {
-          "covers": "distributions/claude",
-          "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
-          "sourcePath": "distributions/claude/LICENSE"
         }
       ],
       "repository": "https://github.com/google/elephant-goldfish-model"

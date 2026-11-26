@@ -3,9 +3,9 @@
     {
       "files": [
         {
-          "bytes": 5206,
+          "bytes": 5524,
           "executable": false,
-          "sha256": "61c759d94d52296231f5f310b92b401f56c44e4430dc3cc95ebac5d7b1d5ffac",
+          "sha256": "8837fa9096268cd4df66d0e0cbf3c56d4b1999f294e899516dae3a11e6adf8c6",
           "sourcePath": "references/accessibility-checklist.md"
         },
         {
@@ -27,27 +27,27 @@
           "sourcePath": "references/orchestration-patterns.md"
         },
         {
-          "bytes": 13159,
+          "bytes": 13292,
           "executable": false,
-          "sha256": "fffc38b8f3b328a973aab8b1a2efdd72b65710d8f4b57f28f8374ddae7f8a88b",
+          "sha256": "ce946457d4a502846e781a2747cf6af50bcc79b1957a66dc024f50557e8982e1",
           "sourcePath": "references/performance-checklist.md"
         },
         {
-          "bytes": 14360,
+          "bytes": 14993,
           "executable": false,
-          "sha256": "37774056502fe8970dcd2fd27dca5fa31f2a55232649fc3056c89c3af7d62755",
+          "sha256": "594615c28ae13b90c53bf723aa5d43fd96dc2f0e707b3f56727dc91243a2815a",
           "sourcePath": "references/security-checklist.md"
         },
         {
-          "bytes": 7440,
+          "bytes": 7523,
           "executable": false,
-          "sha256": "53e183fcf7b09d99a39c10a713adfa6561322850144b6836f2c6e58b28abc973",
+          "sha256": "aab8107153236b16114fd1a891879395ad7658137f474db559d120bb9e21f6e4",
           "sourcePath": "references/testing-patterns.md"
         }
       ],
       "id": "extensions.references",
       "layout": "skills/<name>/",
-      "scanKey": "git-sha1:bf817502c7f420f4b86a74b76f766e24fbd7f5a7",
+      "scanKey": "git-sha1:293f12b0fb992548d1c4fc450d8f2fee46cb844d",
       "sourceId": "extensions"
     }
   ],
@@ -330,15 +330,15 @@
     },
     {
       "arguments": false,
-      "behaviourSha256": "5a83b958c471766ee6223afdfe3ad97f7395d005e406b0a9f2641879d595d2a2",
-      "contentSha256": "8d97cb7a31c0f68e7218e04634d99eacf4ca574dad838ca18d5b33251f81790f",
+      "behaviourSha256": "d299e221d6e43a8999fca39bd2242ea96aae02f1f74f1d17039b5a574155a03b",
+      "contentSha256": "4ce92a806973a508a6c441dd9fbf75032b8ef0e79a187aef62e827002a4f14f4",
       "description": "Design stable REST, GraphQL and RPC contracts, compatibility and versioning. In-codebase module design belongs to codebase-design.",
       "files": [
         {
-          "bytes": 14798,
+          "bytes": 14850,
           "executable": false,
           "role": "content",
-          "sha256": "01a70a1bc919c63c68e612e511cf3aee643eeaa527d1717358d7c24e6a202cb2",
+          "sha256": "d901c673bdde2885f00402767f645dfe258bdbaa8c6ed981407971d806b9c269",
           "sourceId": "extensions",
           "sourcePath": "skills/api-and-interface-design/SKILL.md"
         },
@@ -355,7 +355,7 @@
       "id": "extensions.skill.api-and-interface-design",
       "kind": "skill",
       "name": "api-and-interface-design",
-      "scanKey": "git-sha1:61a5aefb933dd6ad5ac729b15e36cc910fa4cf7e",
+      "scanKey": "git-sha1:4e835261416b3f4bdfae4ba892afc5d4db72bb50",
       "userOnly": true
     },
     {
@@ -390,15 +390,15 @@
     },
     {
       "arguments": false,
-      "behaviourSha256": "36d53e6fe3fa3aad9402e514ea782c34638b408f52bf06a280cc7ca62b1490e2",
-      "contentSha256": "4d4bd762f8bc1f351253f5bcb2545785aa8c833e0b57ab3bf42503f33063d539",
+      "behaviourSha256": "d7485100787566a94d2970cc22235fa773b522993ddf13dd8a5a118d8051dc3b",
+      "contentSha256": "290d72dc3bbcc7ac23c8103a7fc19bfabb0971bb553effa696ade39c3da3675d",
       "description": "Tests in real browsers via Chrome DevTools MCP. Use when building or debugging anything that runs in a browser. Use when you need to inspect the DOM, capture console errors, analyze network requests, profile performance, or verify visual output with real runtime data. Requires the chrome-devtools MCP server to be configured.",
       "files": [
         {
-          "bytes": 14570,
+          "bytes": 14671,
           "executable": false,
           "role": "content",
-          "sha256": "33010943fda9036ce0dd63ddfaef3ac3d80f4424fddd40a14ecae250d53efc82",
+          "sha256": "c2d1aeefeca198364caf2ca72b0f93608db0177db504d027bd980a787001e150",
           "sourceId": "extensions",
           "sourcePath": "skills/browser-testing-with-devtools/SKILL.md"
         },
@@ -415,20 +415,20 @@
       "id": "extensions.skill.browser-testing-with-devtools",
       "kind": "skill",
       "name": "browser-testing-with-devtools",
-      "scanKey": "git-sha1:ce9c637274ae40fd7fdea299f92c4fe54300f1d6",
+      "scanKey": "git-sha1:2b5c415e088d6869d4d1b0a6aa44efab77de8ae3",
       "userOnly": true
     },
     {
       "arguments": false,
-      "behaviourSha256": "5a163cf553370b252ff80acc54396661ce389201bd7237d8c55065de300605ae",
-      "contentSha256": "a616a479c7651df1ace23a9f8f5fb0216f00e7b68448cc776e888dc1a52e3b74",
+      "behaviourSha256": "df34087e0a8c610269b1c3a383576a9b282831fe5a059ae7207e42faa509f68f",
+      "contentSha256": "66fa8749a960eb1778cb6ed04d7492ce733dde1e342af1427c15cc5631802b64",
       "description": "Automates CI/CD pipeline setup. Use when setting up or modifying build and deployment pipelines. Use when you need to automate quality gates, configure test runners in CI, or establish deployment strategies.",
       "files": [
         {
-          "bytes": 11350,
+          "bytes": 11695,
           "executable": false,
           "role": "content",
-          "sha256": "fae166dafb93888fd2f0a5cac28564e6a8983bd52321d41e89e0d1b82c858350",
+          "sha256": "a64bd3b272f36cf163ec916ad3a9bdc2bfd0a30f5239427ce327d355ec71baa4",
           "sourceId": "extensions",
           "sourcePath": "skills/ci-cd-and-automation/SKILL.md"
         },
@@ -445,20 +445,20 @@
       "id": "extensions.skill.ci-cd-and-automation",
       "kind": "skill",
       "name": "ci-cd-and-automation",
-      "scanKey": "git-sha1:2ab06b086fbfa77bbf5d85b9bc4c8246c6a775db",
+      "scanKey": "git-sha1:27caf0b9f1adad14446c95155c30256c7c9cfb81",
       "userOnly": true
     },
     {
       "arguments": false,
-      "behaviourSha256": "a415547013f3595c9799133b36c4857cdde57dce7cde8c7ff88db28f24b0eb33",
-      "contentSha256": "722852fc4326d005f24cbcabc111b9e2a6fa15524e8b23f1c67db279ba5316a9",
-      "description": "Simplifies code for clarity. Use when refactoring code for clarity without changing behavior. Use when code works but is harder to read, maintain, or extend than it should be. Use when reviewing code that has accumulated unnecessary complexity.",
+      "behaviourSha256": "c14a06425dfcabbc780bc085b7de7392fbda21941d709922b1169b0c9ea25f1c",
+      "contentSha256": "4488995b3d0a70e3fc169260ce2c77c5e20c740514508c9cc502addc299bc6e8",
+      "description": "Simplifies code for clarity. Use when refactoring code for clarity without changing behavior. Use when code works but is harder to read, maintain, or extend than it should be. Use when reviewing code that has accumulated unnecessary complexity. Use when asked to simplify, clean up, or reduce the nesting of a function or module that already works, even when the code is pasted inline and nothing else needs to change.",
       "files": [
         {
-          "bytes": 13683,
+          "bytes": 13857,
           "executable": false,
           "role": "content",
-          "sha256": "ca9ccf9cbb17ddf99f4b6d008734ec8e35bb86f859a91253b5c390dc43b0393e",
+          "sha256": "b570a74fbb972152c93cc80684a0b8fd18332af9e183ca8b630e28c812d4daab",
           "sourceId": "extensions",
           "sourcePath": "skills/code-simplification/SKILL.md"
         },
@@ -475,20 +475,20 @@
       "id": "extensions.skill.code-simplification",
       "kind": "skill",
       "name": "code-simplification",
-      "scanKey": "git-sha1:0d6ec0b54cd283ac3faaa05f6e420e1439d45f27",
+      "scanKey": "git-sha1:20b75b007ac2122c142eca762bbd952d682fe05c",
       "userOnly": true
     },
     {
       "arguments": false,
-      "behaviourSha256": "ecf73391c3fde6671d52db1ee9d49b6d1d30b6213cf9a151c872812fdf10a4ec",
-      "contentSha256": "d418a3fd45fcbcad8c082e2c27678398be00afd091c83b55e77d08572748d38c",
+      "behaviourSha256": "e67c6a74a1adf185f892d0d20d5ec59e8268f4a48770f4b076052c9fbfaac007",
+      "contentSha256": "67c52614ca587f8da639f908ea081f36b8f7481f056eee016a1ed983c4bf41fd",
       "description": "Establishes a project's quality bar as a written contract and stops agents quietly lowering it. Interviews the user on which dimensions matter, supplies sane default thresholds when they have no number in mind, records everything in CONSTRAINTS.md, and watches the diff for a weakened bar — new @ts-ignore or eslint-disable suppressions, skipped or deleted tests, assertions stripped out, unimplemented stubs, thresholds edited down. Use when no quality bar is written down, when the user says \"set up constraints\" or \"define our standards\", when the user wants dimensions they care about — accessibility, web performance, coverage — set up as enforced constraints, when an agent keeps silencing checks or skipping tests to get to green, when you need a coverage or performance threshold and don't know what number to pick, or when an agent writes more code than anyone will read.",
       "files": [
         {
-          "bytes": 21123,
+          "bytes": 22320,
           "executable": false,
           "role": "content",
-          "sha256": "7f2e0f4f59747ab524f2c9fb2c86d471e4076059d535cfaac13e0043a24c821c",
+          "sha256": "221145e8373509ebd3df8e30134901d64561791e809bdbbc5b78030b681d1e40",
           "sourceId": "extensions",
           "sourcePath": "skills/constraint-driven-development/SKILL.md"
         },
@@ -502,31 +502,39 @@
           "sourcePath": "skills/constraint-driven-development/agents/openai.yaml"
         },
         {
-          "bytes": 10681,
+          "bytes": 11508,
           "executable": false,
           "role": "content",
-          "sha256": "59715dc6c3c6c36ec9177f9ced65c379e80a4539b36115456666bfabc43a6a9c",
+          "sha256": "db4d4d84a272114bea5dde730119e7ad5f204c23a7610bd31042fa2202e9f2b8",
           "sourceId": "extensions",
           "sourcePath": "skills/constraint-driven-development/references/floor-guard.md"
+        },
+        {
+          "bytes": 1927,
+          "executable": false,
+          "role": "content",
+          "sha256": "460decdd1365c8bedb2538e9e4b7b248693bd78ea662268b314df4f5907d5fc2",
+          "sourceId": "extensions",
+          "sourcePath": "skills/constraint-driven-development/scripts/quality-gate.mjs"
         }
       ],
       "id": "extensions.skill.constraint-driven-development",
       "kind": "skill",
       "name": "constraint-driven-development",
-      "scanKey": "git-sha1:02738798b84c82a42fda265ea79740121e227137",
+      "scanKey": "git-sha1:057f91b66dad4c01e1a417c219844a843bdd268c",
       "userOnly": true
     },
     {
       "arguments": false,
-      "behaviourSha256": "61e3069d433c5953c074e9111aa792e4980d371f6e30f6b6fb862af115cc5fca",
-      "contentSha256": "05ed349388d1762d41641fae35235619d6949a6956fbcb1d6b1d0b59d03aa706",
+      "behaviourSha256": "c88ca838b9543742741b46847a1646d63d1bc3b9ea33fe8ad1f79aee7b9b91aa",
+      "contentSha256": "bc6a26870f5ec0495a34bcf3d8f470487c886e320a7b0568b8ce8eef572d1b28",
       "description": "Manages deprecation and migration. Use when removing old systems, APIs, or features. Use when migrating users from one implementation to another. Use when migrating a database schema in production, such as renaming or dropping a column without downtime (expand/contract). Use when deciding whether to maintain or sunset existing code.",
       "files": [
         {
-          "bytes": 12687,
+          "bytes": 12884,
           "executable": false,
           "role": "content",
-          "sha256": "d32dd301a1d9127063da2bb9f7eb418ad8afd6bdcbf302feb88be5d68859082e",
+          "sha256": "1e0582beeddf3f23b864de16b73a458be338c9c86e032d362fbf922d036d2629",
           "sourceId": "extensions",
           "sourcePath": "skills/deprecation-and-migration/SKILL.md"
         },
@@ -543,20 +551,20 @@
       "id": "extensions.skill.deprecation-and-migration",
       "kind": "skill",
       "name": "deprecation-and-migration",
-      "scanKey": "git-sha1:c9153f909c44f1b65c638a0901100cfadb81e263",
+      "scanKey": "git-sha1:f13af0801a7c62de84284dc304c1469f22c4af90",
       "userOnly": true
     },
     {
       "arguments": false,
-      "behaviourSha256": "8bf8ba8bf0d45e86f605cc3095fac883e417d7da1494562a7aef3654353d3385",
-      "contentSha256": "37d37663fdda39a4df87d4cc881a9727376cf442e2b841a6db20bea6a52ac2e1",
-      "description": "Write READMEs, API references, OpenAPI docs, changelogs and explanatory comments. ADRs belong to domain-modeling.",
+      "behaviourSha256": "445a3082052e21767266ddac6213390fc69eed00a439460642513f9a598bed2f",
+      "contentSha256": "4c4e78b39fa346d07bf2c5a5e2f68be196d12cedf40329b23f71313d358e352f",
+      "description": "Write READMEs, API references, OpenAPI docs, changelogs and explanatory comments, and check documentation for drift from code. ADRs belong to domain-modeling.",
       "files": [
         {
-          "bytes": 7392,
+          "bytes": 9485,
           "executable": false,
           "role": "content",
-          "sha256": "874f620246a4bcad8805561f483d6fc0e494e9f6b375027aa7fd86989d5da5b3",
+          "sha256": "0e3d6896a368a3e551f48766ee8c315f3186c1ee9970da5ca55d9f1315e1d122",
           "sourceId": "extensions",
           "sourcePath": "skills/documentation-and-adrs/SKILL.md"
         },
@@ -573,21 +581,20 @@
       "id": "extensions.skill.documentation-and-adrs",
       "kind": "skill",
       "name": "documentation-and-adrs",
-      "scanKey": "git-sha1:1739f67abfdc76ad8c7e2dc6288966c18bbaa93d",
+      "scanKey": "git-sha1:c5ce77d37323e9a02f0530e6007fb64e576ec2ff",
       "userOnly": true
     },
     {
       "arguments": false,
-      "behaviourSha256": "2ebb1e60ac43f2de9091adda2127efa1f98cb75dd7aac356cc2ed6f0bf60fbda",
-      "bundle": "extensions.references",
-      "contentSha256": "448b8caac33d28622ed120deb1c82f4ff8f201933b8613a80968cae93d76ddf5",
+      "behaviourSha256": "4bab5d11b59dd1cd2003c110abf3b54c80757c5553d033cfcfdc13ce72bc853d",
+      "contentSha256": "c1a75e17f435e2df5ce5bbd8034a9f4cf5ddade7133c76fe1b1c698640c5fedf",
       "description": "Subjects every non-trivial decision to a fresh-context adversarial review before it stands. Use when you want every assumption cross-examined before proceeding, when stress-testing a plan for hidden failure modes, when correctness matters more than speed, when working in unfamiliar code, when stakes are high (production auth, security-sensitive logic, a high-stakes migration, irreversible operations), or any time a confident output would be cheaper to verify now than to debug later.",
       "files": [
         {
-          "bytes": 16654,
+          "bytes": 16762,
           "executable": false,
           "role": "content",
-          "sha256": "b693bde58194b2b0ec1b16a987c757777899fd491964ff994f379f1ac78443fe",
+          "sha256": "58018f77afa906c264d8b008c942ee3c66f3641187baf1ee1f46416515894394",
           "sourceId": "extensions",
           "sourcePath": "skills/doubt-driven-development/SKILL.md"
         },
@@ -599,6 +606,14 @@
           "sha256": "a1499d95abd8447558c535fe5554adcc3c9b988a0a39264a6283d430effe1e94",
           "sourceId": "extensions",
           "sourcePath": "skills/doubt-driven-development/agents/openai.yaml"
+        },
+        {
+          "bytes": 18457,
+          "executable": false,
+          "role": "content",
+          "sha256": "8c26b0c4186a8eeb3303fd4f062979de328e4361a40926f4630b5af52bddcffd",
+          "sourceId": "extensions",
+          "sourcePath": "skills/doubt-driven-development/references/shared/orchestration-patterns.md"
         }
       ],
       "id": "extensions.skill.doubt-driven-development",
@@ -606,11 +621,19 @@
       "name": "doubt-driven-development",
       "pathReferences": [
         {
-          "path": "references/orchestration-patterns.md",
-          "sourcePath": "skills/doubt-driven-development/SKILL.md"
+          "path": "agents/code-reviewer.md",
+          "sourcePath": "skills/doubt-driven-development/references/shared/orchestration-patterns.md"
+        },
+        {
+          "path": "agents/security-auditor.md",
+          "sourcePath": "skills/doubt-driven-development/references/shared/orchestration-patterns.md"
+        },
+        {
+          "path": "agents/test-engineer.md",
+          "sourcePath": "skills/doubt-driven-development/references/shared/orchestration-patterns.md"
         }
       ],
-      "scanKey": "git-sha1:76ab517be84bed3f79bffaee85f48484185d24be",
+      "scanKey": "git-sha1:edc2e8c32cca8d7cacd2390235458b29a000f9cb",
       "userOnly": true
     },
     {
@@ -653,15 +676,15 @@
     },
     {
       "arguments": false,
-      "behaviourSha256": "818b412a4282144be78626abf06c9b9acc205de5f41b05e4a0c611bacfb1e6d1",
-      "contentSha256": "269a71e781084e97ca5f677c96bee922a58c49672dd4de2b52c494994dbe6173",
+      "behaviourSha256": "c1bfc61cbb9f9822b0c73ed333a17d919fde844f0f6f810f2a2de30686842770",
+      "contentSha256": "7f8deac6dce4505c537d5972291d01f2960eab52f0e4c1f34654a64f13875d0a",
       "description": "Review the changes since a fixed point (commit, branch, tag, or merge-base) along two axes: Standards (does the code follow this repo's documented coding standards?) and Spec (does the code match what the originating issue/spec asked for?). Runs both reviews in parallel sub-agents and reports them side by side. Use when the user wants to review a branch, a PR, work-in-progress changes, or asks to \"review since X\".",
       "files": [
         {
-          "bytes": 6670,
+          "bytes": 6721,
           "executable": false,
           "role": "content",
-          "sha256": "09eb147f793e4647949edd32dbad278f0554dfb56e0d46b699cd4c2c55bf0357",
+          "sha256": "9c921a8d88138a41401d8897ca1bb852088ab1b7b605cdd04edc13e3e8aab6dd",
           "sourceId": "matt",
           "sourcePath": "skills/engineering/code-review/SKILL.md"
         },
@@ -678,13 +701,13 @@
       "id": "extensions.skill.engineering.code-review",
       "kind": "skill",
       "name": "code-review",
-      "scanKey": "git-sha1:fee7bb5fdddc069d58cbea09b2c36b5a859eac05",
+      "scanKey": "git-sha1:a8ef561571acbb611de8ff19ba6da75b197c63a8",
       "userOnly": false
     },
     {
       "arguments": false,
-      "behaviourSha256": "efe44399accb664c285396f254405fcb2db18581694f1a136160c6a10a3151c7",
-      "contentSha256": "aafd47c745bf002b8f1b99b55aac4d7aaf8fc7da88057f7ea500935e1b25f75b",
+      "behaviourSha256": "3195bc668e6753cb3a0d23dd148daa4f621b3160bad54096e057bd15b49975b3",
+      "contentSha256": "fe813b6482247c30331b3945aebe717f57c4a4385f3a3c7eb4be6d9d6abd6cc0",
       "description": "Shared vocabulary for designing deep modules. Use when the user wants to design or improve a module's interface, find deepening opportunities, decide where a seam goes, make code more testable or AI-navigable, or when another skill needs the deep-module vocabulary.",
       "files": [
         {
@@ -696,10 +719,10 @@
           "sourcePath": "skills/engineering/codebase-design/DEEPENING.md"
         },
         {
-          "bytes": 2665,
+          "bytes": 2699,
           "executable": false,
           "role": "content",
-          "sha256": "52b52e75655a27aea59c6966b410bac82448968ad46ef1ebb9f07c274e3ae010",
+          "sha256": "c222ab5a82e0405672eb9062d62496139a08828e45d07fc5f18e4952c10fac1a",
           "sourceId": "matt",
           "sourcePath": "skills/engineering/codebase-design/DESIGN-IT-TWICE.md"
         },
@@ -724,7 +747,7 @@
       "id": "extensions.skill.engineering.codebase-design",
       "kind": "skill",
       "name": "codebase-design",
-      "scanKey": "git-sha1:07ba1cd60efc12d0d3a083005c1d9651cf15e39a",
+      "scanKey": "git-sha1:4cbe1c131e1ea54109cb1e4e5f3c505810db6606",
       "userOnly": false
     },
     {
@@ -767,8 +790,8 @@
     },
     {
       "arguments": false,
-      "behaviourSha256": "78799621010c8cadc0e79760e38bdfd298ae62e320da887ea1031dd7fc985e27",
-      "contentSha256": "871c76ee826572d6fd1e19bb3ffe2e8a54a12993c508e8101bb41dbc69bbe6c8",
+      "behaviourSha256": "a15b716ad0fcd9dd465a69dfbba2b7693def4b25b2746ee6b54d10f206a51035",
+      "contentSha256": "a9865c7b8454fe313f4485428eee4105a7e20dc326fcc61b008278aaedbd4652",
       "description": "Build and sharpen a project's domain model. Use when discussing codebase terminology, writing or editing a GLOSSARY.md, or recording or editing an ADR.",
       "files": [
         {
@@ -780,10 +803,10 @@
           "sourcePath": "skills/engineering/domain-modeling/ADR-FORMAT.md"
         },
         {
-          "bytes": 2300,
+          "bytes": 2504,
           "executable": false,
           "role": "content",
-          "sha256": "21dcc40cdec8e151a829b98ab1517c1867bc444e3665134a98c6983411996801",
+          "sha256": "479bb4d9cae0ef5cca8fa23ffb5ed5b1b93b41490878315551ceb0c727146cb6",
           "sourceId": "matt",
           "sourcePath": "skills/engineering/domain-modeling/GLOSSARY-FORMAT.md"
         },
@@ -808,7 +831,7 @@
       "id": "extensions.skill.engineering.domain-modeling",
       "kind": "skill",
       "name": "domain-modeling",
-      "scanKey": "git-sha1:ea30ee454ba264543dbe40737973b1a5afb9f0e6",
+      "scanKey": "git-sha1:db8ef024fb9a7b2022d57289359ae96cff0d8483",
       "userOnly": false
     },
     {
@@ -873,15 +896,15 @@
     },
     {
       "arguments": false,
-      "behaviourSha256": "a27056e3160ba8ff4e0235e4089979b0ab0aae0b7e561909ac8dd35e3b9d4d29",
-      "contentSha256": "da316832fbbdcadf1ae527394432545a6c03d91c41ba3e14b839546940237bde",
+      "behaviourSha256": "5fb57a84427f4212f8b7966e402869fb42f57649e54fdb7243e64e05bde8086a",
+      "contentSha256": "97ddafda746836e71d6c95569484bb0c1bb762567ac5a7f0d8d5592dc3aba0dd",
       "description": "Implement the result of /to-spec and /to-tickets in code.",
       "files": [
         {
-          "bytes": 2780,
+          "bytes": 2835,
           "executable": false,
           "role": "content",
-          "sha256": "7a22dd2e60b8fcece478ced9d2533582adf3520d695acd3ab715341535c9e56d",
+          "sha256": "1993a473cec40ac85d081c112cdffdc63ec3267c2e412055ad09e013a2f623d1",
           "sourceId": "matt",
           "sourcePath": "skills/engineering/implement-spec/SKILL.md"
         },
@@ -898,13 +921,13 @@
       "id": "extensions.skill.engineering.implement-spec",
       "kind": "skill",
       "name": "implement-spec",
-      "scanKey": "git-sha1:0cfefc751d0cb64f0c948ffcb17e13b94e778f08",
+      "scanKey": "git-sha1:407c196f5c88af53c71efc8f31ee37c02dbb12e7",
       "userOnly": true
     },
     {
       "arguments": false,
-      "behaviourSha256": "7f5ccb9154abc31bc07970b4ca9f97ee23f1aafbdc6293d404eab282e4ec7418",
-      "contentSha256": "1ab83c89b77e6cfe78f0b8b44c6cd51cd798709341b45cf581f9eadd7ecb0022",
+      "behaviourSha256": "05606b4ec9e458c4618860473e9f0958bb261736e2da2d9b24eea24322ca92c7",
+      "contentSha256": "72ce12feb2ca1691b6ed2dc8443a6abbbeac0e6920d91a7c75062b04cb888fe1",
       "description": "Scan a codebase for deepening opportunities, present them as a visual HTML report, then grill through whichever one you pick.",
       "files": [
         {
@@ -916,10 +939,10 @@
           "sourcePath": "skills/engineering/improve-codebase-architecture/HTML-REPORT.md"
         },
         {
-          "bytes": 6000,
+          "bytes": 6028,
           "executable": false,
           "role": "content",
-          "sha256": "552240a5ab5cec6b67c15dd1ad6e9f6962b1bca6ce870059a8c2713760c20392",
+          "sha256": "35b03a3db61e0f5aa333ea59b54963e45a3d2ace6649b2ef4f9576603e2582a6",
           "sourceId": "matt",
           "sourcePath": "skills/engineering/improve-codebase-architecture/SKILL.md"
         },
@@ -936,7 +959,7 @@
       "id": "extensions.skill.engineering.improve-codebase-architecture",
       "kind": "skill",
       "name": "improve-codebase-architecture",
-      "scanKey": "git-sha1:39bd9cc130f7dfcc4e3ea0b3613f6ebed0d0ad2b",
+      "scanKey": "git-sha1:587147dd230da299cc5e84971cb0a33f6676f8a6",
       "userOnly": true
     },
     {
@@ -1025,15 +1048,15 @@
     },
     {
       "arguments": false,
-      "behaviourSha256": "7701c43b855928330889400bdb9e473ad7c8e3954f0e55743782d4ac9a84287f",
-      "contentSha256": "0e4ce763375681928bafb874afa1022cdf564ad174a77995620126eeb0de6ce1",
+      "behaviourSha256": "ae6f42fb70759e36c2599b111da90cc5f33f97946a87dbe702e3c59aa1439767",
+      "contentSha256": "0b273954d6b30b57926c22e6c6e28a50f6dd0ff58eea77bc1aad63420e404a87",
       "description": "Investigate a question against high-trust primary sources and capture the findings as a Markdown file in the repo. Use when the user wants a topic researched, docs or API facts gathered, or reading legwork delegated to a background agent.",
       "files": [
         {
-          "bytes": 794,
+          "bytes": 832,
           "executable": false,
           "role": "content",
-          "sha256": "985569f15739c713d6784887c3d186d4ef9ac85bec5ad9c068d25bf0739928e4",
+          "sha256": "1f629e18ab899412683bc6a1c4efb4339999e27c2fdac328f26ee10a8c031d33",
           "sourceId": "matt",
           "sourcePath": "skills/engineering/research/SKILL.md"
         },
@@ -1050,7 +1073,7 @@
       "id": "extensions.skill.engineering.research",
       "kind": "skill",
       "name": "research",
-      "scanKey": "git-sha1:0a6796c5667e95ed2301ba7381c123b4acb2ae1a",
+      "scanKey": "git-sha1:2f8f36af48796faed5c687c75bb650071631a984",
       "userOnly": false
     },
     {
@@ -1313,15 +1336,15 @@
     },
     {
       "arguments": false,
-      "behaviourSha256": "ece6591d26d57abf8f0233949b84419f3b3c45fdbf80ba852e47254d7566796d",
-      "contentSha256": "65242e4c561d7e0c1671c74b15143b5c18e47763006078a71f90d035ac05800f",
+      "behaviourSha256": "bd7abd6c2e8a33dfe3666388f1f98c9d5a62df9dce3ecb913cfc37b13c86ed99",
+      "contentSha256": "8f5467b3d76d1158da289fd18fb0600ee2504150ebfb66f88bc44db71ed4fcb8",
       "description": "Plan a huge chunk of work (more than one agent session can hold) as a shared map of decision tickets on your issue tracker, and resolve them one at a time until the way to the destination is clear.",
       "files": [
         {
-          "bytes": 12380,
+          "bytes": 12408,
           "executable": false,
           "role": "content",
-          "sha256": "9be7b478c389605a24517d27752f278933588da97a1b5921b165f455edf4c5b7",
+          "sha256": "0c9fa96791aebf3b7d654cf35c6aadde97d81f57c17b07d13b27c14d9c46561f",
           "sourceId": "matt",
           "sourcePath": "skills/engineering/wayfinder/SKILL.md"
         },
@@ -1338,7 +1361,7 @@
       "id": "extensions.skill.engineering.wayfinder",
       "kind": "skill",
       "name": "wayfinder",
-      "scanKey": "git-sha1:32b0ce970b1394ede47116e1d3e07f9ccc87591f",
+      "scanKey": "git-sha1:25da74eadc3e388b2f2a2cc716f3d44b2fb9dfe0",
       "userOnly": true
     },
     {
@@ -1381,16 +1404,15 @@
     },
     {
       "arguments": false,
-      "behaviourSha256": "694f0d70be052acd3e0a87483c7a5884bb3aea91040a5846692856b92d459157",
-      "bundle": "extensions.references",
-      "contentSha256": "2963dfff906dbe7c9109606b564633221abbc501e5308e8f15834a730aa0e5a1",
+      "behaviourSha256": "2df21d77a7ea97e0c18a0e6f9af2bbcc19dccaa865a3b11d401b9f101c032d0f",
+      "contentSha256": "9f7ef4b4690bf9ae4833f992bb180bedd1d715fa2ffef135dca83fc53008749a",
       "description": "Builds production-quality, accessible, responsive user-facing UIs. Use when building or modifying interfaces and pages, creating components, implementing layouts, meeting WCAG accessibility requirements, managing state, or when the output needs to look and feel production-quality rather than AI-generated.",
       "files": [
         {
-          "bytes": 11752,
+          "bytes": 12604,
           "executable": false,
           "role": "content",
-          "sha256": "a79be10d11a611b89929a017f0541815eec718b9a250b98a874c9667679930a4",
+          "sha256": "37bb5a56cbcd5cc67f25bfee8e2680c4e882ee5b85645505b6c575aedefcceaf",
           "sourceId": "extensions",
           "sourcePath": "skills/frontend-ui-engineering/SKILL.md"
         },
@@ -1402,31 +1424,33 @@
           "sha256": "a1499d95abd8447558c535fe5554adcc3c9b988a0a39264a6283d430effe1e94",
           "sourceId": "extensions",
           "sourcePath": "skills/frontend-ui-engineering/agents/openai.yaml"
+        },
+        {
+          "bytes": 5524,
+          "executable": false,
+          "role": "content",
+          "sha256": "8837fa9096268cd4df66d0e0cbf3c56d4b1999f294e899516dae3a11e6adf8c6",
+          "sourceId": "extensions",
+          "sourcePath": "skills/frontend-ui-engineering/references/shared/accessibility-checklist.md"
         }
       ],
       "id": "extensions.skill.frontend-ui-engineering",
       "kind": "skill",
       "name": "frontend-ui-engineering",
-      "pathReferences": [
-        {
-          "path": "references/accessibility-checklist.md",
-          "sourcePath": "skills/frontend-ui-engineering/SKILL.md"
-        }
-      ],
-      "scanKey": "git-sha1:8598c1f8fd2b51c608bbd33dfa973e049aa89fa7",
+      "scanKey": "git-sha1:0975709943628688b080aa4faeb14ecb888bab4b",
       "userOnly": true
     },
     {
       "arguments": false,
-      "behaviourSha256": "676db9bb5ce2bce8f5050efd5cfbc7ff8c5c2d6c0eaaa74e5009bd1f5553bc98",
-      "contentSha256": "68f1d458b516577901d82bb78d7a660f6185cbf698c83c3a45b2299246f3e0a5",
-      "description": "Structures git workflow practices. Use when making any code change. Use when committing, branching, resolving conflicts, splitting uncommitted work in a messy working tree into clean atomic commits, opening or reviewing a pull request (PR), pushing to a remote, or when you need to organize work across multiple parallel streams. Use when cutting a release, choosing a semantic version bump, tagging, or writing a changelog.",
+      "behaviourSha256": "467b3c2d9be9a3b440e5311d85bd4d063d61fc2e8d05924ab768a7877ebb5415",
+      "contentSha256": "d0f9fb695d4b600573905da09e2523dc3429b71c473c848bce23203f7e2a00b8",
+      "description": "Structures git workflow practices. Use when making any code change. Use when committing, branching, resolving conflicts, splitting uncommitted work in a messy working tree into clean atomic commits, opening or reviewing a pull request (PR), pushing to a remote, or when you need to organize work across multiple parallel streams. Use when cutting a release, choosing a semantic version bump, tagging, or writing a changelog. Use when asked to write a commit message or a changelog entry for a change, or to split a change into commits, even when the diff is pasted inline and the message seems easy to write from it.",
       "files": [
         {
-          "bytes": 14275,
+          "bytes": 14537,
           "executable": false,
           "role": "content",
-          "sha256": "31e602aab1180c9e699d27bb0892da786f7310ab1a135a03e6d2862ffd13b378",
+          "sha256": "5a75fbc27e5dae4164c77d836d680e7c61188cc8afe2c27750990714056e7c6d",
           "sourceId": "extensions",
           "sourcePath": "skills/git-workflow-and-versioning/SKILL.md"
         },
@@ -1443,20 +1467,20 @@
       "id": "extensions.skill.git-workflow-and-versioning",
       "kind": "skill",
       "name": "git-workflow-and-versioning",
-      "scanKey": "git-sha1:0ee4f1f01724c26ec05ca775d2c32ee6a992b9e0",
+      "scanKey": "git-sha1:f54b12d2cf825961b877d77248f828c358e32bf4",
       "userOnly": true
     },
     {
       "arguments": true,
-      "behaviourSha256": "70d311ea38c8b3bca43abd41de2b6618778fe8d1a18595028acda9218414be9c",
-      "contentSha256": "79504625ba8de90d39d2c4d8674d7a4e7782fca5d780a5e93747526b06495d41",
+      "behaviourSha256": "7592cb5b09cba31b66c98fdf2b31dad0fb6756e4a8276ca594739b757a9fb6fe",
+      "contentSha256": "d1a49021358a3a2479abe8bfb9bc4634e46873ed3315361f8dba8b121fc3e773",
       "description": "Refines raw ideas into sharp, actionable concepts through structured divergent and convergent thinking. Use when an idea is still vague, when you need to stress-test assumptions before committing to a plan, or when you want to expand options before converging on one. Triggers on \"ideate\", \"refine this idea\", or \"stress-test my plan\".",
       "files": [
         {
-          "bytes": 9265,
+          "bytes": 9416,
           "executable": false,
           "role": "content",
-          "sha256": "eee6a31711bf4e23f811501f690a8449eab6b029e0d5d2d6ed3919b513aeebd2",
+          "sha256": "2bddc592ffe0b4830b68b32dd353868e32b204023ee07e85105830321fabca79",
           "sourceId": "extensions",
           "sourcePath": "skills/idea-refine/SKILL.md"
         },
@@ -1505,29 +1529,29 @@
       "id": "extensions.skill.idea-refine",
       "kind": "skill",
       "name": "idea-refine",
-      "scanKey": "git-sha1:3850f31ad3087bebe87aec8841c5cf213f8408bf",
+      "scanKey": "git-sha1:d9c1b0df817fe4c358c4a03eec0b5157f3f32d9e",
       "userOnly": true
     },
     {
       "arguments": false,
-      "behaviourSha256": "573c7c7e87e01e3b0a40162d0ca466ff12eb1b134a0726d8e135bef3583e71bc",
-      "contentSha256": "82564cb1ede440a98cc3fb98ce5c439d9cb3b5007ae467f9de4a8e8aa7a9369c",
-      "description": "Pursue a long-running goal in a single session by co-ordinating subagents.",
+      "behaviourSha256": "f020bd7e8b08a1f2cf23abacc9e12cebab8ae4cf5444b00ae330714bd0ab0037",
+      "contentSha256": "b82be2e3cf9ccb582da7af737ad5500ff2c8e63c3730cea88ce62c9930a21747",
+      "description": "Delegate the work to fresh subagents and remember what it taught you in a dated wiki, so the next session picks up the thread.",
       "files": [
         {
-          "bytes": 3816,
+          "bytes": 4470,
           "executable": false,
           "role": "content",
-          "sha256": "a187d9e36e65373d2d1f469790858dd57d6eb72b6ea16932df9c40616ac9f720",
+          "sha256": "1f508d8ebbdbad8704bb24c5016094897a4ebbfe5804e370434b5e5fbeb59c4a",
           "sourceId": "matt",
           "sourcePath": "skills/in-progress/chief-of-staff/SKILL.md"
         },
         {
-          "bytes": 184,
+          "bytes": 195,
           "cli": "codex",
           "executable": false,
           "role": "content",
-          "sha256": "c0f68ed9da6977adc97a791be3bb0830d301b2d27f9c635d92d6f325bffefb83",
+          "sha256": "711e33a57dfcf5fe5ea611f360e0b59a6b3aad4ef8bc5c229d566490d7303ab5",
           "sourceId": "matt",
           "sourcePath": "skills/in-progress/chief-of-staff/agents/openai.yaml"
         }
@@ -1535,7 +1559,7 @@
       "id": "extensions.skill.in-progress.chief-of-staff",
       "kind": "skill",
       "name": "chief-of-staff",
-      "scanKey": "git-sha1:dbdf91354f95b560386d5bf25b624567dd9dadb1",
+      "scanKey": "git-sha1:8fc1744b18b8c241fc6ec6f633d9c701e9be58cf",
       "userOnly": true
     },
     {
@@ -1638,6 +1662,67 @@
     },
     {
       "arguments": false,
+      "behaviourSha256": "c499badaaacb9b9d4efc6a41ea24a2ad453c05283f15db9fe3783f9535ad34d2",
+      "contentSha256": "5b986f108239aaa0010e5eca47da4136410d01c75e5f6445edd3cbe5c91e938e",
+      "description": "Shared language for designing a software factory: the tasks it runs and the services it plugs into.",
+      "files": [
+        {
+          "bytes": 3844,
+          "executable": false,
+          "role": "content",
+          "sha256": "31c73748cd47b040fb11737f47634bba63b32cc6680000a9b22b6bc898155e49",
+          "sourceId": "matt",
+          "sourcePath": "skills/in-progress/software-factory/EXAMPLE-TASKS.md"
+        },
+        {
+          "bytes": 7706,
+          "executable": false,
+          "role": "content",
+          "sha256": "f6b453cd0b1601c329dcfbffcb4added077683a4b777c819530ff0a940b1147f",
+          "sourceId": "matt",
+          "sourcePath": "skills/in-progress/software-factory/GIT-HOSTS.md"
+        },
+        {
+          "bytes": 7849,
+          "executable": false,
+          "role": "content",
+          "sha256": "c3bd68e1bd105ccdda407a7aa909807131a20117bbf510d1ad0cfefffa25cb4c",
+          "sourceId": "matt",
+          "sourcePath": "skills/in-progress/software-factory/OBSERVABILITY-PLATFORMS.md"
+        },
+        {
+          "bytes": 8738,
+          "executable": false,
+          "role": "content",
+          "sha256": "85aacfb9acac67948c1659562d60b52c2a13936faddd24de26c9094b35ff70e7",
+          "sourceId": "matt",
+          "sourcePath": "skills/in-progress/software-factory/RUNNERS.md"
+        },
+        {
+          "bytes": 6110,
+          "executable": false,
+          "role": "content",
+          "sha256": "567326e926d5bab0548aad11effaa6aef3d4dfa1ed385af22413628f49a48285",
+          "sourceId": "matt",
+          "sourcePath": "skills/in-progress/software-factory/SKILL.md"
+        },
+        {
+          "bytes": 8465,
+          "executable": false,
+          "role": "content",
+          "sha256": "4b68a198d6c1a6d47f9ad7eb1f02cc3e60778a2b1610f8b2ac23f72230d575b2",
+          "sourceId": "matt",
+          "sourcePath": "skills/in-progress/software-factory/TICKET-TRACKERS.md"
+        }
+      ],
+      "id": "extensions.skill.in-progress.software-factory",
+      "kind": "skill",
+      "name": "software-factory",
+      "scanKey": "git-sha1:6562f61d6af157b109e7e1f61f670966d62218de",
+      "userOnly": true
+    },
+    {
+      "arguments": false,
       "behaviourSha256": "6cc394bdc43c941094c2bd187e577337d9497738e2fb331e3863c6fce900b7cc",
       "contentSha256": "85d4c488b370cb1ca068632781dcd2d1a9ff25af8f4fdeb9ec54ede117b24d48",
       "description": "Writing, exploit; assemble raw material into a journey of beats, grounding each term before a beat leans on it.",
@@ -1728,15 +1813,15 @@
     },
     {
       "arguments": false,
-      "behaviourSha256": "f8d30b67ddeca2323385dc0d375534b047a9bccd75e1db07de2bef2f7df34675",
-      "contentSha256": "742c4be9edcf7c2d464bf406b6de43c5cfeb3447ea6e1ef2b21ff9974b3652ed",
+      "behaviourSha256": "077a7b655601fca74debdcbf2f1d4db98ab96636dcd68e4f096fd129df553e19",
+      "contentSha256": "9a9cc2065876cfe93ac4931624a801e7258b372987d705ab2e9521470817caf7",
       "description": "Install a Git hook to check staged content for conflict markers, debug tags and quality-bar loosening.",
       "files": [
         {
-          "bytes": 2034,
+          "bytes": 2269,
           "executable": false,
           "role": "content",
-          "sha256": "2aac53f405e2c8a6c8e83c5d173acad13c7aeaf1541c70cb03b4f4e062e07bb6",
+          "sha256": "99cb9b498358136e3d14d97d1b524ad7a7c783e7d928dc2e4b5146a5eb92cffa",
           "sourceId": "extensions",
           "sourcePath": "skills/install-commit-gate/SKILL.md"
         },
@@ -1761,7 +1846,7 @@
       "id": "extensions.skill.install-commit-gate",
       "kind": "skill",
       "name": "install-commit-gate",
-      "scanKey": "git-sha1:0241c842fa500b13ae9f936c5ded85f17e13ad79",
+      "scanKey": "git-sha1:a7399efe3bd875c2361b868a53a54f505e7da024",
       "userOnly": true
     },
     {
@@ -1864,44 +1949,44 @@
     },
     {
       "arguments": false,
-      "behaviourSha256": "6c0aadfbf09ed12b3645bccfe66bf44f6a5c4badbf685e819a5685e01f20d0eb",
-      "bundle": "extensions.references",
-      "contentSha256": "4084bbb7aadcbd49c8799d593e27b4f9b495a3bfe856275a62042a97db76d040",
+      "behaviourSha256": "f0172e0936925976ff3cd638712dbe0953f7bda96befd4663f292c6e6f0f79b5",
+      "contentSha256": "eddfa40a72244a6448288896fd9e4c529d801516bb35a46ec4469b8f72e4d8ee",
       "description": "Instruments code so production behavior is visible and diagnosable. Use when adding logging, metrics, tracing, or alerting. Use when shipping any feature that runs in production and you need evidence it works. Use when production issues are reported but you can't tell what happened from the available data.",
       "files": [
         {
-          "bytes": 13935,
+          "bytes": 13936,
           "executable": false,
           "role": "content",
-          "sha256": "e602bfc10427d22af2006fb57adfd283a34231bfa55f383e46e4f6dd0afb0f4e",
+          "sha256": "bc1fd7e2960cb962740a0a89bc8d17d71892c3d70583f4db2ac0cb75dfdfc95c",
           "sourceId": "extensions",
           "sourcePath": "skills/observability-and-instrumentation/SKILL.md"
+        },
+        {
+          "bytes": 5129,
+          "executable": false,
+          "role": "content",
+          "sha256": "25fcd0e854596a5ab6f11b002050d245bf78f5ae0fcbd1df699b89451ae0e1e8",
+          "sourceId": "extensions",
+          "sourcePath": "skills/observability-and-instrumentation/references/shared/observability-checklist.md"
         }
       ],
       "id": "extensions.skill.observability-and-instrumentation",
       "kind": "skill",
       "name": "observability-and-instrumentation",
-      "pathReferences": [
-        {
-          "path": "references/observability-checklist.md",
-          "sourcePath": "skills/observability-and-instrumentation/SKILL.md"
-        }
-      ],
-      "scanKey": "git-sha1:07be07cca9faa1ef0b7fbb3bb0515c5b89f292ed",
+      "scanKey": "git-sha1:0926add84105ce5224e4837fcea79ffb226b2edd",
       "userOnly": false
     },
     {
       "arguments": false,
-      "behaviourSha256": "1ddc458a36ced0465f203addf55bd0b90d8cbc04e32ed9ad295e53b0adfafe3c",
-      "bundle": "extensions.references",
-      "contentSha256": "156beeb3ea28bd1845a2ec4336c1564a4694e639aa4652af1853a32d1aff0872",
+      "behaviourSha256": "2e11cf93e12f085a662710d216a94e9212952ccbd95e6ee407ac34e5fd024537",
+      "contentSha256": "54bee17dd5881d5b892291eb1d74cab764277a49c879992a49efdf37f009e1b2",
       "description": "Optimizes application performance across frontend, backend, queries, and databases. Use when performance requirements exist, when you suspect performance regressions, when Core Web Vitals or load times need improvement, when N+1 query patterns need fixing, or when profiling reveals bottlenecks.",
       "files": [
         {
-          "bytes": 16729,
+          "bytes": 16816,
           "executable": false,
           "role": "content",
-          "sha256": "3bb2a0d98b5df6b094a0dc515d9dee7829818210aeebc3f29627ff9ac338f618",
+          "sha256": "a7af202d1082727dd5d4e8c0ffd09a8827354bd799e8875a0e4cf9415732cdf0",
           "sourceId": "extensions",
           "sourcePath": "skills/performance-optimization/SKILL.md"
         },
@@ -1915,28 +2000,26 @@
           "sourcePath": "skills/performance-optimization/agents/openai.yaml"
         },
         {
-          "bytes": 9692,
+          "bytes": 9694,
           "executable": false,
           "role": "content",
-          "sha256": "fbf724076ffb8ac1a28e1a2773c0b550f5361090024b2dd32e5a682c69b7945f",
+          "sha256": "2960077018e29187de159ba026ce4e7e74fd18d52fdef7046f352fc184f78b80",
           "sourceId": "extensions",
           "sourcePath": "skills/performance-optimization/references/optimization-patterns.md"
+        },
+        {
+          "bytes": 13292,
+          "executable": false,
+          "role": "content",
+          "sha256": "ce946457d4a502846e781a2747cf6af50bcc79b1957a66dc024f50557e8982e1",
+          "sourceId": "extensions",
+          "sourcePath": "skills/performance-optimization/references/shared/performance-checklist.md"
         }
       ],
       "id": "extensions.skill.performance-optimization",
       "kind": "skill",
       "name": "performance-optimization",
-      "pathReferences": [
-        {
-          "path": "references/performance-checklist.md",
-          "sourcePath": "skills/performance-optimization/SKILL.md"
-        },
-        {
-          "path": "references/performance-checklist.md",
-          "sourcePath": "skills/performance-optimization/references/optimization-patterns.md"
-        }
-      ],
-      "scanKey": "git-sha1:54701244827208f37fb464abb7127d5bada58a80",
+      "scanKey": "git-sha1:48db329b74d2cafb1a0354015770126fc1e9c870",
       "userOnly": true
     },
     {
@@ -1971,15 +2054,15 @@
     },
     {
       "arguments": false,
-      "behaviourSha256": "afe4f61a8cf1477c10941970e207744790d99ec36f9846919d98371013070b3e",
-      "contentSha256": "ad052679e954fb6bf3d83773568362df887ae17dc74452a1fe205312808bca79",
+      "behaviourSha256": "9d54233d37dfaa89eb0f3b08ea00338076e3c3dd72c4e8198f051abccc41e55f",
+      "contentSha256": "066aed9be0c61f997d054ca13a53b975d3b9cfcd68081b075cbf892d0f65894c",
       "description": "Grill the user relentlessly about a plan, decision, or idea. Use when the user wants to stress-test their thinking, or uses any 'grill' trigger phrases.",
       "files": [
         {
-          "bytes": 2049,
+          "bytes": 2077,
           "executable": false,
           "role": "content",
-          "sha256": "befdff1e27a1dfe2a294d5871169ac1afe16d983911daa4f32627514a48c1e15",
+          "sha256": "a146842ed93ca43d833550fa9adf02e58cb63c83fea9d4b4522995b82242d4e2",
           "sourceId": "matt",
           "sourcePath": "skills/productivity/grilling/SKILL.md"
         },
@@ -1996,7 +2079,7 @@
       "id": "extensions.skill.productivity.grilling",
       "kind": "skill",
       "name": "grilling",
-      "scanKey": "git-sha1:28aceb4c9567b985cb47f7db88cf23c9f33af8b8",
+      "scanKey": "git-sha1:f551b6e0d219fdda0b6abf277f8f915b3127d1e9",
       "userOnly": false
     },
     {
@@ -2191,16 +2274,15 @@
     },
     {
       "arguments": false,
-      "behaviourSha256": "fa193834ed196bf01fc2abc133385c35fefd9f77de26cb43e8cc6d0cabf18796",
-      "bundle": "extensions.references",
-      "contentSha256": "0963da681b9d8266f3628920cd3865614041ded567293e4833bf81d50977f1e3",
-      "description": "Hardens code against vulnerabilities. Use when auditing an input handler for vulnerabilities, when handling user input, authentication, data storage, or external integrations, or when checking a login flow is safe against the OWASP Top Ten. Use when building any feature that accepts untrusted data, manages user sessions, or interacts with third-party services. Use when auditing dependencies for known vulnerabilities, triaging package-manager audit findings, or assessing supply-chain risk in a new package. Use when personal data or privacy compliance (GDPR, CCPA) is involved.",
+      "behaviourSha256": "5764164f7c89aac324c3b5646ab982bb843006975bc18660566100f76618ba4a",
+      "contentSha256": "4c72d150c24e4239831d2772c799b97750fa4570f4d600d81e162b2118c0af67",
+      "description": "Hardens code against vulnerabilities. Use when auditing an input handler for vulnerabilities, when handling user input, authentication, data storage, or external integrations, or when checking a login flow is safe against the OWASP Top Ten. Use when building any feature that accepts untrusted data, manages user sessions or session cookies, or interacts with third-party services. Use when auditing dependencies for known vulnerabilities, triaging package-manager audit findings, or assessing supply-chain risk in a new package. Use when personal data or privacy compliance (GDPR, CCPA) is involved.",
       "files": [
         {
-          "bytes": 17614,
+          "bytes": 17650,
           "executable": false,
           "role": "content",
-          "sha256": "1ff7718b5230b5d0de30e724f897904f324239184b2cc9f323794a537f6985d4",
+          "sha256": "8b10a1c8ed0b291094e7653d5193fa91210ad15c73c8c687491634dfc78ce2a5",
           "sourceId": "extensions",
           "sourcePath": "skills/security-and-hardening/SKILL.md"
         },
@@ -2214,28 +2296,26 @@
           "sourcePath": "skills/security-and-hardening/agents/openai.yaml"
         },
         {
-          "bytes": 13036,
+          "bytes": 14097,
           "executable": false,
           "role": "content",
-          "sha256": "2e1b93a502b4cdb0258404441f3aab029b0cce4003fbbcc61af9a2de18bab9ab",
+          "sha256": "873ee9a5a7471c09e828923975acb5f2acde3ccabbe53f6d68380e3f8c7508a5",
           "sourceId": "extensions",
           "sourcePath": "skills/security-and-hardening/references/hardening-patterns.md"
+        },
+        {
+          "bytes": 14993,
+          "executable": false,
+          "role": "content",
+          "sha256": "594615c28ae13b90c53bf723aa5d43fd96dc2f0e707b3f56727dc91243a2815a",
+          "sourceId": "extensions",
+          "sourcePath": "skills/security-and-hardening/references/shared/security-checklist.md"
         }
       ],
       "id": "extensions.skill.security-and-hardening",
       "kind": "skill",
       "name": "security-and-hardening",
-      "pathReferences": [
-        {
-          "path": "references/security-checklist.md",
-          "sourcePath": "skills/security-and-hardening/SKILL.md"
-        },
-        {
-          "path": "references/security-checklist.md",
-          "sourcePath": "skills/security-and-hardening/references/hardening-patterns.md"
-        }
-      ],
-      "scanKey": "git-sha1:18321e3d7d31e057a6a71981b738e89ccede6551",
+      "scanKey": "git-sha1:51f06b2ec4ca7a12c6144a88fc7fa185b00a152d",
       "userOnly": true
     },
     {
@@ -2270,16 +2350,16 @@
     },
     {
       "arguments": false,
-      "behaviourSha256": "cc4e983a87541e30defea0c1ce2fce6537f2ae84b41e24155bdff9583b9e8d08",
+      "behaviourSha256": "cc3c8de8f289ce121ccf5fc591e9527610b8888788bf565510cb800b84b2f229",
       "bundle": "extensions.references",
-      "contentSha256": "8229061642d57c234c1546b437c96024a990315585b8f62c4fa42c4ce70725b6",
+      "contentSha256": "5e8e0fa845dc3adbc511fffd123afe47b6992cb00f8943f44b6374c11ba97182",
       "description": "Run the pre-launch checklist via parallel fan-out to specialist personas, then synthesize a go/no-go decision",
       "files": [
         {
-          "bytes": 4587,
+          "bytes": 4618,
           "executable": false,
           "role": "content",
-          "sha256": "b9c3a3ba546158b8c04ac4453404f0e76603fbd1f8c69f1db1bec3511c5b984b",
+          "sha256": "5974cfe02792603cdd050e5603d9e52372c73c4bbf254ee5a0fcc89e4e606604",
           "sourceId": "extensions",
           "sourcePath": "commands/ship.md"
         }
@@ -2293,60 +2373,73 @@
           "sourcePath": "commands/ship.md"
         }
       ],
-      "scanKey": "git-sha1:22853152acd3af48682e74880a7fff3891df03fd",
+      "scanKey": "git-sha1:9733365410a9152a16d407de974fb8e82546b551",
       "userOnly": true
     },
     {
       "arguments": false,
-      "behaviourSha256": "55f86de7661dcbba5ce49daad1e917a124181574217434bf0ab7c1eac337e41e",
-      "bundle": "extensions.references",
-      "contentSha256": "9cc5ca07e103160bd73923ba0ac7035ed47b0f43470215507eb6520479e8fcb1",
+      "behaviourSha256": "ebdbb790d547f94778f5acf10edce280c48cae6c586091fd50e63c8847ac2d05",
+      "contentSha256": "6d34da503862a261b5eac677e3ea6b85162351ffba88b16b0a82f926566df655",
       "description": "Prepares production launches. Use when preparing to deploy to production, or when asking what needs to be in place before shipping. Use when you need a pre-launch checklist, when setting up monitoring, when planning a staged rollout, or when you need a rollback strategy.",
       "files": [
         {
-          "bytes": 11515,
+          "bytes": 11544,
           "executable": false,
           "role": "content",
-          "sha256": "726f3e546369db289160b8d42195590f00b6432887e17bf19070dcc9a347fe39",
+          "sha256": "1d16f1baf1a43401f65c8b97525770478d347fd66f4504e043b90d966eebfb1f",
           "sourceId": "extensions",
           "sourcePath": "skills/shipping-and-launch/SKILL.md"
+        },
+        {
+          "bytes": 5524,
+          "executable": false,
+          "role": "content",
+          "sha256": "8837fa9096268cd4df66d0e0cbf3c56d4b1999f294e899516dae3a11e6adf8c6",
+          "sourceId": "extensions",
+          "sourcePath": "skills/shipping-and-launch/references/shared/accessibility-checklist.md"
+        },
+        {
+          "bytes": 3766,
+          "executable": false,
+          "role": "content",
+          "sha256": "7897f5f84d92fce13c36ed6c08eb7ae3f0da6a0d01fe0cef461e2575024047f2",
+          "sourceId": "extensions",
+          "sourcePath": "skills/shipping-and-launch/references/shared/definition-of-done.md"
+        },
+        {
+          "bytes": 13292,
+          "executable": false,
+          "role": "content",
+          "sha256": "ce946457d4a502846e781a2747cf6af50bcc79b1957a66dc024f50557e8982e1",
+          "sourceId": "extensions",
+          "sourcePath": "skills/shipping-and-launch/references/shared/performance-checklist.md"
+        },
+        {
+          "bytes": 14993,
+          "executable": false,
+          "role": "content",
+          "sha256": "594615c28ae13b90c53bf723aa5d43fd96dc2f0e707b3f56727dc91243a2815a",
+          "sourceId": "extensions",
+          "sourcePath": "skills/shipping-and-launch/references/shared/security-checklist.md"
         }
       ],
       "id": "extensions.skill.shipping-and-launch",
       "kind": "skill",
       "name": "shipping-and-launch",
-      "pathReferences": [
-        {
-          "path": "references/accessibility-checklist.md",
-          "sourcePath": "skills/shipping-and-launch/SKILL.md"
-        },
-        {
-          "path": "references/definition-of-done.md",
-          "sourcePath": "skills/shipping-and-launch/SKILL.md"
-        },
-        {
-          "path": "references/performance-checklist.md",
-          "sourcePath": "skills/shipping-and-launch/SKILL.md"
-        },
-        {
-          "path": "references/security-checklist.md",
-          "sourcePath": "skills/shipping-and-launch/SKILL.md"
-        }
-      ],
-      "scanKey": "git-sha1:566523b5f1b266856c7ba6a89fda272e5cebc4f9",
+      "scanKey": "git-sha1:42334dc997200fd8ef9dca687ed3aca3b2b6ad51",
       "userOnly": false
     },
     {
       "arguments": false,
-      "behaviourSha256": "9b6b9befdbaae31a3d41daa29da450824d371566835d13de34e31eb66d560dae",
-      "contentSha256": "23a3a520bbc8cfca2fd97d6b5604b818e418f9062a94019b6f1fe4a8775cb283",
+      "behaviourSha256": "4b2f2806c7f2227d656cb34667e5deb2bf050c34e1f42eda6ba21178c29ec152",
+      "contentSha256": "69ee56bb3e716bf4697fc6ff7418fa53671ca522ddb88d2fe072a8a82fcfba51",
       "description": "Grounds every implementation decision in official documentation. Use when you want to verify an approach against the official docs before implementing it, or when you want authoritative, source-cited code free from outdated patterns. Use when building with any framework or library where correctness matters.",
       "files": [
         {
-          "bytes": 10069,
+          "bytes": 10135,
           "executable": false,
           "role": "content",
-          "sha256": "13798586f4a8de56d920d1f27334f64430c8cf0713a134819a41f9486b4df7c9",
+          "sha256": "cda11a321e5752aef49d058b6e83ef29c196219db18b3c7e55e02f6bedaa7d7f",
           "sourceId": "extensions",
           "sourcePath": "skills/source-driven-development/SKILL.md"
         },
@@ -2363,20 +2456,20 @@
       "id": "extensions.skill.source-driven-development",
       "kind": "skill",
       "name": "source-driven-development",
-      "scanKey": "git-sha1:d77f67cbfb26e339b409690924f53108097de440",
+      "scanKey": "git-sha1:99a03b47577a85461493f83f5cf95d3b300073ff",
       "userOnly": true
     },
     {
       "arguments": false,
-      "behaviourSha256": "cddf8808381c402028cac9dfa9e61db25b32f0e9b18f2964745032740ee3ef68",
-      "contentSha256": "0a40323bfc3fe43e4646c87f093f7e9905953ec45fd6a97dd123d1e661a5d285",
+      "behaviourSha256": "e87baf6b5673ba9a10f48c90059e4f4a63622b4fffcc34e9b4119947cfcca552",
+      "contentSha256": "2a2e91e1280bc7636e384d16e52443c9a2455eb2ed3b2c0d851310ca96d724f6",
       "description": "Run a web performance audit via the web-performance-auditor persona",
       "files": [
         {
-          "bytes": 1974,
+          "bytes": 2005,
           "executable": false,
           "role": "content",
-          "sha256": "74c0c1335f1397a5138a78eda4275e4e5deba16c4537f3a4b4971c3280d0ba27",
+          "sha256": "59bcea23bc9e2956cb0d4b314064b7091e11fad48dfdc48cb4e56545fd6f24db",
           "sourceId": "extensions",
           "sourcePath": "commands/webperf.md"
         }
@@ -2384,14 +2477,14 @@
       "id": "extensions.skill.webperf",
       "kind": "skill",
       "name": "webperf",
-      "scanKey": "git-sha1:5d9ed4434e5d69ee445ddbf3bb3f4f4996028e86",
+      "scanKey": "git-sha1:d74132b937fdbc17699fd746fb371080b5df91ab",
       "userOnly": true
     }
   ],
   "schema": "urn:aihq:catalog:content:0.1.0",
   "sources": [
     {
-      "commit": "2481164a51ea7f9e480d51ef52f3d5cf15b017fa",
+      "commit": "c89adaad320d679c905e7122b908c1bc9c8c1904",
       "id": "extensions",
       "kind": "git",
       "notices": [
@@ -2419,7 +2512,7 @@
       "repository": "https://github.com/samartomar/aih-extensions"
     },
     {
-      "commit": "59db609eb1e18aaf59b63284d0e52255aff0c63c",
+      "commit": "6f7f7831a625f040a8e06a0e7954826b87ce775a",
       "id": "matt",
       "kind": "git",
       "notices": [

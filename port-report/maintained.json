@@ -1,6 +1,22 @@
 {
   "added": [
     {
+      "item": "ecc.agent.bengali-reviewer",
+      "kind": "agent"
+    },
+    {
+      "item": "ecc.agent.commit-reviewer",
+      "kind": "agent"
+    },
+    {
+      "item": "ecc.agent.gdscript-reviewer",
+      "kind": "agent"
+    },
+    {
+      "item": "ecc.agent.ruby-reviewer",
+      "kind": "agent"
+    },
+    {
       "item": "ecc.hook.auto-format",
       "kind": "hook"
     },
@@ -25,6 +41,14 @@
       "kind": "hook"
     },
     {
+      "item": "ecc.hook.pre-hookify-runtime",
+      "kind": "hook"
+    },
+    {
+      "item": "ecc.hook.prompt-hookify-runtime",
+      "kind": "hook"
+    },
+    {
       "item": "ecc.hook.python-lint-on-edit",
       "kind": "hook"
     },
@@ -45,6 +69,10 @@
       "kind": "hook"
     },
     {
+      "item": "ecc.hook.stop-hookify-runtime",
+      "kind": "hook"
+    },
+    {
       "item": "ecc.hook.tdd-reminder",
       "kind": "hook"
     },
@@ -53,8 +81,64 @@
       "kind": "hook"
     },
     {
+      "item": "ecc.hook.user-prompt-context-gate",
+      "kind": "hook"
+    },
+    {
+      "item": "ecc.mcp.arcmira",
+      "kind": "mcp"
+    },
+    {
+      "item": "ecc.mcp.deja-vu",
+      "kind": "mcp"
+    },
+    {
+      "item": "ecc.mcp.mnemosyne-os",
+      "kind": "mcp"
+    },
+    {
+      "item": "ecc.skill.agent-runtime-gateway-smoke-test",
+      "kind": "skill"
+    },
+    {
+      "item": "ecc.skill.agent-security-hardening",
+      "kind": "skill"
+    },
+    {
+      "item": "ecc.skill.astra-review",
+      "kind": "skill"
+    },
+    {
+      "item": "ecc.skill.bengali-nlp",
+      "kind": "skill"
+    },
+    {
+      "item": "ecc.skill.brownfield-retrospective",
+      "kind": "skill"
+    },
+    {
       "fetch": "upstream",
       "item": "ecc.skill.carrier-relationship-management",
+      "kind": "skill"
+    },
+    {
+      "item": "ecc.skill.change-impact",
+      "kind": "skill"
+    },
+    {
+      "item": "ecc.skill.config-health",
+      "kind": "skill"
+    },
+    {
+      "item": "ecc.skill.context-and-decisions",
+      "kind": "skill"
+    },
+    {
+      "item": "ecc.skill.conventional-commit-review",
+      "kind": "skill"
+    },
+    {
+      "item": "ecc.skill.counterparty-channel-discipline",
       "kind": "skill"
     },
     {
@@ -63,8 +147,40 @@
       "kind": "skill"
     },
     {
+      "item": "ecc.skill.deepseek-harness-setup",
+      "kind": "skill"
+    },
+    {
+      "item": "ecc.skill.devfleet",
+      "kind": "skill"
+    },
+    {
+      "item": "ecc.skill.docs-governance",
+      "kind": "skill"
+    },
+    {
+      "item": "ecc.skill.ecc-contribution-review",
+      "kind": "skill"
+    },
+    {
       "fetch": "upstream",
       "item": "ecc.skill.energy-procurement",
+      "kind": "skill"
+    },
+    {
+      "item": "ecc.skill.esign-field-placement",
+      "kind": "skill"
+    },
+    {
+      "item": "ecc.skill.godot-patterns",
+      "kind": "skill"
+    },
+    {
+      "item": "ecc.skill.godot-testing",
+      "kind": "skill"
+    },
+    {
+      "item": "ecc.skill.i18n-sync",
       "kind": "skill"
     },
     {
@@ -73,8 +189,48 @@
       "kind": "skill"
     },
     {
+      "item": "ecc.skill.issue-review",
+      "kind": "skill"
+    },
+    {
+      "item": "ecc.skill.leanrea",
+      "kind": "skill"
+    },
+    {
       "fetch": "upstream",
       "item": "ecc.skill.logistics-exception-management",
+      "kind": "skill"
+    },
+    {
+      "item": "ecc.skill.master-agreement-generator",
+      "kind": "skill"
+    },
+    {
+      "item": "ecc.skill.mcp-dependency-review",
+      "kind": "skill"
+    },
+    {
+      "item": "ecc.skill.module-governance",
+      "kind": "skill"
+    },
+    {
+      "item": "ecc.skill.module-regression",
+      "kind": "skill"
+    },
+    {
+      "item": "ecc.skill.mybatis-patterns",
+      "kind": "skill"
+    },
+    {
+      "item": "ecc.skill.operator-approval-loop",
+      "kind": "skill"
+    },
+    {
+      "item": "ecc.skill.osint-investigation",
+      "kind": "skill"
+    },
+    {
+      "item": "ecc.skill.platform-factory",
       "kind": "skill"
     },
     {
@@ -83,13 +239,85 @@
       "kind": "skill"
     },
     {
+      "item": "ecc.skill.prompt-caching-strategy",
+      "kind": "skill"
+    },
+    {
       "fetch": "upstream",
       "item": "ecc.skill.quality-nonconformance",
       "kind": "skill"
     },
     {
+      "item": "ecc.skill.rails-patterns",
+      "kind": "skill"
+    },
+    {
+      "item": "ecc.skill.rails-security",
+      "kind": "skill"
+    },
+    {
       "fetch": "upstream",
       "item": "ecc.skill.returns-reverse-logistics",
+      "kind": "skill"
+    },
+    {
+      "item": "ecc.skill.roundhouse-x402",
+      "kind": "skill"
+    },
+    {
+      "item": "ecc.skill.scientific-db-openalex-database",
+      "kind": "skill"
+    },
+    {
+      "item": "ecc.skill.short-video-distribution",
+      "kind": "skill"
+    },
+    {
+      "item": "ecc.skill.skill-host-compat",
+      "kind": "skill"
+    },
+    {
+      "item": "ecc.skill.story-lifecycle",
+      "kind": "skill"
+    },
+    {
+      "item": "ecc.skill.taste-application",
+      "kind": "skill"
+    },
+    {
+      "item": "ecc.skill.taste-distillation",
+      "kind": "skill"
+    },
+    {
+      "item": "ecc.skill.terraform-patterns",
+      "kind": "skill"
+    },
+    {
+      "item": "ecc.skill.test-collaboration",
+      "kind": "skill"
+    },
+    {
+      "item": "ecc.skill.token-card",
+      "kind": "skill"
+    },
+    {
+      "item": "ecc.skill.typescript-patterns",
+      "kind": "skill"
+    },
+    {
+      "item": "ecc.skill.ui-canvas",
+      "kind": "skill"
+    },
+    {
+      "item": "ecc.skill.web-perimeter-owasp-2025-audit",
+      "kind": "skill"
+    },
+    {
+      "item": "ecc.skill.yoruba-localization-testing",
+      "kind": "skill"
+    },
+    {
+      "item": "extensions.skill.in-progress.software-factory",
       "kind": "skill"
     }
   ],
@@ -108,11 +336,11 @@
   },
   "counts": {
     "bundle": 1,
-    "contentItems": 730,
-    "dropped": 21,
+    "contentItems": 784,
+    "dropped": 24,
     "edition": 43,
-    "mapped": 687,
-    "newItems": 21,
+    "mapped": 684,
+    "newItems": 78,
     "notice": 3,
     "steering": 22
   },
@@ -2906,11 +3134,9 @@
           "mcp-configs/mcp-servers.json"
         ]
       },
-      "disposition": "mapped",
-      "item": "ecc.mcp.squish",
-      "note": "cut out of mcp-configs/mcp-servers.json as its own server.json",
-      "pinBasis": "previous-release-review",
-      "pinnedVersion": "1.9.0"
+      "disposition": "dropped",
+      "note": "the selected ECC revision no longer declares this item",
+      "reason": "removed-upstream"
     },
     {
       "baseline": {
@@ -4803,8 +5029,9 @@
           "skills/claude-devfleet/SKILL.md"
         ]
       },
-      "disposition": "mapped",
-      "item": "ecc.skill.claude-devfleet"
+      "disposition": "dropped",
+      "note": "the selected ECC revision no longer declares this item",
+      "reason": "removed-upstream"
     },
     {
       "baseline": {
@@ -6611,8 +6838,9 @@
           "skills/motion-ui/SKILL.md"
         ]
       },
-      "disposition": "mapped",
-      "item": "ecc.skill.motion-ui"
+      "disposition": "dropped",
+      "note": "the selected ECC revision no longer declares this item",
+      "reason": "removed-upstream"
     },
     {
       "baseline": {
@@ -9661,19 +9889,19 @@
   ],
   "pins": {
     "ecc": {
-      "commit": "5064474d4d762dc9640234a41617cccb79185cec",
+      "commit": "4adeee6732a12d1540f49a4d50a38ce8c97f9a53",
       "repository": "https://github.com/affaan-m/ECC"
     },
     "extensions": {
-      "commit": "2481164a51ea7f9e480d51ef52f3d5cf15b017fa",
+      "commit": "c89adaad320d679c905e7122b908c1bc9c8c1904",
       "repository": "https://github.com/samartomar/aih-extensions"
     },
     "matt": {
-      "commit": "59db609eb1e18aaf59b63284d0e52255aff0c63c",
+      "commit": "6f7f7831a625f040a8e06a0e7954826b87ce775a",
       "repository": "https://github.com/mattpocock/skills"
     },
     "superpowers": {
-      "commit": "5bf4e78011075bcfc0dc295f0724994cd123ee71",
+      "commit": "22f0b463e7a5e579904dd6211a520321035526f7",
       "repository": "https://github.com/obra/superpowers"
     }
   },

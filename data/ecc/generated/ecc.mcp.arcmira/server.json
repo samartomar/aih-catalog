@@ -1,0 +1,18 @@
+{
+  "description": "YouTube transcript search and monitoring for your AI: exact quotes, full transcripts and speakers. Needs an Arcmira API key, or drop the headers block on hosts that sign in with MCP OAuth.",
+  "name": "arcmira",
+  "remotes": [
+    {
+      "headers": [
+        {
+          "description": "The Authorization header: Bearer <ARCMIRA_API_KEY>",
+          "isRequired": true,
+          "isSecret": true,
+          "name": "Authorization"
+        }
+      ],
+      "type": "streamable-http",
+      "url": "https://mcp.arcmira.com/mcp"
+    }
+  ]
+}
