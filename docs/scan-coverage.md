@@ -4,9 +4,9 @@
 
 This snapshot covers 960 items across 14 families, including client editions, runtime bundles and plugin folders. See the [sources and refresh instructions](#sources-and-refresh).
 
-- **Published scans** show the scan's risk rating and whether inspection was complete or partial for its selected tools. Read the findings and limits before deciding whether to install.
+- **Published scans** show the scan's risk rating and whether inspection was complete or partial for its selected tools. Static scans use file-based checks. AI scans also use a model. The installation decision stays with you or your organization.
 - **No published scan yet** means this snapshot found no public report for that version.
-- **See qualifications** points to platform-specific evidence for an AI setup.
+- **See qualifications** points to platform-specific evidence for an AI setup with no Scan key.
 
 ## Families
 

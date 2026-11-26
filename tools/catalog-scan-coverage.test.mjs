@@ -84,7 +84,7 @@ test("reports exact keys once overall and shows every Catalog reference", () => 
   assert.match(report, /third-party.*Plugin.*CAUTION/);
   assert.match(report, /third-party.*Full plugin folder.*No published scan yet/);
   assert.ok(!report.includes(published));
-  assert.match(csv, /sample\.skill\.edited@codex.*git-sha1:b{40}/);
+  assert.match(csv, /sample\.skill\.edited@codex.*git-sha1:b{40}","Pending"/);
 });
 
 test("refuses to count a missing archive or mismatched index digest as published", () => {

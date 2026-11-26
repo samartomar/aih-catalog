@@ -162,7 +162,7 @@ export function renderCoverage(commit, manifests, releases) {
   const rows = families.flatMap((family) => family.rows);
   const itemCount = families.reduce((count, family) => count + family.count, 0);
   const [keyCount, published, pending, unkeyed] = totals(rows, indexed);
-  const details = [["Family", "Name", "Type", "Catalog reference", "Scan key"]];
+  const details = [["Family", "Name", "Type", "Catalog reference", "Scan key", "Availability"]];
   const lines = [
     "# Catalog Scan coverage",
     "",
@@ -170,9 +170,9 @@ export function renderCoverage(commit, manifests, releases) {
     "",
     `This snapshot covers ${number.format(itemCount)} items across ${families.length} families, including client editions, runtime bundles and plugin folders. See the [sources and refresh instructions](#sources-and-refresh).`,
     "",
-    "- **Published scans** show the scan's risk rating and whether inspection was complete or partial for its selected tools. Read the findings and limits before deciding whether to install.",
+    "- **Published scans** show the scan's risk rating and whether inspection was complete or partial for its selected tools. Static scans use file-based checks. AI scans also use a model. The installation decision stays with you or your organization.",
     "- **No published scan yet** means this snapshot found no public report for that version.",
-    "- **See qualifications** points to platform-specific evidence for an AI setup.",
+    "- **See qualifications** points to platform-specific evidence for an AI setup with no Scan key.",
     "",
     "## Families",
     "",
@@ -219,7 +219,8 @@ export function renderCoverage(commit, manifests, releases) {
           : "[See qualifications](../README.md#data)";
       const note = fetch === "upstream" ? " · upstream-only" : "";
       lines.push(`| ${cell(row.name)}${note} | ${kind} | ${status} |`);
-      details.push([name, row.name, kind, reference, scanKey ?? ""]);
+      const availability = matches ? "Published" : scanKey ? "Pending" : "See qualifications";
+      details.push([name, row.name, kind, reference, scanKey ?? "", availability]);
     }
     lines.push("");
   }
