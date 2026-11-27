@@ -1,6 +1,6 @@
 # Catalog Scan coverage
 
-**971 of 1,069 Catalog versions have a published scan. 98 await one.**
+**986 of 1,069 Catalog versions have a published scan. 83 await one.**
 
 This snapshot covers 960 items across 14 families, including client editions, runtime bundles and plugin folders. See the [sources and refresh instructions](#sources-and-refresh).
 
@@ -14,14 +14,14 @@ Items and editions that share the same files, paths and modes count as one versi
 
 | Family | Items | Versions | Published | Pending | AI setups with qualifications |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| **All families** | 960 | 1,069 | 971 | 98 | 3 |
-| [Anthropic skills](#family-anthropic) | 18 | 24 | 15 | 9 | 0 |
+| **All families** | 960 | 1,069 | 986 | 83 | 3 |
+| [Anthropic skills](#family-anthropic) | 18 | 24 | 17 | 7 | 0 |
 | [codebase-memory-mcp](#family-cbm) | 2 | 1 | 1 | 0 | 1 |
 | [code-review-graph](#family-crg) | 9 | 8 | 8 | 0 | 1 |
 | [ECC](#family-ecc) | 698 | 775 | 744 | 31 | 0 |
 | [Elephant-Goldfish Model](#family-egm) | 18 | 21 | 18 | 3 | 0 |
 | [AIH Extensions](#family-extensions) | 66 | 67 | 59 | 8 | 0 |
-| [gstack](#family-gstack) | 61 | 61 | 25 | 36 | 0 |
+| [gstack](#family-gstack) | 61 | 61 | 38 | 23 | 0 |
 | [AIH Guide](#family-guide) | 2 | 4 | 4 | 0 | 0 |
 | [Google Chrome Modern Web Guidance](#family-modern-web-guidance) | 2 | 2 | 0 | 2 | 0 |
 | [Project basics](#family-project-basics) | 3 | 3 | 3 | 0 | 0 |
@@ -46,7 +46,7 @@ Choose a family and search for the item's name. Each date links to the release f
 | canvas-design | Skill | AI · CAUTION · Complete ([Nov 4, 2026][release-1]) |
 | discernment-nudge | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | doc-coauthoring · upstream-only | Skill | Static · SAFE · Complete ([Nov 26, 2026][release-4]) |
-| docx | Skill | No published scan yet |
+| docx | Skill | Static · DO NOT INSTALL · Complete ([Nov 27, 2026][release-5]) |
 | frontend-design | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | internal-comms | Skill | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | mcp-builder | Skill | No published scan yet |
@@ -57,7 +57,7 @@ Choose a family and search for the item's name. Each date links to the release f
 | theme-factory | Skill | AI · CAUTION · Complete ([Nov 4, 2026][release-1])<br>Static · CAUTION · Complete ([Nov 25, 2026][release-2]) |
 | web-artifacts-builder | Skill | AI · CAUTION · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | webapp-testing | Skill | AI · DO NOT INSTALL · Complete ([Nov 4, 2026][release-1])<br>Static · DO NOT INSTALL · Complete ([Nov 25, 2026][release-2]) |
-| xlsx | Skill | No published scan yet |
+| xlsx | Skill | Static · CAUTION · Complete ([Nov 27, 2026][release-5]) |
 | academy-guide | Plugin | AI · SAFE · Complete ([Nov 4, 2026][release-1])<br>Static · SAFE · Complete ([Nov 25, 2026][release-2]) |
 | academy-guide | Full plugin folder | No published scan yet |
 | claude-api | Plugin | No published scan yet |
@@ -1063,7 +1063,7 @@ Choose a family and search for the item's name. Each date links to the release f
 | context-save | Skill | AI · DO NOT INSTALL · Complete ([Nov 26, 2026][release-3]) |
 | design-consultation | Skill | No published scan yet |
 | design-html | Skill | No published scan yet |
-| design-motion | Skill | No published scan yet |
+| design-motion | Skill | Static · DO NOT INSTALL · Complete ([Nov 27, 2026][release-5]) |
 | design-review | Skill | No published scan yet |
 | design-shotgun | Skill | No published scan yet |
 | deslop-shared-libs | Skill | AI · SAFE · Complete ([Nov 26, 2026][release-3]) |
@@ -1071,10 +1071,10 @@ Choose a family and search for the item's name. Each date links to the release f
 | diagram | Skill | No published scan yet |
 | document-generate | Skill | AI · DO NOT INSTALL · Complete ([Nov 26, 2026][release-3]) |
 | document-release | Skill | AI · DO NOT INSTALL · Complete ([Nov 26, 2026][release-3]) |
-| eval-plan | Skill | No published scan yet |
+| eval-plan | Skill | Static · DO NOT INSTALL · Complete ([Nov 27, 2026][release-5]) |
 | freeze | Skill | No published scan yet |
 | gstack-upgrade | Skill | No published scan yet |
-| guard | Skill | No published scan yet |
+| guard | Skill | Static · SAFE · Complete ([Nov 27, 2026][release-5]) |
 | health | Skill | AI · DO NOT INSTALL · Complete ([Nov 26, 2026][release-3]) |
 | ios-clean | Skill | AI · DO NOT INSTALL · Complete ([Nov 26, 2026][release-3]) |
 | ios-design-review | Skill | AI · CAUTION · Complete ([Nov 26, 2026][release-3]) |
@@ -1082,21 +1082,21 @@ Choose a family and search for the item's name. Each date links to the release f
 | ios-qa | Skill | No published scan yet |
 | ios-sync | Skill | AI · CAUTION · Complete ([Nov 26, 2026][release-3]) |
 | land-and-deploy | Skill | No published scan yet |
-| landing-report | Skill | No published scan yet |
+| landing-report | Skill | Static · DO NOT INSTALL · Complete ([Nov 27, 2026][release-5]) |
 | learn | Skill | AI · DO NOT INSTALL · Complete ([Nov 26, 2026][release-3]) |
 | make-pdf | Skill | No published scan yet |
-| modernize | Skill | No published scan yet |
-| office-hours | Skill | No published scan yet |
+| modernize | Skill | Static · DO NOT INSTALL · Complete ([Nov 27, 2026][release-5]) |
+| office-hours | Skill | Static · DO NOT INSTALL · Complete ([Nov 27, 2026][release-5]) |
 | open-gstack-browser | Skill | AI · DO NOT INSTALL · Complete ([Nov 26, 2026][release-3]) |
 | pair-agent | Skill | AI · DO NOT INSTALL · Complete ([Nov 26, 2026][release-3]) |
 | plan-ceo-review | Skill | No published scan yet |
 | plan-design-review | Skill | No published scan yet |
-| plan-devex-review | Skill | No published scan yet |
-| plan-eng-review | Skill | No published scan yet |
+| plan-devex-review | Skill | Static · DO NOT INSTALL · Complete ([Nov 27, 2026][release-5]) |
+| plan-eng-review | Skill | Static · DO NOT INSTALL · Complete ([Nov 27, 2026][release-5]) |
 | plan-tune | Skill | AI · DO NOT INSTALL · Complete ([Nov 26, 2026][release-3]) |
-| qa | Skill | No published scan yet |
+| qa | Skill | Static · DO NOT INSTALL · Complete ([Nov 27, 2026][release-5]) |
 | qa-only | Skill | AI · DO NOT INSTALL · Complete ([Nov 26, 2026][release-3]) |
-| retro | Skill | No published scan yet |
+| retro | Skill | Static · DO NOT INSTALL · Complete ([Nov 27, 2026][release-5]) |
 | review | Skill | No published scan yet |
 | runaway-stopper | Skill | No published scan yet |
 | scrape | Skill | No published scan yet |
@@ -1104,13 +1104,13 @@ Choose a family and search for the item's name. Each date links to the release f
 | setup-deploy | Skill | AI · DO NOT INSTALL · Complete ([Nov 26, 2026][release-3]) |
 | setup-gbrain | Skill | No published scan yet |
 | gstack-ship | Skill | No published scan yet |
-| skillify | Skill | No published scan yet |
+| skillify | Skill | Static · CAUTION · Complete ([Nov 27, 2026][release-5]) |
 | spec | Skill | AI · DO NOT INSTALL · Complete ([Nov 26, 2026][release-3]) |
 | sync-gbrain | Skill | No published scan yet |
 | test-audit | Skill | AI · CAUTION · Complete ([Nov 26, 2026][release-3]) |
-| ubicloud | Skill | No published scan yet |
+| ubicloud | Skill | Static · DO NOT INSTALL · Complete ([Nov 27, 2026][release-5]) |
 | unfreeze | Skill | AI · CAUTION · Complete ([Nov 26, 2026][release-3]) |
-| write-skill | Skill | No published scan yet |
+| write-skill | Skill | Static · DO NOT INSTALL · Complete ([Nov 27, 2026][release-5]) |
 
 <a name="family-guide"></a>
 
@@ -1321,6 +1321,7 @@ Choose a family and search for the item's name. Each date links to the release f
 - [Nov 25, 2026][release-2] (`scan-catalog-results-20261125-static-r2-4c41927d737cbb61`). Index SHA-256 `3dbccb92bfc9a8d66c4d5162cb612750cf784da5690cc49ff6b2dc2865b3787f`.
 - [Nov 26, 2026][release-3] (`scan-catalog-results-20261126-ai-r1-d49d470d4176a239`). Index SHA-256 `5bb4c3f2370101db3f825942ee6f1aa8c8bd78d83db64e783867fb8780c0bb93`.
 - [Nov 26, 2026][release-4] (`scan-catalog-results-20261126-static-r1-30f45461de2c9123`). Index SHA-256 `e00c040c52031d32d066554d542b5243abd333741237f67cb9b7048104128ea1`.
+- [Nov 27, 2026][release-5] (`scan-catalog-results-20261126-static-r1-c59b6c6883bbab06`). Index SHA-256 `3c03f297ccedef6aad1e677c2af733696f74cc58a5e0f0fe96b6efcec44ad82e`.
 
 The generator checks SHA-256 for each downloaded index, archive and summary. It matches summaries by exact Scan key and shows the newest revision for each scan type. For signature verification and more on what a rating or completeness means, see [Scan's instructions](https://github.com/samartomar/aih-scan#signing-and-verification).
 
@@ -1339,10 +1340,12 @@ node tools/catalog-scan-coverage.mjs --catalog 3c1d0dbc50581bee0a682acb1c2183df9
   --release scan-catalog-results-20261104-e935f39b9f3148a5 \
   --release scan-catalog-results-20261125-static-r2-4c41927d737cbb61 \
   --release scan-catalog-results-20261126-ai-r1-d49d470d4176a239 \
-  --release scan-catalog-results-20261126-static-r1-30f45461de2c9123
+  --release scan-catalog-results-20261126-static-r1-30f45461de2c9123 \
+  --release scan-catalog-results-20261126-static-r1-c59b6c6883bbab06
 ```
 
 [release-1]: https://github.com/samartomar/aih-scan/releases/tag/scan-catalog-results-20261104-e935f39b9f3148a5
 [release-2]: https://github.com/samartomar/aih-scan/releases/tag/scan-catalog-results-20261125-static-r2-4c41927d737cbb61
 [release-3]: https://github.com/samartomar/aih-scan/releases/tag/scan-catalog-results-20261126-ai-r1-d49d470d4176a239
 [release-4]: https://github.com/samartomar/aih-scan/releases/tag/scan-catalog-results-20261126-static-r1-30f45461de2c9123
+[release-5]: https://github.com/samartomar/aih-scan/releases/tag/scan-catalog-results-20261126-static-r1-c59b6c6883bbab06
