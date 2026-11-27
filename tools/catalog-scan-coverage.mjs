@@ -122,10 +122,23 @@ function collectRows({ framework: { id }, items, bundles = [], plugins = [] }) {
   return rows;
 }
 
+function inspection(reports) {
+  if (!reports) return "";
+  return [...reports.values()].some((report) => report.coverage === "Complete")
+    ? "Complete"
+    : "Partial only";
+}
+
 function totals(rows, indexed) {
   const keys = new Set(rows.map((row) => row.scanKey).filter(Boolean));
-  const published = [...keys].filter((key) => indexed.has(key)).length;
-  return [keys.size, published, keys.size - published, rows.filter((row) => !row.scanKey).length];
+  const byInspection = Map.groupBy(keys, (key) => inspection(indexed.get(key)));
+  return [
+    keys.size,
+    byInspection.get("Complete")?.length ?? 0,
+    byInspection.get("Partial only")?.length ?? 0,
+    byInspection.get("")?.length ?? 0,
+    rows.filter((row) => !row.scanKey).length,
+  ];
 }
 
 function cell(value) {
@@ -161,12 +174,14 @@ export function renderCoverage(commit, manifests, releases) {
   }));
   const rows = families.flatMap((family) => family.rows);
   const itemCount = families.reduce((count, family) => count + family.count, 0);
-  const [keyCount, published, pending, unkeyed] = totals(rows, indexed);
-  const details = [["Family", "Name", "Type", "Catalog reference", "Scan key", "Availability"]];
+  const [keyCount, complete, partial, pending, unkeyed] = totals(rows, indexed);
+  const details = [
+    ["Family", "Name", "Type", "Catalog reference", "Scan key", "Availability", "Inspection"],
+  ];
   const lines = [
     "# Catalog Scan coverage",
     "",
-    `**${number.format(published)} of ${number.format(keyCount)} Catalog versions have a published scan. ${number.format(pending)} await one.**`,
+    `**${number.format(complete)} of ${number.format(keyCount)} Catalog versions with complete inspection · ${number.format(partial)} with partial inspection only · ${number.format(pending)} awaiting a published scan**`,
     "",
     `This snapshot covers ${number.format(itemCount)} items across ${families.length} families, including client editions, runtime bundles and plugin folders. See the [sources and refresh instructions](#sources-and-refresh).`,
     "",
@@ -176,11 +191,11 @@ export function renderCoverage(commit, manifests, releases) {
     "",
     "## Families",
     "",
-    "Items and editions that share the same files, paths and modes count as one version. The overall row counts versions shared across families once.",
+    "Items and editions that share the same files, paths and modes count as one version. The overall row counts versions shared across families once. A version counts as complete when any scan shown for it is complete. Partial only means all scans shown for that version are partial.",
     "",
-    "| Family | Items | Versions | Published | Pending | AI setups with qualifications |",
-    "| --- | ---: | ---: | ---: | ---: | ---: |",
-    `| **All families** | ${[itemCount, keyCount, published, pending, unkeyed].map((value) => number.format(value)).join(" | ")} |`,
+    "| Family | Items | Versions | Complete | Partial only | Pending | AI setups with qualifications |",
+    "| --- | ---: | ---: | ---: | ---: | ---: | ---: |",
+    `| **All families** | ${[itemCount, keyCount, complete, partial, pending, unkeyed].map((value) => number.format(value)).join(" | ")} |`,
     ...families.map(
       ({ id, name, count, rows }) =>
         `| [${name}](#family-${id}) | ${count} | ${totals(rows, indexed).join(" | ")} |`,
@@ -220,7 +235,15 @@ export function renderCoverage(commit, manifests, releases) {
       const note = fetch === "upstream" ? " · upstream-only" : "";
       lines.push(`| ${cell(row.name)}${note} | ${kind} | ${status} |`);
       const availability = matches ? "Published" : scanKey ? "Pending" : "See qualifications";
-      details.push([name, row.name, kind, reference, scanKey ?? "", availability]);
+      details.push([
+        name,
+        row.name,
+        kind,
+        reference,
+        scanKey ?? "",
+        availability,
+        inspection(matches),
+      ]);
     }
     lines.push("");
   }
