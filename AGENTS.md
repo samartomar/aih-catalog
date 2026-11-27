@@ -1,68 +1,13 @@
 # AIH Catalog
 
-This repository builds the `@aihq/catalog` library: it reads sources, identifies
-items, checks them and plans installations; its content lives under `data/`.
-[README.md](README.md) owns usage, [CONTRACTS.md](CONTRACTS.md) owns formats and
-plans, [CONTRIBUTING.md](CONTRIBUTING.md) owns contributor checks, and
-[RELEASING.md](RELEASING.md) owns release gates. [The transition](docs/TRANSITION.md)
-records what replaced the earlier release model and what is still open.
+**Hard rule for maintainer sessions.** This checkout belongs to a larger maintainer workspace. Start every session at that workspace's root and target this repository from there; never start one here. Create no worktree of this repository alone: a needed worktree is created under the workspace root, with the session still at that root.
 
-## Source and safety boundaries
+The workspace owns workflow, issue routing, triage, delivery and release process. This file holds only this repository's own rules; outside contributors without the workspace follow the public documentation and these rules.
 
-Never run an installed aih-supported against this checkout.
-That name is the retired CLI, not an executable supplied by current Catalog.
-Use direct repository checks and disposable fixture/packed-consumer roots.
-Validate boundary input and fail closed on ambiguity. Keep credentials, private
-reproductions, machine paths and generated tool state out of committed files.
-Source, tests and verified artifacts establish behavior; helper indexes are
-optional navigation. Update generated outputs through their owning scripts.
+This repository builds the `@aihq/catalog` library: it reads sources, identifies items, checks them and plans installations; its content lives under `data/`. [README.md](README.md) owns usage, [CONTRACTS.md](CONTRACTS.md) owns formats and plans, [CONTRIBUTING.md](CONTRIBUTING.md) owns contributor checks, and [RELEASING.md](RELEASING.md) owns release gates. [The transition](docs/TRANSITION.md) records what replaced the earlier release model and what is still open. The ai-coding directory holds technical references; it does not select another engineering workflow or require helper installation.
 
-## Engineering workflow
-
-Use Matt Pocock's engineering skills for planning, implementation, debugging and
-review, with Extensions for complementary checks. Use /ask-matt for that flow and
-/ask-sam for the add-on. Commit locally when authorized, then run Matt's
-/code-review against the fixed base and originating requirements before merge;
-/ship handles launch readiness. Preserve the owning contribution and release gates.
-
-AGENTS.md is the maintained instruction entry point. The ai-coding directory
-holds technical references; it does not select another engineering workflow or
-require helper installation.
-
-For maintainer assignments, keep the coordinating session in its supplied
-workspace and target this Git root explicitly for commands and edits. Load these
-product rules from that session. Public contributors can use this repository
-independently; private startup routing stays outside public files.
-
-## Issue and delivery routing
-
-Accepted bugs/enhancements, including internally discovered work, use an owning
-Catalog issue before implementation. Reuse an existing report for the same
-outcome. Use fully qualified `samartomar/aih-catalog#<number>` references and
-explicit `--repo samartomar/aih-catalog` on GitHub issue commands. Confidential
-reports stay in the verified private route; public text contains no private plans,
-reproductions or coordination links.
-
-At pickup identify the delivery issue, actual Git root/worktree, scope and output.
-Link the PR and actual release evidence on that issue. Changed content in a
-published npm tarball requires a new Catalog package version even when producer
-source is unchanged. Identify unpublished local builds by source and artifact digest. Routine successful refreshes use CI/output records;
-actionable recurring failures reuse the owning issue.
-
-Before closeout verify merged versus available status. When publication is
-required by acceptance, retain it as pending until verified; otherwise name the
-release owner and follow-up. Public records stand alone. Private maintainer
-instructions travel through an explicit private handoff.
-
-Carry existing authorization within its scope. Tests or instructions alone do not
-authorize tracker writes, pushes, merges, signing or publication. Semver/category
-labels do not establish triage readiness. Resolve current labels before edits.
-
-## Workflow references
-
-Use the managed Matt Pocock skills and Extensions within this repository's rules.
-Keep upstream skills in their managed installation, unchanged by repository cleanup.
-
-- [Issue routing](docs/agents/issue-tracker.md): owning delivery issue and intake.
-- [Triage](docs/agents/triage-labels.md): existing label roles and mappings.
-- [Domain documentation](docs/agents/domain.md): vocabulary and decision homes.
+- Never run an installed aih-supported against this checkout. That name is the retired CLI, not an executable supplied by current Catalog. Use direct repository checks and disposable fixture/packed-consumer roots.
+- Validate boundary input and fail closed on ambiguity.
+- Keep credentials, private reproductions, machine paths and generated tool state out of committed files.
+- Update generated outputs through their owning scripts.
+- Changed content in a published npm tarball requires a new Catalog package version even when producer source is unchanged. Identify unpublished local builds by source and artifact digest.
