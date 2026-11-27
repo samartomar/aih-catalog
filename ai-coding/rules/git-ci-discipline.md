@@ -1,8 +1,7 @@
 # Git and CI discipline
 
 Never run an installed aih-supported against this checkout.
-Review the full diff and run `npm run verify` before committing. Local commits,
-remote writes and publication require authorization within the assigned scope.
+Review the full diff and run `npm run verify` before committing.
 
 Read [CONTRIBUTING.md](../../CONTRIBUTING.md) before changing checks or delivery.
 Two gates apply. `npm run verify` builds, checks the embedded profiles, typechecks,

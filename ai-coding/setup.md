@@ -16,6 +16,5 @@ mutation. The old combined `npm run repo:init` path is blocked; it is not a setu
 recommendation. Selected setup does not automatically index sources or change
 Git hooks. Source search remains available when a helper is unqualified.
 
-[AGENTS.md](../AGENTS.md) owns contributor routing; [SELF-HOSTING.md](SELF-HOSTING.md)
-owns the no-self-application boundary. This page installs no workflow skills and
+[AGENTS.md](../AGENTS.md) owns the no-self-application boundary. This page installs no workflow skills and
 does not change account-wide helper configuration.

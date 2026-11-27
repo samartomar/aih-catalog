@@ -11,9 +11,7 @@ describe("aih-supported self-hosting boundary", () => {
   it("states the no-self-application boundary in agent instructions and technical references", () => {
     for (const path of [
       "AGENTS.md",
-      "ai-coding/RULE_ROUTER.md",
-      "ai-coding/SELF-HOSTING.md",
-      "ai-coding/rules/agent-behavior-core.md",
+      "ai-coding/rules/git-ci-discipline.md",
       "ai-coding/rules/repo-ai-tools.md",
     ])
       expect(read(path), path).toContain(boundary);

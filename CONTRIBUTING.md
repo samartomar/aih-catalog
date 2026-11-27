@@ -1,6 +1,6 @@
 # Contributing
 
-Start with [AGENTS.md](AGENTS.md) for issue ownership and repository boundaries. Accepted
+Start with [AGENTS.md](AGENTS.md) for repository boundaries. Accepted
 bugs and enhancements use the owning Catalog issue; link the pull request and the verified
 outcome there. Keep private planning and reproductions out of public text.
 
