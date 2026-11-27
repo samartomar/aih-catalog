@@ -5,6 +5,7 @@ import { readReleaseIndex, readReportSummary, renderCoverage } from "./catalog-s
 
 const published = `git-sha1:${"a".repeat(40)}`;
 const pending = `git-sha1:${"b".repeat(40)}`;
+const mixed = `git-sha1:${"e".repeat(40)}`;
 const archive = "c".repeat(64);
 const tag = "scan-catalog-results-example";
 const summary = Buffer.from(
@@ -59,6 +60,7 @@ test("reports exact keys once overall and shows every Catalog reference", () => 
           scanKey: published,
           editions: { codex: { scanKey: pending } },
         },
+        { id: "sample.skill.mixed", kind: "skill", scanKey: mixed },
         { id: "sample.ai-setup.graph", kind: "ai-setup" },
       ],
       {
@@ -73,18 +75,30 @@ test("reports exact keys once overall and shows every Catalog reference", () => 
     tag,
     indexSha256,
     date: "2026-11-26T12:00:00Z",
-    reports: [readReportSummary(records[0], summary)],
+    reports: [
+      readReportSummary(records[0], summary),
+      { scanKey: mixed, revision: 1, mode: "Static", label: "SAFE", coverage: "Complete" },
+      { scanKey: mixed, revision: 2, mode: "AI", label: "CAUTION", coverage: "Partial" },
+    ],
   };
   const { report, csv } = renderCoverage("d".repeat(40), manifests, [release]);
-  assert.match(report, /\| \*\*All families\*\* \| 4 \| 2 \| 1 \| 1 \| 1 \|/);
+  assert.match(report, /\| \*\*All families\*\* \| 5 \| 3 \| 1 \| 1 \| 1 \| 1 \|/);
+  assert.match(
+    report,
+    /1 of 3 Catalog versions with complete inspection · 1 with partial inspection only · 1 awaiting a published scan/,
+  );
   assert.match(report, /edited.*Codex edition.*No published scan yet/);
   assert.match(report, /example.*upstream-only.*AI · CAUTION · Partial.*Nov 26, 2026/);
+  assert.match(report, /mixed.*AI · CAUTION · Partial.*Static · SAFE · Complete/);
   assert.match(report, /graph.*See qualifications/);
   assert.match(report, /runtime.*Runtime bundle.*CAUTION/);
   assert.match(report, /third-party.*Plugin.*CAUTION/);
   assert.match(report, /third-party.*Full plugin folder.*No published scan yet/);
   assert.ok(!report.includes(published));
-  assert.match(csv, /sample\.skill\.edited@codex.*git-sha1:b{40}","Pending"/);
+  assert.match(csv, /"Availability","Inspection"/);
+  assert.match(csv, /sample\.skill\.edited@codex.*git-sha1:b{40}","Pending",""/);
+  assert.match(csv, /sample\.skill\.example.*git-sha1:a{40}","Published","Partial only"/);
+  assert.match(csv, /sample\.skill\.mixed.*git-sha1:e{40}","Published","Complete"/);
 });
 
 test("refuses to count a missing archive or mismatched index digest as published", () => {
