@@ -3,16 +3,12 @@
 Never run an installed aih-supported against this checkout.
 Review the full diff and run `npm run verify` before committing.
 
-Read [CONTRIBUTING.md](../../CONTRIBUTING.md) before changing checks or delivery.
-Two gates apply. `npm run verify` builds, checks the embedded profiles, typechecks,
-lints, runs every test once and checks action pins; the pre-commit hook runs it.
-`npm run check:consumer` then replays the packed package from the committed source,
-so run it after committing; CI runs both, and RELEASING.md requires both. The hook
+Read [CONTRIBUTING.md](../../CONTRIBUTING.md) before changing checks or delivery:
+it owns what each check does and the `semver:` label, and
+[RELEASING.md](../../RELEASING.md) owns the publication refusal.
+Two gates apply. The pre-commit hook runs `npm run verify`. Run
+`npm run check:consumer` after committing; CI runs both, and RELEASING.md requires both. The hook
 does not run the consumer check, because before a commit exists it would replay the
 previous commit, not the staged change.
 
-Publication is refused by package metadata and an unconditional lifecycle refusal.
-No workflow publishes, signs or attests package bytes. New-interface
-readiness cannot be inferred from passing CI. Every PR carries exactly one
-`semver:none|patch|minor|major` label; see [VERSIONING.md](../../VERSIONING.md)
-and [RELEASING.md](../../RELEASING.md).
+New-interface readiness cannot be inferred from passing CI.
